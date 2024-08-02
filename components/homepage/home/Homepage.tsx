@@ -16,46 +16,31 @@ import { RootState } from "@/lib/store";
 type Props = {};
 
 const Homepage = (props: Props) => {
-  const [possibleCombinations, setPossibleCombinations] = useState<
-    Combinations
-  >([
-    [1, 2, 3],
-    [1, 4, 7],
-    [1, 5, 9],
-    [2, 5, 8],
-    [3, 5, 7],
-    [3, 6, 9],
-    [4, 5, 6],
-    [7, 8, 9],
-    [1, 2, 3],
-  ]);
-  const [playerOnesChoice, setPlayerOnesChoice] = useState<Selected[]>([]);
-  const [playerTwosChoice, setPlayerTwosChoice] = useState<Selected[]>([]);
+  const possibilty = useAppSelector((state) => state.possible.possibility);
 
-  const [currentPlayer, setCurrentPlayer] = useState({
-    name: "Player1",
-    player: Boolean,
-  });
-
-  const [currentPlayerControl, setCurrentPlayerControl] = useState<boolean>(
-    false
-  );
-  const [getIndexSelected, setGetIndexSelected] = useState<number | null>(null);
-  //   const [getSelected, setGetSelected] = useState<number[]>([]);
-
-  const [trackTheWinner, setTrackTheWinner] = useState(" ");
-
-  const [playerOneScore, setPlayerOneScore] = useState(0);
-  const [playerTwoScore, setPlayerTwoScore] = useState(0);
-  const [trackRounds, setTrackRounds] = useState(1);
-
-  const store = useAppStore();
-  const dispatch = useAppDispatch();
-  const selector = useAppSelector(
-    (state: RootState) => state.possible.possibility
+  const playerOnesChoice = useAppSelector(
+    (state: RootState) => state.players.playerOne
   );
 
-  console.log(selector, "selector");
+  const playerTwosChoice = useAppSelector(
+    (state: RootState) => state.players.playerTwo
+  );
+
+  const currentPlayerControl = useAppSelector(
+    (state) => state.players.currentplayerControl
+  );
+
+  const trackTheWinner = useAppSelector((state) => state.track.trackTheWinnner);
+
+  const trackPlayerOneScore = useAppSelector(
+    (state) => state.track.playerOneScore
+  );
+
+  const trackPlayerTwoScore = useAppSelector(
+    (state) => state.track.playerTwoScore
+  );
+
+  const trackRounds = useAppSelector((state) => state.track.trackRounds);
 
   return (
     <div className=" flex flex-col  gap-[10px]  items-center  w-full h-[100vh]">
@@ -82,11 +67,15 @@ const Homepage = (props: Props) => {
                     alt="img"
                   />
                 </div>
-                <h1 className="text-white text-[24px] ">{playerOneScore} </h1>
+                <h1 className="text-white text-[24px] ">
+                  {trackPlayerOneScore}{" "}
+                </h1>
               </div>
               <h1 className="text-white text-[24px] "> : </h1>
               <div className="flex items-center w-full justify-center   gap-[20px]">
-                <h1 className="text-white text-[24px] ">{playerTwoScore} </h1>
+                <h1 className="text-white text-[24px] ">
+                  {trackPlayerTwoScore}{" "}
+                </h1>
                 <div
                   style={{
                     background: "rgba(255, 255, 255, 0.1)",
@@ -201,25 +190,12 @@ const Homepage = (props: Props) => {
               >
                 {" "}
               </span>
-              {possibleCombinations.map((val, index: number) => (
+              {possibilty.map((val, index: number) => (
                 <div key={index}>
                   <Possible
                     val={val}
-                    possibilty={possibleCombinations}
+                    // possibilty={possibleCombinations}
                     index={index + 1}
-                    playerOnesChoice={playerOnesChoice}
-                    setPlayerOnesChoice={setPlayerOnesChoice}
-                    playerTwosChoice={playerTwosChoice}
-                    setPlayerTwosChoice={setPlayerTwosChoice}
-                    currentPlayerControl={currentPlayerControl}
-                    setCurrentPlayerControl={setCurrentPlayerControl}
-                    getIndexSelected={getIndexSelected}
-                    setGetIndexSelected={setGetIndexSelected}
-                    trackTheWinner={trackTheWinner}
-                    setTrackTheWinner={setTrackTheWinner}
-
-                    //   getSelected={getSelected}
-                    //   setGetSelected={setGetSelected}
                   />
                 </div>
               ))}
@@ -227,12 +203,27 @@ const Homepage = (props: Props) => {
           </div>
         </div>
       </div>
-      <div className="border-2 border-white w-full">
+      <div className=" text-center inline-block  w-full">
         <h1
-          style={{}}
-          className="text-white text-[26px] border-red-600 border-2 p-2 w-fit"
+          style={{
+            msTransform: "skewX(20deg)",
+            WebkitTransform: "skewX(20deg)",
+            textTransform: "uppercase",
+
+            // webkitTransform: "skewX(20deg)",
+            transform: "skewX(20deg)",
+            display: "inline-block",
+          }}
+          className="text-white border-2 inline-block text-center text-[26px]  p-2 w-[250px]"
         >
-          Round: {trackRounds}{" "}
+          <span
+            style={{
+              transform: "skewX(-20deg)", // Counter the skew for the text
+            }}
+            className="text-white inline-block"
+          >
+            Round: {trackRounds} / 5
+          </span>
         </h1>
       </div>
     </div>

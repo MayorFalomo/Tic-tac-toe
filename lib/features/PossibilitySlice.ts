@@ -1,4 +1,4 @@
-import { Combinations } from "@/app/types/types"; //Define the type we want to expect from Typescript
+import { Combinations, Selected } from "@/app/types/types"; //Define the type we want to expect from Typescript
 import { createSlice } from "@reduxjs/toolkit"; // Then we create a slice from github
 
 import type { PayloadAction } from "@reduxjs/toolkit";
@@ -7,6 +7,7 @@ interface PossibiltyState {
   possibility: Combinations;
 }
 
+//So now i'm expecting a possibility array of aray of numbers that would be my initialState
 const initialState: PossibiltyState = {
   possibility: [
     [1, 2, 3],
@@ -26,7 +27,7 @@ export const possibleSlice = createSlice({
   initialState,
   reducers: {
     getAllPossibileCombinations: (state, action: PayloadAction<number[][]>) => {
-      console.log(state, "state in slice");
+      //   console.log(state, "state in slice");
     },
   },
 });

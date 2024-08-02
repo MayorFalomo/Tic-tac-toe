@@ -1,29 +1,69 @@
 import { MappedOver, Selected } from "@/app/types/types";
+import {
+  addPlayerOne,
+  addPlayerTwo,
+  changeCurrentPlayerControl,
+  changeIndexSelected,
+  emptyPlayer,
+  setGetSelected,
+} from "@/lib/features/PlayerSlice";
+import {
+  emptyScore,
+  setDisabledClick,
+  setTrackPlayerOneScore,
+  setTrackPlayerTwoScore,
+  setTrackRounds,
+  setTrackWinner,
+} from "@/lib/features/TrackerSlice";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
+import { RootState } from "@/lib/store";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
-const Possible: React.FC<MappedOver> = ({
-  val,
-  index,
-  playerOnesChoice,
-  setPlayerOnesChoice,
-  playerTwosChoice,
-  setPlayerTwosChoice,
-  currentPlayerControl,
-  setCurrentPlayerControl,
-  getIndexSelected,
-  setGetIndexSelected,
-  possibilty,
-  trackTheWinner,
-  setTrackTheWinner,
-}) => {
-  const [getSelected, setGetSelected] = useState<number[]>([]);
-  const [disableDoubleClick, setDisableDoubleClick] = useState(false);
+const Possible: React.FC<MappedOver> = ({ val, index }) => {
+  // const [getSelected, setGetSelected] = useState<number[]>([]);
+
+  // const [disableDoubleClick, setDisableDoubleClick] = useState(false);
+
+  const possibilty = useAppSelector((state) => state.possible.possibility);
+
+  const playerOnesChoice = useAppSelector(
+    (state: RootState) => state.players.playerOne
+  );
+  const playerTwosChoice = useAppSelector(
+    (state: RootState) => state.players.playerTwo
+  );
+  const currentPlayerControl = useAppSelector(
+    (state) => state.players.currentplayerControl
+  );
+  const getSelected = useAppSelector(
+    (state: RootState) => state.players.getSelected
+  );
+
+  const trackRounds = useAppSelector(
+    (state: RootState) => state.track.trackRounds
+  );
+  const disableDoubleClick = useAppSelector(
+    (state: RootState) => state.track.disabledClick
+  );
+
+  const trackTheWinner = useAppSelector((state) => state.track.trackTheWinnner);
+
+  const playerOneScore = useAppSelector(
+    (state: RootState) => state.track.playerOneScore
+  );
+  const playerTwoScore = useAppSelector(
+    (state: RootState) => state.track.playerTwoScore
+  );
+
+  const dispatch = useAppDispatch();
 
   // N:B: If you ever face an issue where whatever you push in an array that you need to track and you can't find it updating on time, you need to place it in a useEffect to properly track it if there's any change to it's value
   useEffect(() => {
     if (playerOnesChoice && playerOnesChoice?.length > 0) {
       if (currentPlayerControl) {
+        // console.log(playerOnesChoice, "i am true");
+
         // First i get all the choice player one has selected in an array
         const playerOneSelectedArray = playerOnesChoice
           ? playerOnesChoice?.map((prev) => prev.choice)
@@ -33,31 +73,39 @@ const Possible: React.FC<MappedOver> = ({
         if (playerOnesChoice && playerOnesChoice?.length > 2) {
           //*since the combinations can be in any format right? I need a way to check if the values in the combinations are in the playOneSelectedArray
 
-          const storedAnswer = val.filter((resVal) =>
-            playerOneSelectedArray.includes(resVal)
-          );
+          const storedAnswer = val.filter((resVal) => {
+            const check = playerOneSelectedArray.some((e) => e === resVal);
+            return check;
+          });
 
-          if (storedAnswer && storedAnswer.length > 2) {
-            setGetSelected(storedAnswer);
-            setTrackTheWinner("PLAYER 1 WINS");
+          console.log(storedAnswer, "playerOnEsTOREDAns");
+
+          if (storedAnswer.length > 2) {
+            dispatch(setGetSelected(storedAnswer));
+            // dispatch(changeIndexSelected(storedAnswer));
+            dispatch(setTrackWinner("PLAYER 1 WINS"));
+            dispatch(setTrackPlayerOneScore(playerOneScore));
+            dispatch(changeCurrentPlayerControl(true));
           }
         }
       }
     }
-  }, [playerOnesChoice, currentPlayerControl]);
+  }, [
+    currentPlayerControl,
+    playerOnesChoice,
+    val,
+    dispatch,
+    // disableDoubleClick,
+    // playerOneScore,
+  ]);
 
   useEffect(() => {
     if (playerTwosChoice && playerTwosChoice?.length > 0) {
-      console.log("I answer");
-
-      if (currentPlayerControl == false) {
-        console.log("I HAVE DEF ANSWERED");
-
+      if (!currentPlayerControl) {
         const playerTwoSelectedArray = playerTwosChoice?.map(
           (prev) => prev.choice
         );
-
-        console.log(playerTwoSelectedArray, "playetr2SelectedARR");
+        // console.log(playerTwoSelectedArray, "inside useEffect playerTwo");
 
         // Next I need a way to compare the selected values and the possibleCombinations
         if (playerTwosChoice && playerTwosChoice?.length > 2) {
@@ -67,93 +115,205 @@ const Possible: React.FC<MappedOver> = ({
             (resVal) =>
               playerTwoSelectedArray && playerTwoSelectedArray.includes(resVal)
           );
-          console.log(storedAnswer, "playerTwo StoredAns");
+
+          console.log(storedAnswer, "playerTwosTOREDAns");
 
           if (storedAnswer && storedAnswer.length > 2) {
-            console.log(storedAnswer, "player2Ans is the combo!!");
-            setGetSelected(storedAnswer);
-            setTrackTheWinner("PLAYER 2 WINS");
+            dispatch(setGetSelected(storedAnswer));
+            // dispatch(changeIndexSelected(storedAnswer));
+            dispatch(setTrackWinner("PLAYER 2 WINS"));
+            dispatch(setTrackPlayerTwoScore(playerTwoScore));
+            dispatch(changeCurrentPlayerControl(false));
           }
         }
       }
     }
-  }, [currentPlayerControl, playerTwosChoice]);
+  }, [
+    currentPlayerControl,
+    playerTwosChoice,
+    dispatch,
+    // val,
+    // disableDoubleClick,
+  ]);
 
-  console.log(getSelected, "gotten");
-
+  //Useeffect to reset the game for the next round
   useEffect(() => {
-    if (trackTheWinner.length > 2) {
-      setDisableDoubleClick(true);
-    }
-  }, [playerOnesChoice, playerTwosChoice, getSelected, trackTheWinner]);
+    if (trackTheWinner.length > 1) {
+      if (trackTheWinner.length > 1 && !disableDoubleClick) {
+        // dispatch(setDisabledClick(true));
+        const timed = setTimeout(() => {
+          // dispatch(setDisabledClick(false));
 
+          dispatch(setTrackWinner(""));
+          dispatch(emptyPlayer([]));
+
+          dispatch(setGetSelected([]));
+
+          // dispatch(changeCurrentPlayerControl(true));
+          dispatch(changeIndexSelected(0));
+          dispatch(setTrackRounds(trackRounds));
+        }, 2000);
+
+        return () => {
+          clearTimeout(timed);
+          // console.log(getSelected, "getSelected");
+        };
+      }
+    }
+  }, [
+    trackTheWinner,
+    playerOnesChoice,
+    playerTwosChoice,
+    disableDoubleClick,
+    currentPlayerControl,
+    getSelected,
+    trackRounds,
+    dispatch,
+  ]);
+
+  console.log(getSelected, "GETSELLECT");
+
+  //useEffect to track if there is no winner and therefore ends in a Tie
   useEffect(() => {
     if (
-      playerOnesChoice?.length == 5 &&
-      playerTwosChoice?.length == 4 &&
-      getSelected.length < 1
+      (playerOnesChoice?.length == 5 &&
+        playerTwosChoice?.length == 4 &&
+        getSelected.length < 1) ||
+      (playerOnesChoice?.length == 4 &&
+        playerTwosChoice?.length == 5 &&
+        getSelected.length < 1)
     ) {
-      console.log(getSelected, "getSelected length");
-
-      setTrackTheWinner("IT IS A TIE");
+      dispatch(setTrackWinner("IT IS A TIE"));
     }
-  }, [getSelected]);
+  }, [getSelected, playerOnesChoice, playerTwosChoice, dispatch]);
+
+  //UseEffect to handle if the round is above 5
+  useEffect(() => {
+    if (trackRounds > 5) {
+      console.log(trackRounds, "i ran");
+
+      if (playerOneScore > playerTwoScore) {
+        dispatch(setTrackWinner("Player One has won"));
+        setTimeout(() => {
+          dispatch(changeCurrentPlayerControl(false));
+          dispatch(emptyPlayer([]));
+          dispatch(setTrackRounds(0));
+          dispatch(setTrackWinner(""));
+          dispatch(emptyScore(0));
+          dispatch(changeIndexSelected(0));
+        }, 3000);
+      } else if (playerTwoScore > playerOneScore) {
+        dispatch(setTrackWinner("Player Two has won"));
+        setTimeout(() => {
+          dispatch(changeCurrentPlayerControl(false));
+          dispatch(emptyPlayer([]));
+          dispatch(setTrackRounds(0));
+          dispatch(setTrackWinner(""));
+          dispatch(emptyScore(0));
+          dispatch(changeIndexSelected(0));
+        }, 3000);
+      } else {
+        dispatch(setTrackWinner("It is a Tie"));
+        setTimeout(() => {
+          dispatch(changeCurrentPlayerControl(false));
+          dispatch(emptyPlayer([]));
+          dispatch(setTrackRounds(0));
+          dispatch(setTrackWinner(""));
+          dispatch(emptyScore(0));
+          dispatch(changeIndexSelected(0));
+        }, 3000);
+      }
+    }
+  }, [trackRounds, playerOneScore, playerTwoScore, dispatch]);
+
+  //Function to handle what happens when a user clicks on a box
   const handleSelections = async (
     selected: number,
     currPlayerControl: boolean
   ) => {
+    // console.log(currPlayerControl, "curr");
+
     if (disableDoubleClick) return; // Prevent further clicks if loading
 
-    setDisableDoubleClick(true); // Set loading state to true
+    dispatch(setDisabledClick(true)); // Set loading state to true
 
+    // console.log(disableDoubleClick, "disabled");
+    // console.log(currentPlayerControl, "currentPlayer");
+
+    // If currPlayerControl is false then playerOne is the one playing
     if (!currPlayerControl) {
-      //   console.log("playerOne played");
-
       const playerObj: Selected = {
         player: "PlayerOne",
         choice: selected,
       };
 
-      setPlayerOnesChoice((prev) => {
-        return [...prev, playerObj];
-      });
-      setCurrentPlayerControl((prev) => !prev);
+      dispatch(addPlayerOne(playerObj));
 
+      dispatch(changeCurrentPlayerControl(true));
+
+      // console.log(currPlayerControl, "currPlayerControl");
+
+      // setPlayerOnesChoice((prev) => {
+      //   return [...prev, playerObj];
+      // });
       // setCurrentPlayerControl((prev) => !prev);
+      // console.log(playerOnesChoice, "playeONErOBJ");
     } else if (
-      currPlayerControl &&
-      playerOnesChoice &&
-      playerOnesChoice.length > 0
+      currPlayerControl
+      // &&
+      // playerOnesChoice &&
+      // playerOnesChoice.length > 0
     ) {
+      // console.log("hello");
+
       const playerObj: Selected = {
         player: "PlayerTwo",
         choice: selected,
       };
-      setPlayerTwosChoice((prev) => {
-        return [...prev, playerObj];
-      });
+      // console.log(currPlayerControl, "inside else if");
 
-      setCurrentPlayerControl((prev) => !prev);
+      dispatch(addPlayerTwo(playerObj));
+      dispatch(changeCurrentPlayerControl(false));
+      // console.log(playerTwosChoice, "playertwoChoice");
+
+      // setPlayerTwosChoice((prev) => {
+      //   return [...prev, playerObj];
+      // });
+
+      // setCurrentPlayerControl((prev) => !prev);
       // Simulate some delay for processing (optional)
       await new Promise((resolve) => setTimeout(resolve, 1000)); // Adjust time as needed
-      setDisableDoubleClick(false); // Reset loading state
     }
+    dispatch(setDisabledClick(false)); // Reset loading state
   };
 
-  console.log(currentPlayerControl, "currentPlayer");
+  // console.log(getSelected.length, "getSelected length");
+  // console.log(getSelected, "getSelected state");
+  // console.log(disableDoubleClick, "click");
+  // console.log(currentPlayerControl, "change");
+
+  // 11235813;
+  // 09039060588
 
   return (
     <div>
       <div
-        onClick={() =>
-          !disableDoubleClick && handleSelections(index, currentPlayerControl)
-        }
-        className={`relative w-[70px] h-[70px] m-auto bg-red cursor-pointer ${
+        onClick={() => {
+          if (!disableDoubleClick) {
+            // Only call handleSelections if not disabled
+            handleSelections(index, currentPlayerControl);
+          }
+        }}
+        // onClick={() =>
+        //   dispatch(setDisabledClick(!disableDoubleClick)) &&
+        //   handleSelections(index, currentPlayerControl)
+        // }
+        className={`relative w-[80px] h-[80px] m-auto bg-red cursor-pointer ${
           disableDoubleClick ? "cursor-not-allowed" : ""
         }`}
         style={{
           mixBlendMode: "hard-light",
-          border: "5.41667px solid #00A8A8",
+          // border: "5.41667px solid #00A8A8",
           //   filter: "blur(0.5px)",
           borderRadius: "26.3891px",
         }}
@@ -185,7 +345,7 @@ const Possible: React.FC<MappedOver> = ({
 
       {getSelected.length > 1 &&
       getSelected.toString() == possibilty[1].join(",") ? (
-        <span className="absolute left-[-140px] top-[200px] rotate-90 z-[99] w-[90%] h-[5px] bg-white ">
+        <span className="absolute left-[-140px] top-[230px] rotate-90 z-[99] w-[90%] h-[5px] bg-white ">
           {" "}
         </span>
       ) : (
@@ -230,7 +390,7 @@ const Possible: React.FC<MappedOver> = ({
 
       {getSelected.length > 1 &&
       getSelected.toString() == possibilty[6].join(",") ? (
-        <span className="absolute left-[25px] top-[40%]  z-[99] w-[90%] h-[5px] bg-white ">
+        <span className="absolute left-[25px] top-[240px]  z-[99] w-[90%] h-[5px] bg-white ">
           {" "}
         </span>
       ) : (
@@ -239,7 +399,7 @@ const Possible: React.FC<MappedOver> = ({
 
       {getSelected.length > 1 &&
       getSelected.toString() == possibilty[7].join(",") ? (
-        <span className="absolute left-[25px] bottom-[75px]  z-[99] w-[90%] h-[5px] bg-white ">
+        <span className="absolute left-[25px] bottom-[75px] z-[99] w-[90%] h-[5px] bg-white ">
           {" "}
         </span>
       ) : (
