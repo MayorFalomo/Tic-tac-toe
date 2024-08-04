@@ -21,40 +21,41 @@ import Image from "next/image";
 import React, { useEffect, useState } from "react";
 
 const Possible: React.FC<MappedOver> = ({ val, index }) => {
-  // const [getSelected, setGetSelected] = useState<number[]>([]);
-
-  // const [disableDoubleClick, setDisableDoubleClick] = useState(false);
-
-  const possibilty = useAppSelector((state) => state.possible.possibility);
+  const possibilty = useAppSelector((state) => state.possible.possibility); //State to hold all the possible combinations
 
   const playerOnesChoice = useAppSelector(
     (state: RootState) => state.players.playerOne
-  );
+  ); //All the index chosen are pushed inside the playerOneChoice Array
+
   const playerTwosChoice = useAppSelector(
     (state: RootState) => state.players.playerTwo
-  );
+  ); //All the index chosen are pushed inside the playerTwoChoice Array
+
   const currentPlayerControl = useAppSelector(
     (state) => state.players.currentplayerControl
-  );
+  ); //State to control the current player to either playerOne or playerTwo depending on what boolean it currently is
+
   const getSelected = useAppSelector(
     (state: RootState) => state.players.getSelected
-  );
+  ); //Array to store the values filtered from possibility and what the player picked
 
   const trackRounds = useAppSelector(
     (state: RootState) => state.track.trackRounds
-  );
+  ); //State to track rounds
+
   const disableDoubleClick = useAppSelector(
     (state: RootState) => state.track.disabledClick
-  );
+  ); // State to try and control double clicking
 
-  const trackTheWinner = useAppSelector((state) => state.track.trackTheWinnner);
+  const trackTheWinner = useAppSelector((state) => state.track.trackTheWinnner); //State that collects a string
 
   const playerOneScore = useAppSelector(
     (state: RootState) => state.track.playerOneScore
-  );
+  ); //PlayerOneScore state is a state for keeping track of playerOneScore if it has beeen added
+
   const playerTwoScore = useAppSelector(
     (state: RootState) => state.track.playerTwoScore
-  );
+  ); // PlayerTwoScore is a state to keep track of playerTwosScore
 
   const dispatch = useAppDispatch();
 
@@ -73,13 +74,13 @@ const Possible: React.FC<MappedOver> = ({ val, index }) => {
         if (playerOnesChoice && playerOnesChoice?.length > 2) {
           //*since the combinations can be in any format right? I need a way to check if the values in the combinations are in the playOneSelectedArray
 
+          //This function runs a check using a filter method, for if playerOne's selectedChoices are included in the mapped over possibility array the the filtered result is then compared with the selectedAray using the some method
           const storedAnswer = val.filter((resVal) => {
             const check = playerOneSelectedArray.some((e) => e === resVal);
             return check;
           });
 
-          console.log(storedAnswer, "playerOnEsTOREDAns");
-
+          //Function checks if th storedAnswer is greater than 2 before it would run
           if (storedAnswer.length > 2) {
             dispatch(setGetSelected(storedAnswer));
             // dispatch(changeIndexSelected(storedAnswer));
@@ -90,33 +91,25 @@ const Possible: React.FC<MappedOver> = ({ val, index }) => {
         }
       }
     }
-  }, [
-    currentPlayerControl,
-    playerOnesChoice,
-    val,
-    dispatch,
-    // disableDoubleClick,
-    // playerOneScore,
-  ]);
+  }, [currentPlayerControl, playerOnesChoice, val, dispatch]);
 
+  //useEffect to track playerTwosChoices and selectedAbswers and also to score playerTwo if their selected answers matches the possible val values
   useEffect(() => {
     if (playerTwosChoice && playerTwosChoice?.length > 0) {
       if (!currentPlayerControl) {
         const playerTwoSelectedArray = playerTwosChoice?.map(
           (prev) => prev.choice
         );
-        // console.log(playerTwoSelectedArray, "inside useEffect playerTwo");
 
         // Next I need a way to compare the selected values and the possibleCombinations
         if (playerTwosChoice && playerTwosChoice?.length > 2) {
           //*since the combinations can be in any format right? I need a way to check if the values in the combinations are in the playOneSelectedArray
 
+          //storedAnswer gets all the numbers In the selectedArray to that of the mapped over possibility array
           const storedAnswer = val.filter(
             (resVal) =>
               playerTwoSelectedArray && playerTwoSelectedArray.includes(resVal)
           );
-
-          console.log(storedAnswer, "playerTwosTOREDAns");
 
           if (storedAnswer && storedAnswer.length > 2) {
             dispatch(setGetSelected(storedAnswer));
@@ -171,8 +164,6 @@ const Possible: React.FC<MappedOver> = ({ val, index }) => {
     dispatch,
   ]);
 
-  console.log(getSelected, "GETSELLECT");
-
   //useEffect to track if there is no winner and therefore ends in a Tie
   useEffect(() => {
     if (
@@ -190,8 +181,6 @@ const Possible: React.FC<MappedOver> = ({ val, index }) => {
   //UseEffect to handle if the round is above 5
   useEffect(() => {
     if (trackRounds > 5) {
-      console.log(trackRounds, "i ran");
-
       if (playerOneScore > playerTwoScore) {
         dispatch(setTrackWinner("Player One has won"));
         setTimeout(() => {
@@ -237,9 +226,6 @@ const Possible: React.FC<MappedOver> = ({ val, index }) => {
 
     dispatch(setDisabledClick(true)); // Set loading state to true
 
-    // console.log(disableDoubleClick, "disabled");
-    // console.log(currentPlayerControl, "currentPlayer");
-
     // If currPlayerControl is false then playerOne is the one playing
     if (!currPlayerControl) {
       const playerObj: Selected = {
@@ -251,49 +237,32 @@ const Possible: React.FC<MappedOver> = ({ val, index }) => {
 
       dispatch(changeCurrentPlayerControl(true));
 
-      // console.log(currPlayerControl, "currPlayerControl");
-
       // setPlayerOnesChoice((prev) => {
       //   return [...prev, playerObj];
       // });
-      // setCurrentPlayerControl((prev) => !prev);
-      // console.log(playerOnesChoice, "playeONErOBJ");
     } else if (
       currPlayerControl
       // &&
       // playerOnesChoice &&
       // playerOnesChoice.length > 0
     ) {
-      // console.log("hello");
-
       const playerObj: Selected = {
         player: "PlayerTwo",
         choice: selected,
       };
-      // console.log(currPlayerControl, "inside else if");
 
       dispatch(addPlayerTwo(playerObj));
       dispatch(changeCurrentPlayerControl(false));
-      // console.log(playerTwosChoice, "playertwoChoice");
 
       // setPlayerTwosChoice((prev) => {
       //   return [...prev, playerObj];
       // });
 
-      // setCurrentPlayerControl((prev) => !prev);
       // Simulate some delay for processing (optional)
       await new Promise((resolve) => setTimeout(resolve, 1000)); // Adjust time as needed
     }
     dispatch(setDisabledClick(false)); // Reset loading state
   };
-
-  // console.log(getSelected.length, "getSelected length");
-  // console.log(getSelected, "getSelected state");
-  // console.log(disableDoubleClick, "click");
-  // console.log(currentPlayerControl, "change");
-
-  // 11235813;
-  // 09039060588
 
   return (
     <div>
@@ -410,23 +379,3 @@ const Possible: React.FC<MappedOver> = ({ val, index }) => {
 };
 
 export default Possible;
-
-// mix-blend-mode: hard-light;
-// border: 5.41667px solid rgba(51, 233, 198, 0.2);
-// box-shadow: inset -0.541667px 1.08333px 0.541667px rgba(255, 255, 255, 0.5);
-// filter: drop-shadow(0px 8.33333px 10.8333px #009999) drop-shadow(0px 5.41667px 4.16667px rgba(0, 77, 70, 0.7));
-// border-radius: 26.3891px;
-
-// /* Rectangle 14 */
-
-// box-sizing: border-box;
-
-// position: absolute;
-// left: 0%;
-// right: 0%;
-// top: 0%;
-// bottom: 0%;
-
-// border: 3.33333px solid #33E9E9;
-// filter: blur(0.416667px);
-// border-radius: 26.3891px;
