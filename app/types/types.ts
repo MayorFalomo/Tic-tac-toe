@@ -27,3 +27,9 @@ export type MappedOver = {
   //   getSelected: number[];
   //   setGetSelected: React.Dispatch<React.SetStateAction<number[]>>;
 };
+
+export type User = {
+  playerId: string;
+  status: string;
+  playerName: string;
+};

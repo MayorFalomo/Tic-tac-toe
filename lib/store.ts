@@ -2,6 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import { possibleSlice } from "./features/PossibilitySlice";
 import { playersSlice } from "./features/PlayerSlice";
 import { trackerSlice } from "./features/TrackerSlice";
+import { userSlice } from "./features/userSlice";
 
 export const possibiltyStore = () => {
   return configureStore({
@@ -10,6 +11,7 @@ export const possibiltyStore = () => {
       possible: possibleSlice.reducer,
       players: playersSlice.reducer,
       track: trackerSlice.reducer,
+      user: userSlice.reducer,
     },
   });
 };

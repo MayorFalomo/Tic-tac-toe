@@ -51,4 +51,4 @@ export const {
   emptyPlayer,
   setGetSelected,
 } = playersSlice.actions;
-export default playersSlice.actions;
+export default playersSlice.reducer;
