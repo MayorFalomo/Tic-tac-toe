@@ -4,125 +4,187 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { LoadingSpinner } from "./Loader";
 import {
-  query,
-  addDoc,
-  collection,
-  onSnapshot,
-  updateDoc,
-  where,
-  doc,
-} from "firebase/firestore";
-import { getDatabase, ref } from "firebase/database";
-import { db } from "../../app/firebase-config/firebase";
+  onDisconnect,
+  onValue,
+  push,
+  ref,
+  set,
+  update,
+} from "firebase/database";
+import { database } from "@/firebase-config/firebase";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { setAPlayerId } from "@/lib/features/userSlice";
 import { RootState } from "@/lib/store";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import {
+  givePlayerNames,
+  updatePlayerOne,
+  updatePlayerTwo,
+} from "@/lib/features/PlayerSlice";
+import { setSessionId, setTrackWhoPlays } from "@/lib/features/TrackerSlice";
 
 type Props = {};
 
 const SignUp = (props: Props) => {
   const [playerName, setPlayerName] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-
+  const [randomControl, setRandomControl] = useState<boolean>(
+    Math.random() > 0.5 ? true : false
+  ); //To pick the random player
+  const [searchingActive, setSearchingActive] = useState<boolean>(false);
   const gameId = useAppSelector((state: RootState) => state.user.playerId);
   const dispatch = useAppDispatch();
-  // const rtdb = getDatabase(); //First Initialize the database
+  const router = useRouter();
 
+  //Function to create a player
   const createPlayer = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (playerName) {
-      try {
-        setLoading(true); //SetThe loading spinner to be true
-
-        //add a doc to the collection, the db called "activePlayers"
-        const playerRef = await addDoc(collection(db, "activePlayers"), {
-          name: playerName,
-          status: "looking",
-        });
-        // console.log(playerName, "playerName");
-        console.log(playerRef, "playerRef");
-
-        searchForOpponent(playerRef.id);
-        setLoading(false);
-
-        //Set up for a listener that would listen for if the player disconnects
-        window.addEventListener("beforeunload", async () => {
-          await updateDoc(doc(db, "activePlayers", playerRef.id), {
-            status: "offline",
-          });
-        });
-      } catch (error) {
-        console.log(error);
-        setLoading(false);
-      }
-    }
-  };
-
-  useEffect(() => {
-    // Clean up the event listener on component unmount
-    return () => {
-      if (gameId) {
-        window.removeEventListener("beforeunload", async () => {
-          await updateDoc(doc(db, "activePlayers", gameId), {
-            status: "offline",
-          });
-        });
-      }
-    };
-  }, [gameId]);
-
-  const searchForOpponent = (playerId: string) => {
-    //Query a collection in the db(database) and look for where fields named "status" == "looking"
-    const q = query(
-      collection(db, "activePlayers"),
-      where("status", "==", "looking")
-    );
-
-    console.log(q, "q");
-
-    const unsuscribe = onSnapshot(q, async (snapshot) => {
-      console.log(snapshot, "snapshot should be an Id");
-      if (snapshot.size > 1) {
-        const opponentDoc = snapshot.docs.find((doc) => doc.id !== playerId);
-
-        if (opponentDoc) {
-          await updateDoc(opponentDoc.ref, {
-            status: "inGame",
-            gameId: playerId,
-          });
-          const currentPlayerRef = doc(db, "activePlayers", playerId);
-
-          await updateDoc(currentPlayerRef, {
-            status: "inGame",
-            gameId: opponentDoc.id,
-          });
-
-          //create a game session after both players are matched
-          await createGameSession(playerId, opponentDoc.id);
-
-          dispatch(setAPlayerId(playerId));
-
-          unsuscribe(); //Stop listening after pairing
-        }
-      }
-    });
-  };
-
-  const createGameSession = async (playerId: string, opponentId: string) => {
     try {
-      const gameSessionRef = await addDoc(collection(db, "gameSessions"), {
-        player1: playerId,
-        player2: opponentId,
-      });
-      console.log(gameSessionRef, "gameSessionRef");
+      setLoading(true); //SetThe loading spinner to be true
+      const playerNameSelect = playerName.length > 1 ? playerName : "PlayerOne";
 
-      console.log(gameSessionRef.id, "Game session created with ID");
+      //create a separate db instance in the database named activePlayers
+      const playerRef = push(ref(database, "activePlayers")); //Create a new child reference
+      const playerId = playerRef.key || ""; // Get the unique key
+
+      //Create a new player Object by referencing the database ref and setting the object we want inside the db reference
+      await set(playerRef, {
+        player: playerNameSelect,
+        status: "online",
+        currentPlayerControl: randomControl,
+      });
+
+      //Then it changes the players status to looking instead of online
+      handleUserPresence(playerId);
+
+      //Since we've handled changing a users status we can now search for other players with a status of looking too
+      searchForOpponent(playerId);
+      setLoading(false); //stopLoadingSpinner after searching for opponent
     } catch (error) {
       console.log(error);
+      setLoading(false);
     }
   };
+
+  const handleUserPresence = (userId: string) => {
+    // console.log(userId, "Hello world");
+
+    const userRef = ref(database, `activePlayers/${userId}`); //We reference the "activePlayers" db we created in the createPlayerfunc and find a player by their userId
+
+    //Set the users status to online when they connect
+    set(userRef, {
+      playerName: playerName.length > 0 ? playerName : 'PlayerOne',
+      status: "looking",
+    });
+
+    //Using firebase onDisconnect functionality to detect when a user goes offline
+    onDisconnect(userRef).set({ status: "offline" });
+  };
+
+  const searchForOpponent = (playerId: string) => {
+    //This function will search for an opponent in the activePlayers db
+    //If an opponent is found, it will update the status of the player to "inGame"
+    const playersRef = ref(database, "activePlayers"); //First, reference the db we want to search through
+
+    //Listen for changes in the activePlayers
+    onValue(
+      playersRef,
+      async (snapshot) => {
+        const players = snapshot.val(); //Returns an object of all the players
+        console.log(players, "players");
+
+        //Search for a player by mapping over the players array and find the first player with an id that isn't the same with the currentPlayer but also with a status of "looking"
+        const opponentId = Object.keys(players).find(
+          (id: string) => id !== playerId && players[id].status === "looking"
+        );
+
+        if (opponentId) {
+          const opponentData = players[opponentId];
+          console.log(opponentData, "OpponentData");
+
+          setSearchingActive(true); //Changes the button to "Found a player"
+
+         
+          //Since an opponent has been found, I ref the database I defined in database  and pass in the "activePlayers" collection  / the exact opponentId then i update
+          await update(ref(database, `activePlayers/${opponentId}`), {
+            playerName: opponentData.playerName,
+            status: "inGame",
+            gameId: opponentId,
+            currentPlayerControl: !randomControl,
+          });
+
+          //Update Current players status
+          await update(ref(database, `activePlayers/${playerId}`), {
+            playerName: playerName ? playerName : "PlayerTwo",
+            status: "inGame",
+            gameId: playerId,
+            currentPlayerControl: randomControl,
+          });
+
+          const playerOneDetails = {
+            id: playerId,
+            name: playerName ? playerName : "PlayerTwo",
+
+          }
+          const playerTwoDetails = {
+            id: opponentId,
+            name: opponentData.playerName,
+          }
+
+          //Create Game Session
+          const getSessionId = await createGameSession(playerId, opponentId);
+          console.log(playerName);
+          console.log(opponentData.playerName);
+
+          dispatch(
+            givePlayerNames({
+              playerOne: playerOneDetails,
+              playerTwo: playerTwoDetails,
+            })
+          );
+          if (randomControl) {
+            dispatch(setTrackWhoPlays(randomControl));
+          }
+          dispatch(setAPlayerId(playerId)); //Store the currentPlayersId
+          dispatch(setSessionId(getSessionId)); //Store the currentGameSessionId
+
+           setTimeout(() => {
+             //Route to Homepage
+             router.push("/");
+          }, 2000);
+        } else {
+          console.log('Could not find you an opponent at this time');
+          router.push('/signup')
+          
+        }
+
+      },
+      (error) => {
+        console.error(error, "An error has occurred onValue");
+      }
+    );
+  };
+
+  //Logic to create a game session
+  //A function that takes in twp params which are playerId and opponentId
+  const createGameSession = async (playerId: string, opponentId: string) => {
+    //might return the sessionId,
+    const sessionRef = push(ref(database, "gameSessions")); //creates a ref to our database and name it "gameSessions"
+
+    //Our session ref would create/set a new object in a sessionRef
+    await set(sessionRef, {
+      playerOneId: playerId,
+      playerTwoId: opponentId,
+      status: "active",
+      moves: [],
+      createdAt: new Date().toISOString(),
+    });
+
+    return sessionRef.key;
+  };
+
 
   return (
     <div>
@@ -148,11 +210,13 @@ const SignUp = (props: Props) => {
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
-                    {" "}
-                    Searching for player <LoadingSpinner />{" "}
+                    {searchingActive
+                      ? "Found a player!"
+                      : `Searching for player`}
+                    <LoadingSpinner />{" "}
                   </span>
                 ) : (
-                  "Creating Profile"
+                  <span>Creating Profile </span>
                 )}{" "}
               </Button>
             </div>

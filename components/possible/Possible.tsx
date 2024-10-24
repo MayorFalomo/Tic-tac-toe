@@ -13,12 +13,25 @@ import {
   setTrackPlayerOneScore,
   setTrackPlayerTwoScore,
   setTrackRounds,
+  setTrackWhoPlays,
   setTrackWinner,
 } from "@/lib/features/TrackerSlice";
+import { database } from "@/firebase-config/firebase";
 import { useAppDispatch, useAppSelector } from "@/lib/hooks";
 import { RootState } from "@/lib/store";
+import {
+  addDoc,
+  collection,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
+import { get, onValue, ref, update } from "@firebase/database";
 
 const Possible: React.FC<MappedOver> = ({ val, index }) => {
   const possibilty = useAppSelector((state) => state.possible.possibility); //State to hold all the possible combinations
@@ -56,6 +69,17 @@ const Possible: React.FC<MappedOver> = ({ val, index }) => {
   const playerTwoScore = useAppSelector(
     (state: RootState) => state.track.playerTwoScore
   ); // PlayerTwoScore is a state to keep track of playerTwosScore
+
+  const gameSessionId = useAppSelector(
+    (state: RootState) => state.track.gameSessionId
+  );
+
+  const gameSessionValue = useAppSelector(
+    (state: RootState) => state.players.gameSession
+  );
+  const trackCurrentPlayer = useAppSelector((state: RootState) => state.track.trackWhoPlays);
+  const playersObject = useAppSelector((state: RootState) => state.players.players)
+  // const gameId = useAppSelector((state: RootState) => state.user.gameId);
 
   const dispatch = useAppDispatch();
 
@@ -216,67 +240,123 @@ const Possible: React.FC<MappedOver> = ({ val, index }) => {
   }, [trackRounds, playerOneScore, playerTwoScore, dispatch]);
 
   //Function to handle what happens when a user clicks on a box
+  // const handleSelections = async (
+  //   selected: number,
+  //   currPlayerControl: boolean
+  // ) => {
+  //   // console.log(currPlayerControl, "curr");
+
+  //   if (disableDoubleClick) return; // Prevent further clicks if loading
+
+  //   dispatch(setDisabledClick(true)); // Set loading state to true
+
+  //   // If currPlayerControl is false then playerOne is the one playing
+  //   if (!currPlayerControl) {
+  //     const playerObj: Selected = {
+  //       player: "PlayerOne",
+  //       choice: selected,
+  //     };
+
+  //     dispatch(addPlayerOne(playerObj));
+
+  //     dispatch(changeCurrentPlayerControl(true));
+
+  //     // setPlayerOnesChoice((prev) => {
+  //     //   return [...prev, playerObj];
+  //     // });
+  //   } else if (
+  //     currPlayerControl
+  //     // &&
+  //     // playerOnesChoice &&
+  //     // playerOnesChoice.length > 0
+  //   ) {
+  //     const playerObj: Selected = {
+  //       player: "PlayerTwo",
+  //       choice: selected,
+  //     };
+
+  //     dispatch(addPlayerTwo(playerObj));
+  //     dispatch(changeCurrentPlayerControl(false));
+
+  //     // setPlayerTwosChoice((prev) => {
+  //     //   return [...prev, playerObj];
+  //     // });
+
+  //     // Simulate some delay for processing (optional)
+  //     await new Promise((resolve) => setTimeout(resolve, 1000)); // Adjust time as needed
+  //   }
+  //   dispatch(setDisabledClick(false)); // Reset loading state
+  // };
+
+  //Function to handle what happens when a user clicks on a box
   const handleSelections = async (
     selected: number,
-    currPlayerControl: boolean
+    // playerId: string,
+    currPlayerControl: boolean,
+    sessionId: string,
   ) => {
-    // console.log(currPlayerControl, "curr");
-
-    if (disableDoubleClick) return; // Prevent further clicks if loading
-
-    dispatch(setDisabledClick(true)); // Set loading state to true
+    const sessionRef = ref(database, `gameSessions/${sessionId}`);
 
     // If currPlayerControl is false then playerOne is the one playing
+    const newMove = {
+      playerId: currPlayerControl ? playersObject.playerTwo?.id : playersObject.playerOne?.id ,
+      choice: selected,
+      timeStamp: new Date().toISOString(),
+    };
+
+    const snapShot = await get(sessionRef);
+    const currentMoves = snapShot.val().moves || [];
+
     if (!currPlayerControl) {
-      const playerObj: Selected = {
-        player: "PlayerOne",
-        choice: selected,
-      };
-
-      dispatch(addPlayerOne(playerObj));
-
+      await update(ref(database, `gameSessions/${gameSessionId}`), newMove);
+      // dispatch(addPlayerOne(playerObj));
       dispatch(changeCurrentPlayerControl(true));
-
-      // setPlayerOnesChoice((prev) => {
-      //   return [...prev, playerObj];
-      // });
-    } else if (
-      currPlayerControl
-      // &&
-      // playerOnesChoice &&
-      // playerOnesChoice.length > 0
-    ) {
-      const playerObj: Selected = {
-        player: "PlayerTwo",
-        choice: selected,
-      };
-
-      dispatch(addPlayerTwo(playerObj));
+      dispatch(setTrackWhoPlays(!currPlayerControl))
+    } else {
+      // dispatch(addPlayerTwo(playerObj));
       dispatch(changeCurrentPlayerControl(false));
-
-      // setPlayerTwosChoice((prev) => {
-      //   return [...prev, playerObj];
-      // });
-
-      // Simulate some delay for processing (optional)
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Adjust time as needed
+      await update(ref(database, `gameSessions/${gameSessionId}`), newMove);
+      dispatch(setTrackWhoPlays(!currPlayerControl))
     }
-    dispatch(setDisabledClick(false)); // Reset loading state
+    // Save the move to Firestore: pass the currentPlayer, the gameSession Id and what a player selected
+    // await makeMove(playerObj.player, gameId, selected);
   };
 
+  const [fetchPlayers, setFetchPlayers] = useState([]);
+
+  const fetchGameSession = async (sessionId: string) => {
+    const sessionRef = ref(database, `gameSessions/${sessionId}`);
+    console.log(sessionRef, "sessionREF");
+
+    //Listen for real-time updates
+    const unsusbcribe = onValue(sessionRef, (snapshot) => {
+      const data = snapshot.val();
+      console.log(data, "data");
+    });
+    return () => unsusbcribe();
+  };
+
+  useEffect(() => {
+    fetchGameSession(gameSessionId);
+    console.log(fetchGameSession(gameSessionId), "fetchGame");
+  }, [gameSessionId]);
+
+  // useEffect(() => {
+  //   const sessionRef = ref(database, `gameSessions${gameSessionId}`);
+
+  //   const snapshot = get(sessionRef);
+  //   console.log(snapshot, "snapshot");
+  //   snapshot.then((prev) => setFetchPlayers(prev.val().players));
+  // }, [fetchPlayers]);
+
+  // console.log(fetchPlayers, "fetchplayers");
+
+  const makeMove = async () => {};
+  //I'd need a function that would take in arguments like playerId, movePlayed and a boolean to control the turn
   return (
     <div>
       <div
-        onClick={() => {
-          if (!disableDoubleClick) {
-            // Only call handleSelections if not disabled
-            handleSelections(index, currentPlayerControl);
-          }
-        }}
-        // onClick={() =>
-        //   dispatch(setDisabledClick(!disableDoubleClick)) &&
-        //   handleSelections(index, currentPlayerControl)
-        // }
+        onClick={() => handleSelections(index,trackCurrentPlayer.playerOne, gameSessionId)}
         className={`relative w-[80px] h-[80px] m-auto bg-red cursor-pointer ${
           disableDoubleClick ? "cursor-not-allowed" : ""
         }`}
@@ -303,79 +383,86 @@ const Possible: React.FC<MappedOver> = ({ val, index }) => {
         </span> */}
       </div>
 
-      {getSelected.length > 1 &&
+      {/* {getSelected?.length > 1 &&
       getSelected.toString() == possibilty[0].join(",") ? (
         <span className="absolute left-[0] right-[0] top-[80px] m-auto z-[99] w-[90%] h-[5px] bg-white ">
           {" "}
         </span>
       ) : (
         ""
-      )}
+      )} */}
 
-      {getSelected.length > 1 &&
+      {/* {getSelected?.length > 1 &&
       getSelected.toString() == possibilty[1].join(",") ? (
         <span className="absolute left-[-140px] top-[230px] rotate-90 z-[99] w-[90%] h-[5px] bg-white ">
           {" "}
         </span>
       ) : (
         ""
-      )}
+      )} */}
 
-      {getSelected.length > 1 &&
+      {/* {getSelected.length > 1 &&
       getSelected.toString() == possibilty[2].join(",") ? (
         <span className="absolute left-[-15px] top-[220px] rotate-[45deg] z-[99] w-[100%] h-[5px] bg-white ">
           {" "}
         </span>
       ) : (
         ""
-      )}
+      )} */}
 
-      {getSelected.length > 1 &&
+      {/* {getSelected.length > 1 &&
       getSelected.toString() == possibilty[3].join(",") ? (
         <span className="absolute left-[25px] right-[35px] top-[230px] rotate-[90deg] z-[99] w-[90%] h-[5px] bg-white ">
           {" "}
         </span>
       ) : (
         ""
-      )}
+      )} */}
 
-      {getSelected.length > 1 &&
+      {/* {getSelected.length > 1 &&
       getSelected.toString() == possibilty[4].join(",") ? (
         <span className="absolute right-[0px] top-[240px] rotate-[-45deg] z-[99] w-[100%] h-[5px] bg-white ">
           {" "}
         </span>
       ) : (
         ""
-      )}
+      )} */}
 
-      {getSelected.length > 1 &&
+      {/* {getSelected.length > 1 &&
       getSelected.toString() == possibilty[5].join(",") ? (
         <span className="absolute right-[-145px] top-[230px] rotate-[90deg] z-[99] w-[90%] h-[5px] bg-white ">
           {" "}
         </span>
       ) : (
         ""
-      )}
+      )} */}
 
-      {getSelected.length > 1 &&
+      {/* {getSelected.length > 1 &&
       getSelected.toString() == possibilty[6].join(",") ? (
         <span className="absolute left-[25px] top-[240px]  z-[99] w-[90%] h-[5px] bg-white ">
           {" "}
         </span>
       ) : (
         ""
-      )}
+      )} */}
 
-      {getSelected.length > 1 &&
+      {/* {getSelected.length > 1 &&
       getSelected.toString() == possibilty[7].join(",") ? (
         <span className="absolute left-[25px] bottom-[75px] z-[99] w-[90%] h-[5px] bg-white ">
           {" "}
         </span>
       ) : (
         ""
-      )}
+      )} */}
     </div>
   );
 };
 
 export default Possible;
+
+//! For the paytton create component just in case navigate(
+//   `/email-confirmation?search=${encodeURIComponent("create-account")}`,
+//   {
+//     state: { stage: "User" },
+//   }
+// );

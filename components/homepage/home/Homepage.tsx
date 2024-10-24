@@ -12,6 +12,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useAppSelector, useAppDispatch, useAppStore } from "@/lib/hooks";
 import { useSelector } from "react-redux";
 import { RootState } from "@/lib/store";
+import { useRouter } from "next/navigation";
 
 type Props = {};
 
@@ -40,7 +41,47 @@ const Homepage = (props: Props) => {
     (state) => state.track.playerTwoScore
   );
 
+  const playersNames = useAppSelector(
+    (state: RootState) => state.players.players
+  );
+
   const trackRounds = useAppSelector((state) => state.track.trackRounds);
+
+  const playerId = useAppSelector((state) => state.user.playerId);
+
+  // usePresence(playerId);
+  const router = useRouter();
+
+  // const removePlayerFromGame = async () => {
+  //   // Update player's status to offline
+  //   await updateDoc(doc(db, "activePlayers", playerId), {
+  //     status: "offline",
+  //   });
+  // };
+
+  useEffect(() => {
+    if (!playerId) {
+      router.push("/signup");
+    }
+  }, [playerId]);
+
+  // useEffect(() => {
+  //   if (playerId) {
+  //     const userRef = doc(db, "activePlayers", playerId);
+
+  //     const unsubscribe = onSnapshot(userRef, (doc) => {
+  //       console.log("Current status: ", doc?.data()?.status);
+  //       console.log("player:", doc?.data()?.player);
+  //     });
+
+  //     return () => unsubscribe();
+  //   }
+  // }, [playerId]);
+
+  console.log(playersNames, "playersObj");
+  console.log(playersNames?.playerOne);
+  
+  // console.log(playerTwosChoice, "player2");
 
   return (
     <div className=" flex flex-col  gap-[10px]  items-center  w-full h-[100vh]">
@@ -58,7 +99,9 @@ const Homepage = (props: Props) => {
                   }}
                   className="flex flex-col gap-2 p-3"
                 >
-                  <h1 className="text-white text-[16px] ">Player One</h1>
+                  <h1 className="text-white text-[16px] ">
+                    {playersNames.playerOne.name}{" "}
+                  </h1>
                   <Image
                     src="/SelectX.png"
                     className="m-auto"
@@ -85,7 +128,9 @@ const Homepage = (props: Props) => {
                   }}
                   className="flex flex-col gap-2 p-3"
                 >
-                  <h1 className="text-white text-[16px] ">Player Two</h1>
+                   <h1 className="text-white text-[16px] ">
+                    {playersNames.playerTwo.name}
+                  </h1>
                   <Image
                     src="/SelectO.png"
                     className="m-auto"
@@ -231,3 +276,19 @@ const Homepage = (props: Props) => {
 };
 
 export default Homepage;
+
+//Users would sign up using their name and can select an avatar
+//After the player searching begins after sign up is done.
+//The searching is done by status of users with looking
+//It looks for users with Id's that isn't the current user.
+//Once a player is found it logs them in to the game page.
+//On the game page, the game announces who plays first based on a boolean state that tracks it.
+//When the user clicks a box, Multiple things happens: First, what box was selected and which player selected it.
+//The game then checks if the box was already selected by the other player. If it was, nothing happens but if not.
+//The game sends the move played and the person who played to an array of all the moves being played.
+//The move array can be an array holding every move.
+//At every click, those moves would Filter all the moves (In the moves field) for each player into an array.
+//Then we compare the moves combination to something in our possibility array of array of numbers
+
+//!Note I think I should make it such that the backend and frontend are in sync right? So I should probably send the object of moves to a moves array in firebase
+//?So once the backend has been updated the frontend should be too huh - Lets see what we can do!

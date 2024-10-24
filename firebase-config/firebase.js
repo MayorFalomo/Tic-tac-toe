@@ -1,5 +1,6 @@
 // src/firebase.js
 import { initializeApp } from "firebase/app";
+import { getDatabase } from "firebase/database";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -11,9 +12,10 @@ const firebaseConfig = {
   messagingSenderId: process.env.NEXT_PUBLIC_MESSAGING_SENDER_ID,
   appId: "1:915023494487:web:24f70dcb02d76bf5ba5212",
   measurementId: "G-7PP1T6YH97",
+  databaseURL: "https://hackerthon-bc9c0-default-rtdb.firebaseio.com/",
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const database = getDatabase(app);
 
-export { db };
+export { database };

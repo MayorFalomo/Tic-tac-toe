@@ -6,6 +6,10 @@ interface track {
   playerOneScore: number;
   playerTwoScore: number;
   disabledClick: boolean;
+  gameSessionId: string;
+  trackWhoPlays: {
+    playerOne: boolean;
+  }
 }
 
 const initialState: track = {
@@ -14,6 +18,10 @@ const initialState: track = {
   playerOneScore: 0,
   playerTwoScore: 0,
   disabledClick: false,
+  gameSessionId: "",
+  trackWhoPlays: {
+    playerOne: false,
+  }
 };
 
 export const trackerSlice = createSlice({
@@ -39,6 +47,12 @@ export const trackerSlice = createSlice({
       state.playerOneScore = 0;
       state.playerTwoScore = 0;
     },
+    setSessionId: (state, action) => {
+      state.gameSessionId = action.payload;
+    },
+    setTrackWhoPlays: (state, action) => {
+      state.trackWhoPlays.playerOne = action.payload
+    }
   },
 });
 
@@ -49,5 +63,7 @@ export const {
   setTrackPlayerTwoScore,
   setDisabledClick,
   emptyScore,
+  setSessionId,
+  setTrackWhoPlays,
 } = trackerSlice.actions;
 export default trackerSlice.reducer;

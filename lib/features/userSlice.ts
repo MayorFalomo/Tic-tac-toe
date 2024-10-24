@@ -14,6 +14,10 @@ export const userSlice = createSlice({
     setAPlayerId: (state, action) => {
       state.playerId = action.payload;
     },
+
+    updateUser: (state, action) => {
+      return { ...state, ...action.payload };
+    },
   },
 });
 

@@ -1,4 +1,4 @@
-import { Selected } from "@/app/types/types";
+import { PlayerNames, Selected } from "@/app/types/types";
 import { createSlice } from "@reduxjs/toolkit";
 
 interface Players {
@@ -7,6 +7,8 @@ interface Players {
   currentplayerControl: boolean;
   getIndexSelected: number;
   getSelected: number[];
+  players: PlayerNames;
+  gameSession: null;
 }
 
 const initialState: Players = {
@@ -15,6 +17,17 @@ const initialState: Players = {
   currentplayerControl: false,
   getIndexSelected: 0,
   getSelected: [],
+  players: {
+    playerOne: {
+      id: "",
+      name: "",
+    },
+    playerTwo: {
+      id: "",
+      name: "",
+    },
+  },
+  gameSession: null,
 };
 
 export const playersSlice = createSlice({
@@ -40,6 +53,19 @@ export const playersSlice = createSlice({
     setGetSelected(state, action) {
       state.getSelected = action.payload;
     },
+    updatePlayerOne(state, action) {
+      return { ...state.playerOne, ...action.payload };
+    },
+    updatePlayerTwo(state, action) {
+      return { ...state.playerTwo, ...action.payload };
+    },
+    givePlayerNames(state, action) {
+      state.players.playerOne = action.payload.playerOne
+      state.players.playerTwo = action.payload.playerTwo
+    },
+    setGameSession(state, action) {
+      state.gameSession = action.payload;
+    },
   },
 });
 
@@ -50,5 +76,9 @@ export const {
   changeIndexSelected,
   emptyPlayer,
   setGetSelected,
+  updatePlayerOne,
+  updatePlayerTwo,
+  givePlayerNames,
+  setGameSession,
 } = playersSlice.actions;
 export default playersSlice.reducer;

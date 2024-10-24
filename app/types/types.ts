@@ -8,7 +8,21 @@ export type SelectedAnswer = {
 export type Selected = {
   player: string;
   choice: number;
+  score?: number;
+  currrentPlayerControl?: boolean;
+  gameId?: string;
+  // playerId: string;
 };
+
+export type PlayerNames = {
+  playerOne: PlayerDetails;
+  playerTwo: PlayerDetails;
+};
+
+export type PlayerDetails = {
+  id: string
+  name: string;
+}
 
 export type MappedOver = {
   val: number[];
@@ -32,4 +46,5 @@ export type User = {
   playerId: string;
   status: string;
   playerName: string;
+  // gameId: string;
 };
