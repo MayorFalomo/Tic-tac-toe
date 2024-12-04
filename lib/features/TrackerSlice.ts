@@ -3,24 +3,32 @@ import { createSlice } from "@reduxjs/toolkit";
 interface track {
   trackTheWinnner: string;
   trackRounds: number;
+  trackDisableRound: boolean;
   playerOneScore: number;
   playerTwoScore: number;
   disabledClick: boolean;
+  playersSessionId: SessionId;
   gameSessionId: string;
-  trackWhoPlays: {
-    playerOne: boolean;
-  }
+  trackWhoPlays: string | null;
+}
+
+export interface SessionId {
+  playerOneSessionId: string;
+  playerTwoSessionId: string;
 }
 
 const initialState: track = {
   trackTheWinnner: "",
   trackRounds: 1,
+  trackDisableRound: true,
   playerOneScore: 0,
   playerTwoScore: 0,
   disabledClick: false,
   gameSessionId: "",
-  trackWhoPlays: {
-    playerOne: false,
+  trackWhoPlays: null,
+  playersSessionId: {
+    playerOneSessionId: "",
+    playerTwoSessionId: "",
   }
 };
 
@@ -51,8 +59,19 @@ export const trackerSlice = createSlice({
       state.gameSessionId = action.payload;
     },
     setTrackWhoPlays: (state, action) => {
-      state.trackWhoPlays.playerOne = action.payload
-    }
+      state.trackWhoPlays = action.payload
+    },
+   setPlayersSessionId: (state, action) => {
+  if (action.payload.playerOneSessionId) {
+    state.playersSessionId.playerOneSessionId = action.payload.playerOneSessionId;
+  }
+  if (action.payload.playerTwoSessionId) {
+    state.playersSessionId.playerTwoSessionId = action.payload.playerTwoSessionId;
+  }
+    },
+    setTrackDisableRound: (state, action) => {
+      state.trackDisableRound = action.payload;
+    },
   },
 });
 
@@ -65,5 +84,7 @@ export const {
   emptyScore,
   setSessionId,
   setTrackWhoPlays,
+  setPlayersSessionId,
+  setTrackDisableRound,
 } = trackerSlice.actions;
 export default trackerSlice.reducer;

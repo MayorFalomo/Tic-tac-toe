@@ -22,25 +22,10 @@ export type PlayerNames = {
 export type PlayerDetails = {
   id: string
   name: string;
+  avatar?: string;
 }
 
-export type MappedOver = {
-  val: number[];
-  // possibilty: Combinations;
-  index: number;
-  // playerOnesChoice?: Selected[];
-  // setPlayerOnesChoice: React.Dispatch<React.SetStateAction<Selected[]>>;
-  // playerTwosChoice?: Selected[];
-  // setPlayerTwosChoice: React.Dispatch<React.SetStateAction<Selected[]>>;
-  // currentPlayerControl: boolean;
-  // setCurrentPlayerControl: React.Dispatch<React.SetStateAction<boolean>>;
-  // getIndexSelected: number | null;
-  // setGetIndexSelected: React.Dispatch<React.SetStateAction<number | null>>;
-  // trackTheWinner: string;
-  // setTrackTheWinner: React.Dispatch<React.SetStateAction<string>>;
-  //   getSelected: number[];
-  //   setGetSelected: React.Dispatch<React.SetStateAction<number[]>>;
-};
+
 
 export type User = {
   playerId: string;
@@ -48,3 +33,33 @@ export type User = {
   playerName: string;
   // gameId: string;
 };
+
+export type GameSession = {
+  sessionId: string;
+  currentTurn: string;
+  firstPlayer: string;
+  rounds: number;
+  createdAt: string;
+  scores: {
+    playerOne: number;
+    playerTwo: number;
+  };
+  winner: string | null;
+  players: {
+    playerOne: SessionPlayerDetails;
+    playerTwo: SessionPlayerDetails;
+  };
+};
+
+export type SessionPlayerDetails = {
+  id: string;
+  name: string;
+  avatar: string | null;
+};
+
+export type MovesObject = {
+  choice: number;
+  playerId: string;
+  timestamp: string;
+};
+

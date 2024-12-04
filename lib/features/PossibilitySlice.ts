@@ -7,7 +7,7 @@ interface PossibiltyState {
   possibility: Combinations;
 }
 
-//So now i'm expecting a possibility array of aray of numbers that would be my initialState
+//So now i'm expecting a possibility array of array of numbers that would be my initialState
 const initialState: PossibiltyState = {
   possibility: [
     [1, 2, 3],

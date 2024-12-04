@@ -9,6 +9,14 @@ interface Players {
   getSelected: number[];
   players: PlayerNames;
   gameSession: null;
+  moves: Move[];
+}
+
+export interface Move {
+  playerId: string;
+  choice: string;
+  timeStamp: string;
+  // nextPlayerId: string;
 }
 
 const initialState: Players = {
@@ -21,13 +29,20 @@ const initialState: Players = {
     playerOne: {
       id: "",
       name: "",
+      avatar: "",
+      currentlyPlaying: false,
+       initialCurrentlyPlaying: false,
     },
     playerTwo: {
       id: "",
       name: "",
+      avatar: "",
+      currentlyPlaying: false,
+      initialCurrentlyPlaying: false,
     },
   },
   gameSession: null,
+  moves: []
 };
 
 export const playersSlice = createSlice({
@@ -63,9 +78,23 @@ export const playersSlice = createSlice({
       state.players.playerOne = action.payload.playerOne
       state.players.playerTwo = action.payload.playerTwo
     },
+     updateCurrentlyPlaying(state, action) {
+      // Updates the `currentlyPlaying` state for the appropriate player
+      const { nextPlayerId } = action.payload; // Payload should include the playerId
+      if (state.players.playerOne.id === nextPlayerId) {
+        state.players.playerTwo.currentlyPlaying = true;
+        state.players.playerOne.currentlyPlaying = false;
+      } else if (state.players.playerTwo.id === nextPlayerId) {
+        state.players.playerOne.currentlyPlaying = true;
+        state.players.playerTwo.currentlyPlaying = false;
+      }
+    },
     setGameSession(state, action) {
       state.gameSession = action.payload;
     },
+    setMoves(state, action) {
+      state.moves = action.payload;
+    }
   },
 });
 
@@ -79,6 +108,8 @@ export const {
   updatePlayerOne,
   updatePlayerTwo,
   givePlayerNames,
+  updateCurrentlyPlaying,
   setGameSession,
+  setMoves
 } = playersSlice.actions;
 export default playersSlice.reducer;
