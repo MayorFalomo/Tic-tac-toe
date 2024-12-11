@@ -4,12 +4,15 @@ interface track {
   trackTheWinnner: string;
   trackRounds: number;
   trackDisableRound: boolean;
-  playerOneScore: number;
-  playerTwoScore: number;
   disabledClick: boolean;
   playersSessionId: SessionId;
   gameSessionId: string;
+  combinedGameSessionId: string;
   trackWhoPlays: string | null;
+  scores: {
+    playerOne: number;
+    playerTwo: number;
+  };
 }
 
 export interface SessionId {
@@ -21,15 +24,18 @@ const initialState: track = {
   trackTheWinnner: "",
   trackRounds: 1,
   trackDisableRound: true,
-  playerOneScore: 0,
-  playerTwoScore: 0,
   disabledClick: false,
   gameSessionId: "",
+  combinedGameSessionId: "",
   trackWhoPlays: null,
   playersSessionId: {
     playerOneSessionId: "",
     playerTwoSessionId: "",
-  }
+  },
+  scores: {
+    playerOne: 0,
+    playerTwo: 0,
+  },
 };
 
 export const trackerSlice = createSlice({
@@ -41,19 +47,6 @@ export const trackerSlice = createSlice({
     },
     setTrackRounds(state, action) {
       state.trackRounds = 1 + action.payload;
-    },
-    setTrackPlayerOneScore(state, action) {
-      state.playerOneScore = 1 + action.payload;
-    },
-    setTrackPlayerTwoScore(state, action) {
-      state.playerTwoScore = 1 + action.payload;
-    },
-    setDisabledClick(state, action) {
-      state.disabledClick = action.payload;
-    },
-    emptyScore(state, action) {
-      state.playerOneScore = 0;
-      state.playerTwoScore = 0;
     },
     setSessionId: (state, action) => {
       state.gameSessionId = action.payload;
@@ -72,19 +65,23 @@ export const trackerSlice = createSlice({
     setTrackDisableRound: (state, action) => {
       state.trackDisableRound = action.payload;
     },
+    setTrackScores: (state, action) => {
+      state.scores = action.payload;
+    },
+    setCombinedGameSessionId: (state, action) => {
+      state.scores = action.payload;
+    }
   },
 });
 
 export const {
   setTrackWinner,
   setTrackRounds,
-  setTrackPlayerOneScore,
-  setTrackPlayerTwoScore,
-  setDisabledClick,
-  emptyScore,
   setSessionId,
   setTrackWhoPlays,
   setPlayersSessionId,
   setTrackDisableRound,
+  setTrackScores,
+  setCombinedGameSessionId
 } = trackerSlice.actions;
 export default trackerSlice.reducer;

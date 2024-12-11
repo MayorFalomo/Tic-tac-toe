@@ -67,4 +67,48 @@
     @apply bg-background text-foreground;
     background-color: black;
   }
+  ul,
+  ol {
+    list-style: revert;
+  }
+  /* NEW CODE */
+  /* width */
+  ::-webkit-scrollbar {
+    @apply w-2;
+  }
+
+  /* Track */
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-200 dark:bg-gray-700;
+  }
+
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-400 dark:bg-gray-500 rounded-xl;
+  }
+
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500 dark:bg-gray-400;
+  }
+  .draw-line {
+    position: absolute;
+    width: 0;
+    height: 5px;
+    /* Adjust thickness */
+    background-color: white;
+    /* Line color */
+    transform-origin: top left;
+    /* Set origin for rotation */
+    transition: width 1s ease-in-out, transform 1s ease-in-out;
+    /* Animation properties */
+  }
+
+  .visible {
+    width: 200px;
+    /* Adjust to the length of the line */
+    transform: rotate(45deg);
+    /* Rotate to create a diagonal effect */
+  }
 }
+

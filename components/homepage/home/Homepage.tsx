@@ -14,20 +14,23 @@ import { useAppSelector, useAppDispatch, useAppStore } from '@/lib/hooks';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import { useRouter } from 'next/navigation';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
 import { db } from '@/firebase-config/firebase';
-import { setTrackDisableRound, setTrackRounds } from '@/lib/features/TrackerSlice';
+import {
+  setTrackDisableRound,
+  setTrackRounds,
+  setTrackWinner,
+} from '@/lib/features/TrackerSlice';
+import { toast } from 'react-hot-toast';
 
 type Props = {};
 
 const Homepage = (props: Props) => {
-  const track = useAppSelector((state) => state.track);
+  const track = useAppSelector((state: RootState) => state.track);
 
   const playersObject = useAppSelector((state: RootState) => state.players.players);
 
-  const trackRounds = useAppSelector((state) => state.track.trackRounds);
-
-  const playerId = useAppSelector((state) => state.user.playerId);
+  const playerId = useAppSelector((state: RootState) => state.user.playerId);
 
   const dispatch = useAppDispatch();
 
@@ -37,6 +40,11 @@ const Homepage = (props: Props) => {
   // usePresence(playerId);
   const router = useRouter();
 
+  const combinedId =
+    playersObject?.playerOne?.id > playersObject?.playerTwo?.id
+      ? playersObject?.playerOne?.id + playersObject?.playerTwo?.id
+      : playersObject?.playerTwo?.id + playersObject?.playerOne?.id;
+
   // const removePlayerFromGame = async () => {
   //   // Update player's status to offline
   //   await updateDoc(doc(db, "activePlayers", playerId), {
@@ -45,20 +53,44 @@ const Homepage = (props: Props) => {
   // };
 
   useEffect(() => {
+    if (combinedId) {
+      const unsubscribeGame = onSnapshot(doc(db, 'gameSessions', combinedId), (doc) => {
+        if (doc.exists()) {
+          setGameData(doc.data() as GameSession);
+        }
+      });
+
+      const unsubscribeMoves = onSnapshot(doc(db, 'playersMoves', combinedId), (doc) => {
+        if (doc.exists()) {
+          setMovesData(doc.data()?.moves || []);
+        }
+      });
+
+      return () => {
+        unsubscribeGame();
+        unsubscribeMoves();
+      };
+    }
+  }, [combinedId]);
+
+  console.log(movesData, 'movesData');
+
+  useEffect(() => {
     if (!playerId) {
       router.push('/signup');
+    } else {
+      toast.success('Welcome to the game', {
+        style: {
+          background: '#333',
+          color: '#fff',
+        },
+        position: 'top-right',
+      });
     }
   }, [playerId]);
 
   const [currentPlayer, setCurrentPlayer] = useState('');
   const [firstPlayer, setFirstPlayer] = useState('');
-
-  const combinedId =
-    playersObject?.playerOne?.id > playersObject?.playerTwo?.id
-      ? playersObject?.playerOne?.id + playersObject?.playerTwo?.id
-      : playersObject?.playerTwo?.id + playersObject?.playerOne?.id;
-
-  console.log(combinedId, 'combinedId');
 
   useEffect(() => {
     if (combinedId) {
@@ -83,14 +115,58 @@ const Homepage = (props: Props) => {
   }, [db, playersObject]);
 
   const handleStartNewRound = async () => {
+    //Update the game sessions
+    //First we update the rounds to 2.
+    //Then we update the currentTurn to be the next person other than the first player
+    //Problem now is we can't use the currentTurn field straight up since we want power to change hands to the other player in round 2 and the firstPlayer field would only be valid after like round 1
+    //So now we can use a combination of both
+    //I'd need to check if the round from gameData is 1, if it is, it means the next round is round 2 right? and in round 2 we want the other player to start first.
+    //So if it's round 1, I check the id of the firstPlayer in gameData and whomever it matches, their opposite gets to play.
+    //After each round of game whether winning or a draw, i'd need to update the field to the opposite players id
     await updateDoc(doc(db, 'gameSessions', combinedId), {
       rounds: track.trackRounds >= 5 ? 5 : track.trackRounds + 1,
+      currentTurn:
+        gameData?.firstPlayer === playersObject?.playerOne?.id
+          ? playersObject?.playerTwo?.id
+          : playersObject?.playerOne?.id,
+      goToNextRound: true,
+      roundWinner: '',
+      endOfRound: false,
+      winningCombination: [],
     });
-    dispatch(setTrackRounds(track.trackRounds + 1));
+    await updateDoc(doc(db, 'playersMoves', combinedId), {
+      moves: [],
+    });
+    dispatch(setTrackRounds(gameData?.rounds));
     dispatch(setTrackDisableRound(true));
     setMovesData([]);
-    setGameData(null);
+    // setGameData(null);
   };
+
+  const getCurrentTurn = () => {};
+
+  const restartGame = async () => {
+    // dispatch(setTrackWinner(''));
+
+    await updateDoc(doc(db, 'gameSessions', combinedId), {
+      rounds: 1,
+      currentTurn: gameData?.firstPlayer,
+      scores: {
+        playerOne: 0,
+        playerTwo: 0,
+      },
+      winningCombination: [],
+      roundWinner: '',
+      endOfRound: false,
+    });
+    await updateDoc(doc(db, 'playersMoves', combinedId), {
+      moves: [],
+    });
+    toast.success('Game is restarted');
+  };
+
+  console.log(movesData, 'moves empty');
+  console.log(gameData, 'gameData');
 
   // useEffect(() => {
   //   if (playerId) {
@@ -108,12 +184,17 @@ const Homepage = (props: Props) => {
   // console.log(playersNames, 'playersObj');
   // console.log(playersNames?.playerOne);
 
-  console.log(playersObject, 'playersObj');
-  console.log(playersObject.playerOne, 'name');
-  console.log(currentPlayer, 'currentPlayer');
+  // console.log(playersObject, 'playersObj');
+  // console.log(playersObject.playerOne, 'name');
+  // console.log(currentPlayer, 'currentPlayer');
+  // console.log(
+  //   currentPlayer === playersObject?.playerOne?.id
+  //     ? playersObject.playerOne?.avatar! ?? null
+  //     : playersObject?.playerTwo?.avatar!
+  // );
 
   return (
-    <div className=" flex flex-col  gap-[10px]  items-center  w-full h-[100vh]">
+    <div className=" flex flex-col  gap-[10px]  items-center  w-full h-[100vh] overflow-x-hidden">
       <div className=" flex justify-center items-center m-auto  w-full h-[85%]">
         <div className="flex flex-col w-full gap-[10px] items-center  justify-center">
           <div className="relative">
@@ -123,9 +204,9 @@ const Homepage = (props: Props) => {
                   width={40}
                   height={40}
                   src={
-                    currentPlayer === playersObject?.playerOne?.id
-                      ? playersObject.playerOne.avatar!
-                      : playersObject?.playerTwo?.avatar!
+                    currentPlayer === gameData?.players?.playerOne?.id
+                      ? gameData?.players?.playerOne?.avatar! ?? null
+                      : gameData?.players?.playerTwo?.avatar! ?? null
                   }
                   alt="img"
                 />
@@ -151,11 +232,15 @@ const Homepage = (props: Props) => {
                     alt="img"
                   />
                 </div>
-                <h1 className="text-white text-[24px] ">{track?.playerOneScore} </h1>
+                <h1 className="text-white text-[24px] ">
+                  {gameData?.scores?.playerOne}{' '}
+                </h1>
               </div>
               <h1 className="text-white text-[24px] "> : </h1>
               <div className="flex items-center w-full justify-center   gap-[20px]">
-                <h1 className="text-white text-[24px] ">{track?.playerTwoScore} </h1>
+                <h1 className="text-white text-[24px] ">
+                  {gameData?.scores?.playerTwo}{' '}
+                </h1>
                 <div
                   style={{
                     background: 'rgba(255, 255, 255, 0.1)',
@@ -182,14 +267,14 @@ const Homepage = (props: Props) => {
                   width={40}
                   height={40}
                   src={
-                    currentPlayer === playersObject?.playerTwo?.id
-                      ? playersObject?.playerOne?.avatar!
-                      : playersObject?.playerTwo?.avatar!
+                    currentPlayer !== gameData?.players?.playerTwo?.id
+                      ? gameData?.players?.playerTwo?.avatar! ?? null
+                      : gameData?.players?.playerOne?.avatar! ?? null
                   }
                   alt="img"
                 />
               </div>
-              {track?.trackTheWinnner.length > 1 && (
+              {gameData?.roundWinner!?.length > 0 && (
                 <AnimatePresence>
                   <motion.div
                     style={{
@@ -210,7 +295,7 @@ const Homepage = (props: Props) => {
                       }}
                       className="text-[24px] text-center m-auto "
                     >
-                      {track?.trackTheWinnner}{' '}
+                      {gameData?.roundWinner} wins{' '}
                     </h1>
                   </motion.div>
                 </AnimatePresence>
@@ -233,7 +318,7 @@ const Homepage = (props: Props) => {
               }}
             >
               <span
-                className="absolute right-[-70px] top-[190px] h-[3px] w-[100%] rotate-[90deg]"
+                className="absolute right-[-70px] top-[190px] h-[2px] w-[100%] rotate-[90deg]"
                 style={{
                   mixBlendMode: 'hard-light',
                   border: '5.76786px solid #FFD56A',
@@ -246,7 +331,7 @@ const Homepage = (props: Props) => {
                 {' '}
               </span>
               <span
-                className="absolute left-[-70px] top-[190px] h-[3px] w-[100%] rotate-[90deg]"
+                className="absolute left-[-70px] top-[190px] h-[2px] w-[100%] rotate-[90deg]"
                 style={{
                   mixBlendMode: 'hard-light',
                   border: '5.76786px solid #FFD56A',
@@ -259,7 +344,7 @@ const Homepage = (props: Props) => {
                 {' '}
               </span>
               <span
-                className="absolute left-[0px] top-[120px] h-[3px] w-[100%]"
+                className="absolute left-[0px] top-[120px] h-[2px] w-[100%]"
                 style={{
                   mixBlendMode: 'hard-light',
                   border: '5.76786px solid #FFD56A',
@@ -301,7 +386,7 @@ const Homepage = (props: Props) => {
           </div>
         </div>
       </div>
-      <div className="border-2 border-red-500 flex justify-between text-center  w-full">
+      <div className="flex justify-between text-center  w-full">
         <h1
           style={{
             msTransform: 'skewX(20deg)',
@@ -320,7 +405,7 @@ const Homepage = (props: Props) => {
             }}
             className="text-white inline-block"
           >
-            Round: {trackRounds} / 5
+            Round: {gameData?.rounds} / 5
           </span>
         </h1>
         <button
@@ -332,9 +417,27 @@ const Homepage = (props: Props) => {
             transform: 'skewX(20deg)',
             display: 'inline-block',
           }}
+          className={`text-white border-2 inline-block text-center text-[26px]  p-2 w-[250px]`}
+          onClick={restartGame}
+        >
+          Restart Game
+        </button>
+        <button
+          style={{
+            msTransform: 'skewX(20deg)',
+            WebkitTransform: 'skewX(20deg)',
+            textTransform: 'uppercase',
+            // webkitTransform: "skewX(20deg)",
+            transform: 'skewX(20deg)',
+            display: 'inline-block',
+          }}
           onClick={() => handleStartNewRound()}
-          disabled={track?.trackDisableRound}
-          className="text-white border-2 inline-block text-center text-[26px]  p-2 w-[250px]"
+          disabled={gameData?.goToNextRound}
+          className={`text-white border-2 inline-block text-center text-[26px]  p-2 w-[250px] ${
+            gameData?.goToNextRound
+              ? 'opacity-50 cursor-not-allowed'
+              : ' opacity-100 cursor-pointer'
+          }`}
         >
           <span
             style={{
@@ -342,7 +445,8 @@ const Homepage = (props: Props) => {
             }}
             className="text-white inline-block"
           >
-            Start {trackRounds} / 5
+            Begin round{' '}
+            {gameData?.rounds === 5 ? gameData?.rounds : gameData?.rounds! + 1} / 5
           </span>
         </button>
       </div>

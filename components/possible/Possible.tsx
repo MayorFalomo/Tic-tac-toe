@@ -1,46 +1,29 @@
-import { GameSession, MovesObject, Selected } from '@/app/types/types';
+import { GameSession, MovesObject } from '@/app/types/types';
 import {
-  addPlayerOne,
-  addPlayerTwo,
-  changeCurrentPlayerControl,
-  changeIndexSelected,
-  emptyPlayer,
-  givePlayerNames,
-  setGetSelected,
-  setMoves,
-  updateCurrentlyPlaying,
-} from '@/lib/features/PlayerSlice';
-import {
-  emptyScore,
   SessionId,
-  setDisabledClick,
   setPlayersSessionId,
   setTrackDisableRound,
-  setTrackPlayerOneScore,
-  setTrackPlayerTwoScore,
-  setTrackRounds,
-  setTrackWhoPlays,
+  setTrackScores,
   setTrackWinner,
 } from '@/lib/features/TrackerSlice';
 import { database, db } from '@/firebase-config/firebase';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
 import {
-  addDoc,
-  collection,
   doc,
   getDoc,
   onSnapshot,
-  orderBy,
-  query,
   serverTimestamp,
   setDoc,
   updateDoc,
-  where,
 } from 'firebase/firestore';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import { get, onValue, push, ref, update } from '@firebase/database';
+import toast from 'react-hot-toast';
+import DrawLine from '@/app/animation/DrawLine';
+import { AnimatePresence } from 'framer-motion';
+import SvgLine from '@/app/animation/SvgLine';
 
 type MappedOver = {
   val: any;
@@ -61,13 +44,12 @@ const Possible: React.FC<MappedOver> = ({
   setMovesData,
   setGameData,
 }) => {
+  const [storedCurrentPlayerChoices, setStoredCurrentPlayerChoices] = useState<number[]>(
+    []
+  );
   const possibility = useAppSelector((state) => state.possible.possibility); //State to hold all the possible combinations
 
   const playersChoice = useAppSelector((state: RootState) => state.players); //All the index chosen are pushed inside the playerOneChoice Array
-
-  const currentPlayerControl = useAppSelector(
-    (state) => state.players.currentplayerControl
-  ); //State to control the current player to either playerOne or playerTwo depending on what boolean it currently is
 
   const track = useAppSelector((state: RootState) => state.track); //State to track rounds
 
@@ -75,54 +57,11 @@ const Possible: React.FC<MappedOver> = ({
     (state: RootState) => state.track.disabledClick
   ); // State to try and control double clicking
 
-  const trackTheWinner = useAppSelector((state) => state.track.trackTheWinnner); //State that collects a string
-
-  const playerOneScore = useAppSelector((state: RootState) => state.track.playerOneScore); //PlayerOneScore state is a state for keeping track of playerOneScore if it has beeen added
-
-  const playerTwoScore = useAppSelector((state: RootState) => state.track.playerTwoScore); // PlayerTwoScore is a state to keep track of playerTwosScore
-
   const playersObject = useAppSelector((state: RootState) => state.players.players);
   // const gameId = useAppSelector((state: RootState) => state.user.gameId);
   const movesPlayed = useAppSelector((state: RootState) => state.players?.moves);
 
   const dispatch = useAppDispatch();
-
-  //UseEffect to handle if the round is above 5
-  useEffect(() => {
-    if (track.trackRounds > 5) {
-      if (playerOneScore > playerTwoScore) {
-        dispatch(setTrackWinner('Player One has won'));
-        setTimeout(() => {
-          dispatch(changeCurrentPlayerControl(false));
-          dispatch(emptyPlayer([]));
-          dispatch(setTrackRounds(0));
-          dispatch(setTrackWinner(''));
-          dispatch(emptyScore(0));
-          dispatch(changeIndexSelected(0));
-        }, 3000);
-      } else if (playerTwoScore > playerOneScore) {
-        dispatch(setTrackWinner('Player Two has won'));
-        setTimeout(() => {
-          dispatch(changeCurrentPlayerControl(false));
-          dispatch(emptyPlayer([]));
-          dispatch(setTrackRounds(0));
-          dispatch(setTrackWinner(''));
-          dispatch(emptyScore(0));
-          dispatch(changeIndexSelected(0));
-        }, 3000);
-      } else {
-        dispatch(setTrackWinner('It is a Tie'));
-        setTimeout(() => {
-          dispatch(changeCurrentPlayerControl(false));
-          dispatch(emptyPlayer([]));
-          dispatch(setTrackRounds(0));
-          dispatch(setTrackWinner(''));
-          dispatch(emptyScore(0));
-          dispatch(changeIndexSelected(0));
-        }, 3000);
-      }
-    }
-  }, [playerOneScore, playerTwoScore, dispatch]);
 
   //Function to handle what happens when a user clicks on a box
   // const handleSelections = async (
@@ -306,29 +245,8 @@ const Possible: React.FC<MappedOver> = ({
 
   // Inside your GameComponent
 
-  useEffect(() => {
-    if (combinedId) {
-      const unsubscribeGame = onSnapshot(doc(db, 'gameSessions', combinedId), (doc) => {
-        if (doc.exists()) {
-          setGameData(doc.data() as GameSession);
-        }
-      });
-
-      const unsubscribeMoves = onSnapshot(doc(db, 'playersMoves', combinedId), (doc) => {
-        if (doc.exists()) {
-          setMovesData(doc.data()?.moves || []);
-        }
-      });
-
-      return () => {
-        unsubscribeGame();
-        unsubscribeMoves();
-      };
-    }
-  }, [combinedId]);
-
-  console.log(gameData, 'gameData');
-  console.log(movesData, 'movesData');
+  // console.log(gameData, 'gameData');
+  // console.log(movesData, 'movesData');
 
   const updateGameState = async (selected: number) => {
     try {
@@ -344,91 +262,162 @@ const Possible: React.FC<MappedOver> = ({
         await setDoc(doc(db, 'playersMoves', combinedId), moveObject);
       }
       if (gameDoc.exists()) {
-        const gameData = gameDoc.data();
-        const currentTurn = gameData.currentTurn;
-        const movesDoc = await getDoc(doc(db, 'playersMoves', combinedId));
+        if (!gameData?.endOfRound) {
+          const getGameData = gameDoc.data();
+          const currentTurn = getGameData.currentTurn;
+          const movesDoc = await getDoc(doc(db, 'playersMoves', combinedId));
 
-        // console.log(movesDoc.data(), 'movesDoc');
+          // console.log(movesDoc.data(), 'movesDoc');
 
-        const moves = movesDoc.data()?.moves || [];
+          const moves = movesDoc.data()?.moves || [];
 
-        // Check if it's the player's turn
-        if (currentTurn !== playersObject?.playerOne?.id) {
-          console.log("It's not your turn!");
-          return;
-        }
-
-        // console.log(moves, 'moves');
-
-        // Check if the choice field in the moves array matches the selected choice
-        const isChoiceTaken = moves.some((move: any) => move.choice === selected);
-        if (isChoiceTaken) {
-          console.log('This move has already been played!');
-          return;
-        }
-
-        // Make the move an object
-        const move = {
-          choice: selected,
-          playerId: playersObject?.playerOne?.id,
-          timeStamp: new Date().toISOString(),
-        };
-
-        console.log(move, 'move');
-
-        // Determine the next turn using the players id
-        const nextTurn =
-          currentTurn === playersObject?.playerOne?.id
-            ? playersObject?.playerTwo?.id
-            : playersObject?.playerOne?.id;
-
-        // Check if the playersMoves document exists before updating
-        if (movesDoc.exists()) {
-          // Update the playersMoves document with the new moves
-          const updatedMoves = [...moves, move];
-
-          await updateDoc(doc(db, 'playersMoves', combinedId), {
-            moves: updatedMoves, // Now we can safely use the updated array
-          });
-
-          //Check if the current player has won based on what was just played
-          const winning = checkForWinningCombination(currentTurn, updatedMoves);
-          const draw = checkForDraw(updatedMoves); //Check if the game is a draw
-
-          if (winning) {
-            const determineWinnerName =
-              currentTurn === playersObject?.playerOne?.id
-                ? playersObject?.playerOne?.name
-                : playersObject?.playerTwo?.name;
-
-            await updateDoc(doc(db, 'gameSessions', combinedId), {
-              scores: {
-                playerOne:
-                  currentTurn === playersObject?.playerOne?.id
-                    ? gameData.scores.playerOne + 1
-                    : gameData.scores.playerOne,
-                playerTwo:
-                  currentTurn === playersObject?.playerTwo?.id
-                    ? gameData.scores.playerTwo + 1
-                    : gameData.scores.playerTwo,
+          // Check if it's the player's turn
+          if (currentTurn !== playersObject?.playerOne?.id) {
+            toast.error('It is not your turn!', {
+              style: {
+                background: '#333',
+                color: '#fff',
               },
+              position: 'top-right',
             });
-            console.log(`Player ${determineWinnerName} has won!`);
-
-            dispatch(setTrackDisableRound(false));
-          } else if (draw) {
-            console.log('Game is a draw!');
-            dispatch(setTrackDisableRound(false));
-          } else {
-            await updateDoc(doc(db, 'gameSessions', combinedId), {
-              currentTurn: nextTurn,
-            });
-
-            // await updateDoc(doc(db, 'playersMoves', combinedId), {
-            //   moves: updatedMoves, // Now we can safely use the updated array
-            // });
+            console.log("It's not your turn!");
+            return;
           }
-          //Then Update the currentTurn field in the gameSession document
+
+          // console.log(moves, 'moves');
+
+          // Check if the choice field in the moves array matches the selected choice
+          const isChoiceTaken = moves.some((move: any) => move.choice === selected);
+
+          if (isChoiceTaken) {
+            toast.error('This move has already been played!', {
+              style: {
+                background: '#333',
+                color: '#fff',
+              },
+              position: 'top-right',
+            });
+            console.log('This move has already been played!');
+            return;
+          }
+
+          // Make the move an object
+          const move = {
+            choice: selected,
+            playerId: playersObject?.playerOne?.id,
+            timeStamp: new Date().toISOString(),
+          };
+
+          // console.log(move, 'move');
+
+          // Determine the next turn using the players id
+          const nextTurn =
+            currentTurn === playersObject?.playerOne?.id
+              ? playersObject?.playerTwo?.id
+              : playersObject?.playerOne?.id;
+
+          // Check if the playersMoves document exists before updating
+          if (movesDoc.exists()) {
+            // Update the playersMoves document with the new moves
+            const updatedMoves = [...moves, move];
+
+            //Check if the current player has won based on what was just played
+            const winning = checkForWinningCombination(currentTurn, updatedMoves);
+            const draw = checkForDraw(updatedMoves); //Check if the game is a draw
+
+            if (winning) {
+              const determineWinnerName =
+                currentTurn === playersObject?.playerOne?.id
+                  ? playersObject?.playerOne?.name
+                  : playersObject?.playerTwo?.name;
+
+              await updateDoc(doc(db, 'gameSessions', combinedId), {
+                scores: {
+                  playerOne:
+                    currentTurn === playersObject?.playerOne?.id
+                      ? getGameData.scores.playerOne + 1
+                      : getGameData.scores.playerOne,
+                  playerTwo:
+                    currentTurn === playersObject?.playerTwo?.id
+                      ? getGameData.scores.playerTwo + 1
+                      : getGameData.scores.playerTwo,
+                },
+                roundWinner: determineWinnerName,
+                goToNextRound: false, //For the round button
+                endOfRound: true,
+              });
+
+              dispatch(
+                setTrackScores({
+                  playerOne:
+                    currentTurn === playersObject?.playerOne?.id
+                      ? getGameData.scores.playerOne + 1
+                      : getGameData.scores.playerOne,
+                  playerTwo:
+                    currentTurn === playersObject?.playerTwo?.id
+                      ? getGameData.scores.playerTwo + 1
+                      : getGameData.scores.playerTwo,
+                })
+              );
+
+              if (track.trackRounds > 5) {
+                const determineFinalWinner =
+                  getGameData?.scores?.playerOne > getGameData?.scores?.playerTwo;
+                await updateDoc(doc(db, 'gameSessions', combinedId), {
+                  winner: determineWinnerName,
+                });
+                toast.success(`Player ${determineWinnerName} is the ultimate winner!`, {
+                  style: {
+                    background: '#333', // Dark background
+                    color: '#fff', // White text
+                    width: '250px',
+                  },
+                  position: 'top-right',
+                });
+                return;
+              }
+              if (track?.combinedGameSessionId === gameData?.sessionId) {
+                dispatch(setTrackWinner(determineWinnerName));
+                dispatch(setTrackDisableRound(false));
+              }
+            } else if (draw) {
+              // console.log('Game is a draw!');
+              toast.success('Game is a draw!', {
+                style: {
+                  background: '#333', // Dark background
+                  color: '#fff', // White text
+                },
+                position: 'top-right',
+              });
+              await updateDoc(doc(db, 'gameSessions', combinedId), {
+                goToNextRound: false,
+                endOfRound: true,
+              });
+              dispatch(setTrackDisableRound(false));
+            } else {
+              // console.log('something must have gone terribly wrong');
+
+              await updateDoc(doc(db, 'playersMoves', combinedId), {
+                moves: updatedMoves, // Now we can safely use the updated array
+              });
+              await updateDoc(doc(db, 'gameSessions', combinedId), {
+                currentTurn: nextTurn,
+              });
+
+              // await updateDoc(doc(db, 'playersMoves', combinedId), {
+              //   moves: updatedMoves, // Now we can safely use the updated array
+              // });
+            }
+            //Then Update the currentTurn field in the gameSession document
+          }
+        } else {
+          toast.success('This round has ended!', {
+            style: {
+              background: '#333', // Dark background
+              color: '#fff', // White text
+            },
+            position: 'top-right',
+          });
         }
       } else {
         console.log('Game document does not exist.');
@@ -437,8 +426,7 @@ const Possible: React.FC<MappedOver> = ({
       console.error('Error updating game state:', error);
     }
   };
-
-  console.log(possibility, 'possibility');
+  console.log(storedCurrentPlayerChoices, 'stored win');
 
   //Function to check if the player that just played got the correct combination
   const checkForWinningCombination = (currentTurn: string, moves: MovesObject[]) => {
@@ -451,12 +439,14 @@ const Possible: React.FC<MappedOver> = ({
     //If no one has won, then I check if the game is a draw by checking if the moves array length is 9
     //If it is a draw, then I update the gameState to reflect a draw
 
+    //Get the currentTurn ID
     const currentPlayerId = currentTurn;
-
+    //Filter through the moves for moves having an id similar to the currentTurn, this returns an array of object of moves data
     const currentPlayerMoves = moves.filter(
       (move: MovesObject) => move.playerId === currentPlayerId
     );
-    //Now I check if the currentPlayerMoves matches any of the combinations in the possibility array
+
+    //Now I check if the filtered currentPlayerMoves matches any of the combinations in the possibility array
     const isWinningCombination = possibility.some((combination) =>
       combination.every((choice) =>
         currentPlayerMoves.some((move) => move.choice === choice)
@@ -477,33 +467,6 @@ const Possible: React.FC<MappedOver> = ({
     }
   }, [movesData]);
 
-  // useEffect(() => {
-  //   const gameOneRef = ref(database, `playersMoves/${gameSessionId?.playerOneSessionId}`);
-  //   const gameTwoRef = ref(database, `playersMoves/${gameSessionId?.playerTwoSessionId}`);
-
-  //   const unsubscribeOne = onValue(gameOneRef, (snapshot) => {
-  //     const data = snapshot.val();
-  //     if (data) {
-  //       console.log(data, 'data one');
-
-  //       // setGameState(data);
-  //     }
-  //   });
-  //   const unsubscribeTwo = onValue(gameTwoRef, (snapshot) => {
-  //     const data = snapshot.val();
-  //     if (data) {
-  //       console.log(data, 'data two');
-
-  //       // setGameState(data);
-  //     }
-  //   });
-
-  //   return () => {
-  //     unsubscribeOne();
-  //     unsubscribeTwo();
-  //   };
-  // }, []);
-
   //!Function to get the opponents data using their playerId
   const getOpponentSessionId = async (playerId: string) => {
     const playersRef = ref(database, 'activePlayers');
@@ -517,7 +480,7 @@ const Possible: React.FC<MappedOver> = ({
 
     if (opponentId) {
       const opponentData = players[opponentId];
-      console.log(opponentData, 'opponentDATA'); //current user Object containing my opponent data like their id, sessionId, currentlyPlaying, status
+      // console.log(opponentData, 'opponentDATA'); //current user Object containing my opponent data like their id, sessionId, currentlyPlaying, status
 
       dispatch(
         setPlayersSessionId({
@@ -530,108 +493,134 @@ const Possible: React.FC<MappedOver> = ({
     return null; // Return null if no opponent found
   };
 
-  const [storedCurrentPlayerChoices, setStoredCurrentPlayerChoices] = useState<number[]>(
-    []
-  );
-
-  //Filter through the movesData by their id and get the corresponding choice of each players and push it to an array
+  //Filter through the movesData by their id and get the corresponding choices of each players and push it to an array
   //Once the array is created, I check if it matches any of the combinations in the possibility array
-  const filterMovesData = (movesData: MovesObject[]) => {
+  const filterMovesData = async (movesData: MovesObject[]) => {
     //get the choices of the currentPlayer
     const currentPlayerChoices = movesData
       .filter((move) => move.playerId === gameData?.currentTurn)
       .map((res) => res.choice);
+    console.log(currentPlayerChoices, 'To get the exact winning combination');
+    await updateDoc(doc(db, 'gameSessions', combinedId), {
+      winningCombination: currentPlayerChoices,
+    });
     setStoredCurrentPlayerChoices(currentPlayerChoices);
 
-    console.log(currentPlayerChoices, 'currentPlayerChoices');
+    // console.log(currentPlayerChoices, 'currentPlayerChoices');
   };
 
   const movesDataStringer = movesData.map((res) => res.choice);
-  console.log(storedCurrentPlayerChoices, 'CHOICES');
+  // console.log(storedCurrentPlayerChoices, 'CHOICES');
 
   // console.log(movesDataStringer.includes(possibility[5].join(',')), 'movesData string');
-  console.log([movesDataStringer].includes(possibility[4]), 'movesDatastringer');
+  // console.log([movesDataStringer].includes(possibility[4]), 'movesDatastringer');
   //Get the combination that matches the movesData
   // const matchingCombination = possibility.find(
   //   (combination) => combination.join(',') === movesData.toString()
   // );
+  // console.log(
+  //   possibility[2].every((res) => storedCurrentPlayerChoices.includes(res)),
+  //   'matchingCombination'
+  // );
+  // console.log(possibility[2], '4th possibility');
+  console.log(gameData, 'val');
+  console.log(possibility[2], 'possibility 2');
+
   console.log(
-    possibility[2].every((res) => storedCurrentPlayerChoices.includes(res)),
-    'matchingCombination'
+    possibility[7].every((res) => gameData?.winningCombination!.includes(res)),
+    'winner combo'
   );
-  console.log(possibility[2], '4th possibility');
-  console.log(val, 'val');
 
   return (
     <div>
       <div
         onClick={() => updateGameState(index)}
-        className={`relative w-[80px] h-[80px] m-auto bg-red cursor-pointer ${
-          disableDoubleClick ? 'cursor-not-allowed' : ''
-        }`}
+        className={`relative w-[95%] h-full min-h-[90px] m-auto bg-red cursor-pointer `}
         style={{
           mixBlendMode: 'hard-light',
           // border: '100% solid #00A8A8',
-          border: '5.41667px solid #00A8A8',
+          // border: '5.41667px solid #00A8A8',
           //   filter: "blur(0.5px)",
-          borderRadius: '26.3891px',
+          // borderRadius: '26.3891px',
         }}
       >
         {movesData?.some(
           (res: MovesObject) => res.playerId === firstPlayer && res.choice === index
         ) ? (
-          <Image src="/SelectX.png" width={150} height={150} alt="img" />
+          <Image
+            src="/SelectX.png"
+            className="flex justify-center items-center mt-3 mx-auto"
+            width={70}
+            height={70}
+            alt="img"
+          />
         ) : (
           ''
         )}
         {movesData.some(
           (res: MovesObject) => res.playerId !== firstPlayer && res.choice === index
         ) ? (
-          <Image src="/SelectO.png" width={150} height={150} alt="img" />
+          <Image
+            src="/SelectO.png"
+            className="flex justify-center items-center mt-3 mx-auto"
+            width={70}
+            height={70}
+            alt="img"
+          />
         ) : (
           ''
         )}
       </div>
-      {possibility[0].every((res) => storedCurrentPlayerChoices.includes(res)) && (
-        <span className="absolute left-[0] right-[0] top-[80px] m-auto z-[99] w-[90%] h-[5px] bg-white ">
-          {' '}
-        </span>
-      )}
-      {possibility[1].every((res) => storedCurrentPlayerChoices.includes(res)) && (
-        <span className="absolute left-[0] right-[0] top-[80px] m-auto z-[99] w-[90%] h-[5px] bg-white ">
-          {' '}
-        </span>
-      )}
-      {possibility[2].every((res) => storedCurrentPlayerChoices.includes(res)) && (
-        <span className="absolute left-[-15px] top-[220px] rotate-[45deg] z-[99] w-[100%] h-[5px] bg-white ">
-          {' '}
-        </span>
-      )}
-      {possibility[3].every((res) => storedCurrentPlayerChoices.includes(res)) && (
-        <span className="absolute left-[20px] right-[35px] top-[190px] rotate-[90deg] z-[99] w-[90%] h-[5px] bg-red-600 ">
-          {' '}
-        </span>
-      )}
-      {possibility[4].every((res) => storedCurrentPlayerChoices.includes(res)) && (
-        <span className="absolute right-[0px] top-[240px] rotate-[-45deg] z-[99] w-[100%] h-[5px] bg-white ">
-          {' '}
-        </span>
-      )}
-      {possibility[5].every((res) => storedCurrentPlayerChoices.includes(res)) && (
-        <span className="absolute right-[-145px] top-[230px] rotate-[90deg] z-[99] w-[90%] h-[5px] bg-white ">
-          {' '}
-        </span>
-      )}
-      {possibility[6].every((res) => storedCurrentPlayerChoices.includes(res)) && (
-        <span className="absolute left-[25px] top-[240px]  z-[99] w-[90%] h-[5px] bg-white ">
-          {' '}
-        </span>
-      )}
-      {possibility[7].every((res) => storedCurrentPlayerChoices.includes(res)) && (
-        <span className="absolute left-[25px] bottom-[75px] z-[99] w-[90%] h-[5px] bg-white ">
-          {' '}
-        </span>
-      )}
+      <div className="w-full h-full">
+        <AnimatePresence>
+          {possibility[0].every((res) => gameData?.winningCombination!.includes(res)) && (
+            <DrawLine width="90%" height="5px" top="60px" left="20px" rotate="0" />
+          )}
+          {possibility[1].every((res) => gameData?.winningCombination!.includes(res)) && (
+            <DrawLine
+              width="90%"
+              height="5px"
+              top="20px"
+              left="60px"
+              style="bg-blue-500"
+              rotate={90}
+              // transformOrigin="center"
+            />
+          )}
+          {possibility[2].every((res) => gameData?.winningCombination!.includes(res)) && (
+            <DrawLine
+              width="110%"
+              height="5px"
+              top="45px"
+              left="53px"
+              rotate="45"
+              transformOrigin="top left"
+            />
+          )}
+          {possibility[3].every((res) => gameData?.winningCombination!.includes(res)) && (
+            <DrawLine width="90%" height="5px" top="30px" left="50%" rotate={90} />
+          )}
+          {possibility[4].every((res) => gameData?.winningCombination!.includes(res)) && (
+            <DrawLine
+              width="110%"
+              height="5px"
+              top="40px"
+              left="340px"
+              rotate="-224"
+              transformOrigin="bottom left"
+            />
+          )}
+          {possibility[5].every((res) => gameData?.winningCombination!.includes(res)) && (
+            <DrawLine width="90%" height="5px" top="20px" left="330px" rotate="90" />
+          )}
+          {possibility[6].every((res) => gameData?.winningCombination!.includes(res)) && (
+            <DrawLine width="90%" height="5px" top="190px" left="20px" rotate="0" />
+          )}
+          {possibility[7].every((res) => gameData?.winningCombination!.includes(res)) && (
+            <DrawLine width="90%" height="5px" bottom="60px" left="20px" rotate="0" />
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };

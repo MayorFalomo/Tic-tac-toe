@@ -40,15 +40,20 @@ export type GameSession = {
   firstPlayer: string;
   rounds: number;
   createdAt: string;
+  roundWinner: string;
+  endOfRound: boolean;
+  winner: string | null;
+  winningCombination: number[] | null,
+  goToNextRound?: boolean,
   scores: {
     playerOne: number;
     playerTwo: number;
   };
-  winner: string | null;
   players: {
     playerOne: SessionPlayerDetails;
     playerTwo: SessionPlayerDetails;
   };
+  
 };
 
 export type SessionPlayerDetails = {
