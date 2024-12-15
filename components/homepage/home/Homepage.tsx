@@ -73,7 +73,7 @@ const Homepage = (props: Props) => {
     }
   }, [combinedId]);
 
-  console.log(movesData, 'movesData');
+  // console.log(movesData, 'movesData');
 
   useEffect(() => {
     if (!playerId) {
@@ -123,12 +123,14 @@ const Homepage = (props: Props) => {
     //I'd need to check if the round from gameData is 1, if it is, it means the next round is round 2 right? and in round 2 we want the other player to start first.
     //So if it's round 1, I check the id of the firstPlayer in gameData and whomever it matches, their opposite gets to play.
     //After each round of game whether winning or a draw, i'd need to update the field to the opposite players id
+
+    const determineNextPlayer =
+      gameData?.firstPlayer === gameData?.players?.playerOne?.id
+        ? gameData?.players?.playerTwo?.id
+        : gameData?.players?.playerOne?.id;
     await updateDoc(doc(db, 'gameSessions', combinedId), {
       rounds: track.trackRounds >= 5 ? 5 : track.trackRounds + 1,
-      currentTurn:
-        gameData?.firstPlayer === playersObject?.playerOne?.id
-          ? playersObject?.playerTwo?.id
-          : playersObject?.playerOne?.id,
+      currentTurn: determineNextPlayer,
       goToNextRound: true,
       roundWinner: '',
       endOfRound: false,
@@ -165,8 +167,8 @@ const Homepage = (props: Props) => {
     toast.success('Game is restarted');
   };
 
-  console.log(movesData, 'moves empty');
-  console.log(gameData, 'gameData');
+  // console.log(movesData, 'moves empty');
+  // console.log(gameData, 'gameData');
 
   // useEffect(() => {
   //   if (playerId) {
@@ -182,7 +184,7 @@ const Homepage = (props: Props) => {
   // }, [playerId]);
 
   // console.log(playersNames, 'playersObj');
-  // console.log(playersNames?.playerOne);
+  // console.log(currentPlayer, 'currplayer');
 
   // console.log(playersObject, 'playersObj');
   // console.log(playersObject.playerOne, 'name');
@@ -192,6 +194,7 @@ const Homepage = (props: Props) => {
   //     ? playersObject.playerOne?.avatar! ?? null
   //     : playersObject?.playerTwo?.avatar!
   // );
+  // console.log(gameData?.roundWinner, 'roundWinner');
 
   return (
     <div className=" flex flex-col  gap-[10px]  items-center  w-full h-[100vh] overflow-x-hidden">
@@ -233,13 +236,17 @@ const Homepage = (props: Props) => {
                   />
                 </div>
                 <h1 className="text-white text-[24px] ">
-                  {gameData?.scores?.playerOne}{' '}
+                  {currentPlayer === gameData?.players?.playerOne?.id
+                    ? gameData?.scores?.playerOne!
+                    : gameData?.scores?.playerTwo!}{' '}
                 </h1>
               </div>
               <h1 className="text-white text-[24px] "> : </h1>
               <div className="flex items-center w-full justify-center   gap-[20px]">
                 <h1 className="text-white text-[24px] ">
-                  {gameData?.scores?.playerTwo}{' '}
+                  {currentPlayer === gameData?.players?.playerTwo?.id
+                    ? gameData?.scores?.playerOne!
+                    : gameData?.scores?.playerTwo!}{' '}
                 </h1>
                 <div
                   style={{
@@ -405,7 +412,7 @@ const Homepage = (props: Props) => {
             }}
             className="text-white inline-block"
           >
-            Round: {gameData?.rounds} / 5
+            Round: {gameData?.rounds} {currentPlayer} / 5
           </span>
         </h1>
         <button
@@ -420,7 +427,7 @@ const Homepage = (props: Props) => {
           className={`text-white border-2 inline-block text-center text-[26px]  p-2 w-[250px]`}
           onClick={restartGame}
         >
-          Restart Game
+          Restart Game {gameData?.players?.playerOne?.id}
         </button>
         <button
           style={{
@@ -443,10 +450,10 @@ const Homepage = (props: Props) => {
             style={{
               transform: 'skewX(-20deg)', // Counter the skew for the text
             }}
-            className="text-white inline-block"
+            className="text-white border-solid border-[2px] border-red-600 inline-block"
           >
-            Begin round{' '}
-            {gameData?.rounds === 5 ? gameData?.rounds : gameData?.rounds! + 1} / 5
+            Begin round {gameData?.players?.playerTwo?.id}
+            {gameData?.rounds === 5 ? gameData?.rounds : gameData?.rounds! ?? '' + 1} / 5
           </span>
         </button>
       </div>

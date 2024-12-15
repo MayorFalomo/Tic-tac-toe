@@ -307,6 +307,7 @@ const Possible: React.FC<MappedOver> = ({
             playerId: playersObject?.playerOne?.id,
             timeStamp: new Date().toISOString(),
           };
+          console.log(gameData?.currentTurn, 'cuurrentTurn');
 
           // console.log(move, 'move');
 
@@ -326,45 +327,48 @@ const Possible: React.FC<MappedOver> = ({
             const draw = checkForDraw(updatedMoves); //Check if the game is a draw
 
             if (winning) {
+              await updateDoc(doc(db, 'playersMoves', combinedId), {
+                moves: updatedMoves, // Now we can safely use the updated array
+              });
               const determineWinnerName =
-                currentTurn === playersObject?.playerOne?.id
+                gameData?.currentTurn === playersObject?.playerOne?.id
                   ? playersObject?.playerOne?.name
                   : playersObject?.playerTwo?.name;
 
+              //Get me the Id of the player in respect to them being the winner
+              const getWinnersId =
+                determineWinnerName === playersObject?.playerOne?.name
+                  ? gameData?.players?.playerOne?.id
+                  : gameData?.players?.playerTwo?.id;
+              // const playerTwoScore =
+              //   determineWinnerName === playersObject?.playerTwo?.name
+              //     ? gameData?.scores?.playerTwo! + 1
+              //     : gameData?.scores?.playerTwo!;
               await updateDoc(doc(db, 'gameSessions', combinedId), {
                 scores: {
-                  playerOne:
-                    currentTurn === playersObject?.playerOne?.id
-                      ? getGameData.scores.playerOne + 1
-                      : getGameData.scores.playerOne,
-                  playerTwo:
-                    currentTurn === playersObject?.playerTwo?.id
-                      ? getGameData.scores.playerTwo + 1
-                      : getGameData.scores.playerTwo,
+                  playerOne: {
+                    score:
+                      getWinnersId === gameData?.players?.playerOne?.id
+                        ? gameData?.scores?.playerOne! + 1
+                        : gameData?.scores?.playerOne,
+                  },
+                  playerTwo: {
+                    score:
+                      getWinnersId === gameData?.players?.playerTwo?.id
+                        ? gameData?.scores?.playerTwo! + 1
+                        : gameData?.scores?.playerTwo,
+                  },
                 },
                 roundWinner: determineWinnerName,
                 goToNextRound: false, //For the round button
                 endOfRound: true,
               });
 
-              dispatch(
-                setTrackScores({
-                  playerOne:
-                    currentTurn === playersObject?.playerOne?.id
-                      ? getGameData.scores.playerOne + 1
-                      : getGameData.scores.playerOne,
-                  playerTwo:
-                    currentTurn === playersObject?.playerTwo?.id
-                      ? getGameData.scores.playerTwo + 1
-                      : getGameData.scores.playerTwo,
-                })
-              );
-
               if (track.trackRounds > 5) {
                 const determineFinalWinner =
                   getGameData?.scores?.playerOne > getGameData?.scores?.playerTwo;
                 await updateDoc(doc(db, 'gameSessions', combinedId), {
-                  winner: determineWinnerName,
+                  roundWinner: determineWinnerName,
                 });
                 toast.success(`Player ${determineWinnerName} is the ultimate winner!`, {
                   style: {
@@ -374,13 +378,32 @@ const Possible: React.FC<MappedOver> = ({
                   },
                   position: 'top-right',
                 });
+                setTimeout(async () => {
+                  await updateDoc(doc(db, 'gameSessions', combinedId), {
+                    ultimateWinner: determineWinnerName,
+                  });
+                  toast.success(
+                    `Player ${determineFinalWinner} is the ultimate winner!`,
+                    {
+                      style: {
+                        background: '#333', // Dark background
+                        color: '#fff', // White text
+                        width: '250px',
+                      },
+                      position: 'top-right',
+                    }
+                  );
+                }, 5000);
                 return;
               }
-              if (track?.combinedGameSessionId === gameData?.sessionId) {
-                dispatch(setTrackWinner(determineWinnerName));
-                dispatch(setTrackDisableRound(false));
-              }
+              dispatch(setTrackWinner(determineWinnerName));
+              dispatch(setTrackDisableRound(false));
+              // if (track?.combinedGameSessionId === gameData?.sessionId) {
+              // }
             } else if (draw) {
+              await updateDoc(doc(db, 'playersMoves', combinedId), {
+                moves: updatedMoves, // Now we can safely use the updated array
+              });
               // console.log('Game is a draw!');
               toast.success('Game is a draw!', {
                 style: {
@@ -426,7 +449,7 @@ const Possible: React.FC<MappedOver> = ({
       console.error('Error updating game state:', error);
     }
   };
-  console.log(storedCurrentPlayerChoices, 'stored win');
+  // console.log(storedCurrentPlayerChoices, 'stored win');
 
   //Function to check if the player that just played got the correct combination
   const checkForWinningCombination = (currentTurn: string, moves: MovesObject[]) => {
@@ -500,7 +523,7 @@ const Possible: React.FC<MappedOver> = ({
     const currentPlayerChoices = movesData
       .filter((move) => move.playerId === gameData?.currentTurn)
       .map((res) => res.choice);
-    console.log(currentPlayerChoices, 'To get the exact winning combination');
+    // console.log(currentPlayerChoices, 'To get the exact winning combination');
     await updateDoc(doc(db, 'gameSessions', combinedId), {
       winningCombination: currentPlayerChoices,
     });
@@ -523,13 +546,13 @@ const Possible: React.FC<MappedOver> = ({
   //   'matchingCombination'
   // );
   // console.log(possibility[2], '4th possibility');
-  console.log(gameData, 'val');
-  console.log(possibility[2], 'possibility 2');
+  // console.log(gameData, 'val');
+  // console.log(possibility[2], 'possibility 2');
 
-  console.log(
-    possibility[7].every((res) => gameData?.winningCombination!.includes(res)),
-    'winner combo'
-  );
+  // console.log(
+  //   possibility[7].every((res) => gameData?.winningCombination!.includes(res)),
+  //   'winner combo'
+  // );
 
   return (
     <div>

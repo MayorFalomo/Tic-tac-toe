@@ -41,10 +41,12 @@ export type GameSession = {
   rounds: number;
   createdAt: string;
   roundWinner: string;
+  ultimateWinner?: string;
   endOfRound: boolean;
   winner: string | null;
   winningCombination: number[] | null,
   goToNextRound?: boolean,
+  trackRoundPlayer: string;
   scores: {
     playerOne: number;
     playerTwo: number;
@@ -68,3 +70,7 @@ export type MovesObject = {
   timestamp: string;
 };
 
+export type Scores = {
+  id: string;
+  score: number;
+};

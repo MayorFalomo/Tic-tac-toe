@@ -244,6 +244,7 @@ const SignUp = (props: Props) => {
           },
           roundWinner: '',
           endOfRound: false,
+          trackRoundPlayer: randomControl ? playerOneDetails?.id : opponent?.id,
           winner: null,
           winningCombination: [],
           goToNextRound: true,
