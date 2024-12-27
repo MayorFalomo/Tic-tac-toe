@@ -199,6 +199,7 @@ const Login = (props: Props) => {
           },
           winner: null,
           roundWinner: '',
+          trackRoundPlayer: randomControl ? playerOneDetails?.id : opponent?.id,
           endOfRound: false,
           winningCombination: [],
           players: {

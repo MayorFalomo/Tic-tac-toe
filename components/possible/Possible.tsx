@@ -23,7 +23,6 @@ import { get, onValue, push, ref, update } from '@firebase/database';
 import toast from 'react-hot-toast';
 import DrawLine from '@/app/animation/DrawLine';
 import { AnimatePresence } from 'framer-motion';
-import SvgLine from '@/app/animation/SvgLine';
 
 type MappedOver = {
   val: any;
@@ -261,6 +260,7 @@ const Possible: React.FC<MappedOver> = ({
         };
         await setDoc(doc(db, 'playersMoves', combinedId), moveObject);
       }
+
       if (gameDoc.exists()) {
         if (!gameData?.endOfRound) {
           const getGameData = gameDoc.data();
@@ -280,7 +280,6 @@ const Possible: React.FC<MappedOver> = ({
               },
               position: 'top-right',
             });
-            console.log("It's not your turn!");
             return;
           }
 
@@ -297,7 +296,6 @@ const Possible: React.FC<MappedOver> = ({
               },
               position: 'top-right',
             });
-            console.log('This move has already been played!');
             return;
           }
 
@@ -307,9 +305,6 @@ const Possible: React.FC<MappedOver> = ({
             playerId: playersObject?.playerOne?.id,
             timeStamp: new Date().toISOString(),
           };
-          console.log(gameData?.currentTurn, 'cuurrentTurn');
-
-          // console.log(move, 'move');
 
           // Determine the next turn using the players id
           const nextTurn =
@@ -328,7 +323,7 @@ const Possible: React.FC<MappedOver> = ({
 
             if (winning) {
               await updateDoc(doc(db, 'playersMoves', combinedId), {
-                moves: updatedMoves, // Now we can safely use the updated array
+                moves: updatedMoves,
               });
               const determineWinnerName =
                 gameData?.currentTurn === playersObject?.playerOne?.id
@@ -337,46 +332,51 @@ const Possible: React.FC<MappedOver> = ({
 
               //Get me the Id of the player in respect to them being the winner
               const getWinnersId =
-                determineWinnerName === playersObject?.playerOne?.name
+                determineWinnerName === gameData?.players?.playerOne?.name
                   ? gameData?.players?.playerOne?.id
                   : gameData?.players?.playerTwo?.id;
+
+              const determineNextPlayer =
+                gameData?.firstPlayer === gameData?.players?.playerOne?.id
+                  ? gameData?.players?.playerTwo?.id
+                  : gameData?.players?.playerOne?.id;
+
               // const playerTwoScore =
               //   determineWinnerName === playersObject?.playerTwo?.name
               //     ? gameData?.scores?.playerTwo! + 1
               //     : gameData?.scores?.playerTwo!;
+
               await updateDoc(doc(db, 'gameSessions', combinedId), {
                 scores: {
-                  playerOne: {
-                    score:
-                      getWinnersId === gameData?.players?.playerOne?.id
-                        ? gameData?.scores?.playerOne! + 1
-                        : gameData?.scores?.playerOne,
-                  },
-                  playerTwo: {
-                    score:
-                      getWinnersId === gameData?.players?.playerTwo?.id
-                        ? gameData?.scores?.playerTwo! + 1
-                        : gameData?.scores?.playerTwo,
-                  },
+                  playerOne:
+                    getWinnersId === gameData?.players?.playerOne?.id
+                      ? gameData?.scores?.playerOne! + 1
+                      : gameData?.scores?.playerOne!,
+                  playerTwo:
+                    getWinnersId === gameData?.players?.playerTwo?.id
+                      ? gameData?.scores?.playerTwo! + 1
+                      : gameData?.scores?.playerTwo!,
                 },
+                // firstPlayer: determineNextPlayer,
                 roundWinner: determineWinnerName,
                 goToNextRound: false, //For the round button
                 endOfRound: true,
               });
 
-              if (track.trackRounds > 5) {
+              if (gameData?.rounds! === 5) {
                 const determineFinalWinner =
                   getGameData?.scores?.playerOne > getGameData?.scores?.playerTwo;
                 await updateDoc(doc(db, 'gameSessions', combinedId), {
                   roundWinner: determineWinnerName,
+                  endOfRound: true,
                 });
                 toast.success(`Player ${determineWinnerName} is the ultimate winner!`, {
+                  position: 'top-center',
                   style: {
                     background: '#333', // Dark background
                     color: '#fff', // White text
                     width: '250px',
                   },
-                  position: 'top-right',
                 });
                 setTimeout(async () => {
                   await updateDoc(doc(db, 'gameSessions', combinedId), {
@@ -398,25 +398,41 @@ const Possible: React.FC<MappedOver> = ({
               }
               dispatch(setTrackWinner(determineWinnerName));
               dispatch(setTrackDisableRound(false));
-              // if (track?.combinedGameSessionId === gameData?.sessionId) {
-              // }
             } else if (draw) {
               await updateDoc(doc(db, 'playersMoves', combinedId), {
-                moves: updatedMoves, // Now we can safely use the updated array
+                moves: updatedMoves,
               });
-              // console.log('Game is a draw!');
+
               toast.success('Game is a draw!', {
-                style: {
-                  background: '#333', // Dark background
-                  color: '#fff', // White text
-                },
                 position: 'top-right',
+                style: {
+                  background: '#333',
+                  color: '#fff',
+                },
               });
+
               await updateDoc(doc(db, 'gameSessions', combinedId), {
                 goToNextRound: false,
                 endOfRound: true,
               });
               dispatch(setTrackDisableRound(false));
+
+              if (gameData?.rounds! === 5) {
+                const checkForDrawInGame =
+                  getGameData?.scores?.playerOne === getGameData?.scores?.playerTwo;
+
+                setTimeout(async () => {
+                  toast.success(`${checkForDrawInGame && 'Game has ended in a draw!'}`, {
+                    style: {
+                      background: '#333', // Dark background
+                      color: '#fff', // White text
+                      width: '250px',
+                    },
+                    position: 'top-right',
+                  });
+                }, 5000);
+                dispatch(setTrackDisableRound(false));
+              }
             } else {
               // console.log('something must have gone terribly wrong');
 
@@ -435,11 +451,11 @@ const Possible: React.FC<MappedOver> = ({
           }
         } else {
           toast.success('This round has ended!', {
+            position: 'top-right',
             style: {
               background: '#333', // Dark background
               color: '#fff', // White text
             },
-            position: 'top-right',
           });
         }
       } else {
@@ -561,10 +577,6 @@ const Possible: React.FC<MappedOver> = ({
         className={`relative w-[95%] h-full min-h-[90px] m-auto bg-red cursor-pointer `}
         style={{
           mixBlendMode: 'hard-light',
-          // border: '100% solid #00A8A8',
-          // border: '5.41667px solid #00A8A8',
-          //   filter: "blur(0.5px)",
-          // borderRadius: '26.3891px',
         }}
       >
         {movesData?.some(
@@ -572,9 +584,9 @@ const Possible: React.FC<MappedOver> = ({
         ) ? (
           <Image
             src="/SelectX.png"
-            className="flex justify-center items-center mt-3 mx-auto"
-            width={70}
-            height={70}
+            className="flex justify-center w-[70px] max-[500px]:!w-[50px] h-[70px] max-[500px]:h-[50px] items-center mt-3 mx-auto"
+            width={50}
+            height={50}
             alt="img"
           />
         ) : (
@@ -585,9 +597,9 @@ const Possible: React.FC<MappedOver> = ({
         ) ? (
           <Image
             src="/SelectO.png"
-            className="flex justify-center items-center mt-3 mx-auto"
-            width={70}
-            height={70}
+            className="flex justify-center w-[70px] max-[500px]:!w-[50px] h-[70px] max-[500px]:h-[50px] items-center mt-3 mx-auto"
+            width={50}
+            height={50}
             alt="img"
           />
         ) : (
@@ -607,7 +619,6 @@ const Possible: React.FC<MappedOver> = ({
               left="60px"
               style="bg-blue-500"
               rotate={90}
-              // transformOrigin="center"
             />
           )}
           {possibility[2].every((res) => gameData?.winningCombination!.includes(res)) && (
@@ -621,7 +632,7 @@ const Possible: React.FC<MappedOver> = ({
             />
           )}
           {possibility[3].every((res) => gameData?.winningCombination!.includes(res)) && (
-            <DrawLine width="90%" height="5px" top="30px" left="50%" rotate={90} />
+            <DrawLine width="90%" height="5px" top="20px" left="50%" rotate={90} />
           )}
           {possibility[4].every((res) => gameData?.winningCombination!.includes(res)) && (
             <DrawLine

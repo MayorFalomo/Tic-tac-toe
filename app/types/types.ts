@@ -38,6 +38,7 @@ export type GameSession = {
   sessionId: string;
   currentTurn: string;
   firstPlayer: string;
+  unChangeableFirstPlayer?: string;
   rounds: number;
   createdAt: string;
   roundWinner: string;
@@ -55,7 +56,7 @@ export type GameSession = {
     playerOne: SessionPlayerDetails;
     playerTwo: SessionPlayerDetails;
   };
-  
+  gameOver?: boolean;
 };
 
 export type SessionPlayerDetails = {
@@ -74,3 +75,21 @@ export type Scores = {
   id: string;
   score: number;
 };
+
+export type Chat = {
+  _id: string;
+  senderId: string;
+  message: string;
+  timeStamp: TimeStamp;
+  reactions: Reaction[];
+}
+
+export type TimeStamp = {
+  seconds: number;
+  nanoseconds: number;
+}
+
+export type Reaction = {
+  userId: string;
+  reaction: string;
+}

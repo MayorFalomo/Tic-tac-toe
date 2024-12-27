@@ -1,5 +1,6 @@
 'use client';
 import {
+  Chat,
   Combinations,
   GameSession,
   MovesObject,
@@ -14,7 +15,19 @@ import { useAppSelector, useAppDispatch, useAppStore } from '@/lib/hooks';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import { useRouter } from 'next/navigation';
-import { doc, getDoc, onSnapshot, updateDoc } from 'firebase/firestore';
+import {
+  collection,
+  getDoc,
+  onSnapshot,
+  query,
+  updateDoc,
+  where,
+  getDocs,
+  orderBy,
+  addDoc,
+  doc,
+  Timestamp,
+} from 'firebase/firestore';
 import { db } from '@/firebase-config/firebase';
 import {
   setTrackDisableRound,
@@ -22,6 +35,10 @@ import {
   setTrackWinner,
 } from '@/lib/features/TrackerSlice';
 import { toast } from 'react-hot-toast';
+import Lottie from 'lottie-react';
+import animationData from '@/public/fireworks.json';
+import { Bell, EllipsisVertical } from 'lucide-react';
+import ChatModal from '@/components/ChatModal';
 
 type Props = {};
 
@@ -36,6 +53,9 @@ const Homepage = (props: Props) => {
 
   const [gameData, setGameData] = useState<GameSession | null>(null);
   const [movesData, setMovesData] = useState<MovesObject[]>([]);
+  const [openModal, setOpenModal] = useState<boolean>(false);
+  const [playerChat, setPlayerChat] = useState<Chat[]>([]);
+  const [chatId, setChatId] = useState<number | null>();
 
   // usePresence(playerId);
   const router = useRouter();
@@ -66,14 +86,45 @@ const Homepage = (props: Props) => {
         }
       });
 
+      const unSubscribeChats = onSnapshot(doc(db, 'playersChats', combinedId), (doc) => {
+        if (doc.exists()) {
+          console.log(doc.data().messages, 'doc data messages');
+          setPlayerChat(doc.data()?.messages || []);
+        }
+      });
+
       return () => {
         unsubscribeGame();
         unsubscribeMoves();
+        unSubscribeChats();
       };
     }
   }, [combinedId]);
 
-  // console.log(movesData, 'movesData');
+  useEffect(() => {
+    const chatRef = collection(db, 'playersChats');
+    const q = query(chatRef, where('combinedId', '==', combinedId));
+
+    const unsubscribeChats = onSnapshot(q, (snapshot) => {
+      snapshot.forEach((doc) => {
+        if (doc.exists()) {
+          const messages = doc.data().messages || [];
+          // console.log();
+
+          setPlayerChat(messages); // Update state with the latest messages
+          console.log('Updated messages:', messages);
+        }
+      });
+    });
+
+    return () => {
+      unsubscribeChats(); // Unsubscribe when component unmounts
+    };
+  }, [combinedId]);
+
+  console.log(chatId, 'chatId');
+
+  console.log(playerChat, 'chats');
 
   useEffect(() => {
     if (!playerId) {
@@ -128,13 +179,18 @@ const Homepage = (props: Props) => {
       gameData?.firstPlayer === gameData?.players?.playerOne?.id
         ? gameData?.players?.playerTwo?.id
         : gameData?.players?.playerOne?.id;
+
     await updateDoc(doc(db, 'gameSessions', combinedId), {
-      rounds: track.trackRounds >= 5 ? 5 : track.trackRounds + 1,
+      rounds: gameData?.rounds === 5 ? 5 : gameData?.rounds! + 1,
       currentTurn: determineNextPlayer,
       goToNextRound: true,
       roundWinner: '',
       endOfRound: false,
       winningCombination: [],
+      firstPlayer:
+        gameData?.firstPlayer === gameData?.players?.playerOne?.id
+          ? gameData?.players?.playerTwo?.id
+          : gameData?.players?.playerOne?.id,
     });
     await updateDoc(doc(db, 'playersMoves', combinedId), {
       moves: [],
@@ -142,17 +198,13 @@ const Homepage = (props: Props) => {
     dispatch(setTrackRounds(gameData?.rounds));
     dispatch(setTrackDisableRound(true));
     setMovesData([]);
-    // setGameData(null);
   };
 
-  const getCurrentTurn = () => {};
-
   const restartGame = async () => {
-    // dispatch(setTrackWinner(''));
-
     await updateDoc(doc(db, 'gameSessions', combinedId), {
       rounds: 1,
-      currentTurn: gameData?.firstPlayer,
+      currentTurn: gameData?.unChangeableFirstPlayer,
+      firstPlayer: gameData?.unChangeableFirstPlayer,
       scores: {
         playerOne: 0,
         playerTwo: 0,
@@ -167,38 +219,101 @@ const Homepage = (props: Props) => {
     toast.success('Game is restarted');
   };
 
-  // console.log(movesData, 'moves empty');
-  // console.log(gameData, 'gameData');
+  // const defaultOptions = {
+  //   loop: false,
+  //   autoplay: true,
+  //   animationData: animationData,
+  //   rendererSettings: {
+  //     preserveAspectRatio: 'xMidYMid slice',
+  //   },
+  //   initialSegment: [3, 50],
+  // };
 
-  // useEffect(() => {
-  //   if (playerId) {
-  //     const userRef = doc(db, "activePlayers", playerId);
+  const handleModal = async () => {
+    setOpenModal(true);
+    await loadChat();
+    //After the modal opens then I need to...
+    //First I need to check if a player chat already exist between the two players using the combinedId as a check
+    //If I find it, I load the chats between the two players and if not I create a new chat session for the players using their combinedId
+    //Meanwhile in my chat modal, when a player sends a message it sends an object containing
+    //senderId, message, timestamp, Reaction
+    //Then just the way we did the instant update with local state , we do the same thing here with the chat messages
+    //So whatever messages we send appears instantly then we can sort it by the id so it shows who is in sender and receiver based on the id for each player.
+  };
 
-  //     const unsubscribe = onSnapshot(userRef, (doc) => {
-  //       console.log("Current status: ", doc?.data()?.status);
-  //       console.log("player:", doc?.data()?.player);
+  const loadChat = async () => {
+    const chatRef = collection(db, 'playersChats');
+    const q = query(chatRef, where('combinedId', '==', combinedId));
+
+    console.log('Checking for existing chat session...');
+
+    // Check if the chat session already exists
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      console.log('Chat session found, loading messages.');
+      const chats: any = [];
+      querySnapshot.forEach((doc) => {
+        chats.push({ id: doc.id, ...doc.data() });
+      });
+      setPlayerChat(chats[0].messages); // Assuming messages are stored in an array
+    } else {
+      console.log('No chat session found, creating a new session.');
+      await createChatSession(); // Create new chat session if it doesn't exist
+    }
+  };
+
+  // const loadChat = async () => {
+  //   const chatRef = collection(db, 'playersChats');
+  //   const q = query(chatRef, where('combinedId', '==', combinedId), orderBy('timestamp'));
+  //   console.log('created');
+
+  //   // Set up real-time listener
+  //   onSnapshot(q, (querySnapshot) => {
+  //     const chats: any = [];
+  //     querySnapshot.forEach((doc) => {
+  //       chats.push({ id: doc.id, ...doc.data() });
   //     });
+  //     if (chats.length > 0) {
+  //       console.log('player update');
 
-  //     return () => unsubscribe();
-  //   }
-  // }, [playerId]);
+  //       setPlayerChat(chats[0].messages); // Assuming messages are stored in an array
+  //     } else {
+  //       console.log('created session');
+  //       // Create new chat session if it doesn't exist
+  //       createChatSession();
+  //     }
+  //   });
+  // };
 
-  // console.log(playersNames, 'playersObj');
-  // console.log(currentPlayer, 'currplayer');
-
-  // console.log(playersObject, 'playersObj');
-  // console.log(playersObject.playerOne, 'name');
-  // console.log(currentPlayer, 'currentPlayer');
-  // console.log(
-  //   currentPlayer === playersObject?.playerOne?.id
-  //     ? playersObject.playerOne?.avatar! ?? null
-  //     : playersObject?.playerTwo?.avatar!
-  // );
-  // console.log(gameData?.roundWinner, 'roundWinner');
+  const createChatSession = async () => {
+    const chatRef = collection(db, 'playersChats');
+    await addDoc(chatRef, {
+      combinedId,
+      messages: [],
+      unreadMessages: {
+        playerOne: 0,
+        playerTwo: 0,
+      },
+      timestamp: new Date(),
+    });
+  };
 
   return (
-    <div className=" flex flex-col  gap-[10px]  items-center  w-full h-[100vh] overflow-x-hidden">
-      <div className=" flex justify-center items-center m-auto  w-full h-[85%]">
+    <div className=" relative flex flex-col gap-[10px] items-center w-full h-[100vh] overflow-x-hidden">
+      <div className="flex items-center justify-end gap-4 p-4 w-full">
+        <button
+          onClick={handleModal}
+          className="border border-red-600 cursor-pointer outline-none border-none"
+        >
+          {' '}
+          <Bell size={30} color="white" />
+        </button>
+        <button className="cursor-pointer outline-none border-none">
+          <EllipsisVertical size={30} color="white" />{' '}
+        </button>
+      </div>
+      <div className=" flex justify-center items-center m-auto  w-full h-[85%] max-[500px]:h-[100%]">
         <div className="flex flex-col w-full gap-[10px] items-center  justify-center">
           <div className="relative">
             <div className="flex items-center justify-between w-[100%] ">
@@ -223,9 +338,9 @@ const Homepage = (props: Props) => {
                   className="flex flex-col gap-2 p-3"
                 >
                   <h1 className="text-white text-[16px] ">
-                    {currentPlayer === playersObject?.playerOne?.id
-                      ? playersObject.playerOne.name
-                      : playersObject?.playerTwo?.name}{' '}
+                    {currentPlayer === gameData?.players?.playerOne?.id
+                      ? gameData?.players?.playerOne?.name
+                      : gameData?.players?.playerTwo?.name}{' '}
                   </h1>
                   <Image
                     src="/SelectX.png"
@@ -258,9 +373,9 @@ const Homepage = (props: Props) => {
                   className="flex flex-col gap-2 p-3"
                 >
                   <h1 className="text-white text-[16px] ">
-                    {currentPlayer === playersObject?.playerTwo?.id
-                      ? playersObject.playerOne.name
-                      : playersObject?.playerTwo?.name}
+                    {currentPlayer === gameData?.players?.playerOne?.id
+                      ? gameData?.players?.playerTwo?.name
+                      : gameData?.players?.playerOne?.name}
                   </h1>
                   <Image
                     src="/SelectO.png"
@@ -297,8 +412,8 @@ const Homepage = (props: Props) => {
                       style={{
                         color: 'transparent',
                         // color: "#ffffff",
-                        textShadow:
-                          '0 -1px 4px #fff, 0 -2px 10px #ff0, 0 -10px 20px #ff8000, 0 -18px 40px #f00',
+                        // textShadow:
+                        //   '0 -1px 4px #fff, 0 -2px 10px #ff0, 0 -10px 20px #ff8000, 0 -18px 40px #f00',
                       }}
                       className="text-[24px] text-center m-auto "
                     >
@@ -311,50 +426,50 @@ const Homepage = (props: Props) => {
             </div>
             {/* <div className=" relative w-[500px] h-[500px] grid grid-cols-3 gap-2  m-auto border-2 border-blue-500 "> */}
             <div
-              className="relative items-center justify-content w-[400px] h-[400px] grid grid-cols-3 gap-2 m-auto mt-[20px]"
+              className="relative items-center justify-content w-[400px] max-[500px]:w-[320px] h-[400px] max-[500px]:h-[350px] grid grid-cols-3 gap-2 m-auto mt-[20px]"
               style={{
                 mixBlendMode: 'hard-light',
-                border: '8.76786px solid #FFD56A',
+                border: '3px solid #fff',
                 boxShadow:
                   'inset -1.26228px 2.52455px 1.26228px rgba(255, 255, 255, 0.5)',
                 filter: 'blur(0.970982px)',
-                borderRadius: '32.1429px',
+                // borderRadius: '32.1429px',
                 // border: "12.6228px solid rgba(255, 201, 64, 0.2)",
                 //   filter:
                 //   "drop-shadow(0px 19.4196px 25.2455px #8F7000) drop-shadow(0px 12.6228px 9.70982px rgba(57, 38, 0, 0.7))",
               }}
             >
               <span
-                className="absolute right-[-70px] top-[190px] h-[2px] w-[100%] rotate-[90deg]"
+                className="absolute right-[-70px] max-[500px]:right-[-70px] max-[500px]: top-[195px] max-[500px]:top-[170px] h-[2px] w-[100%] max-[500px]:w-[340px] rotate-[90deg]"
                 style={{
                   mixBlendMode: 'hard-light',
-                  border: '5.76786px solid #FFD56A',
+                  border: '3px solid white',
                   boxShadow:
                     'inset -1.26228px 2.52455px 1.26228px rgba(255, 255, 255, 0.5)',
-                  filter: 'blur(0.970982px)',
+                  // filter: 'blur(0.970982px)',
                   borderRadius: '   10.1429px',
                 }}
               >
                 {' '}
               </span>
               <span
-                className="absolute left-[-70px] top-[190px] h-[2px] w-[100%] rotate-[90deg]"
+                className="absolute left-[-70px] max-[500px]:left-[-70px] top-[195px] max-[500px]:top-[170px] h-[2px] w-[100%] max-[500px]:w-[340px] rotate-[90deg]"
                 style={{
                   mixBlendMode: 'hard-light',
-                  border: '5.76786px solid #FFD56A',
+                  border: '3px solid #fff',
                   boxShadow:
                     'inset -1.26228px 2.52455px 1.26228px rgba(255, 255, 255, 0.5)',
-                  filter: 'blur(0.970982px)',
+                  // filter: 'blur(0.970982px)',
                   borderRadius: '10.1429px',
                 }}
               >
                 {' '}
               </span>
               <span
-                className="absolute left-[0px] top-[120px] h-[2px] w-[100%]"
+                className="absolute left-[0px] top-[120px] max-[500px]:top-[100px] h-[2px] w-[100%]"
                 style={{
                   mixBlendMode: 'hard-light',
-                  border: '5.76786px solid #FFD56A',
+                  border: '3px solid #fff',
                   boxShadow:
                     'inset -1.26228px 2.52455px 1.26228px rgba(255, 255, 255, 0.5)',
                   filter: 'blur(0.970982px)',
@@ -367,15 +482,24 @@ const Homepage = (props: Props) => {
                 className="absolute left-[0px] bottom-[120px] h-[3px] w-[100%]"
                 style={{
                   mixBlendMode: 'hard-light',
-                  border: '5.76786px solid #FFD56A',
+                  border: '3px solid #fff',
                   boxShadow:
                     'inset -1.26228px 2.52455px 1.26228px rgba(255, 255, 255, 0.5)',
-                  filter: 'blur(0.970982px)',
+                  // filter: 'blur(0.970982px)',
                   borderRadius: '10.1429px',
                 }}
               >
                 {' '}
               </span>
+              {/* <div className="absolute left-0 right-0 top-0 bottom-0 z-[999] w-[100%] m-auto border border-red-500">
+                <Lottie
+                  animationData={animationData}
+                  width={'100%'}
+                  height={'100%'}
+                  autoPlay
+                  loop={true}
+                />
+              </div> */}
               {Array.from({ length: 9 }, (_val, index) => (
                 <div key={index}>
                   <Possible
@@ -412,7 +536,7 @@ const Homepage = (props: Props) => {
             }}
             className="text-white inline-block"
           >
-            Round: {gameData?.rounds} {currentPlayer} / 5
+            Round: {gameData?.rounds} / 5
           </span>
         </h1>
         <button
@@ -427,36 +551,59 @@ const Homepage = (props: Props) => {
           className={`text-white border-2 inline-block text-center text-[26px]  p-2 w-[250px]`}
           onClick={restartGame}
         >
-          Restart Game {gameData?.players?.playerOne?.id}
+          Restart Game
         </button>
-        <button
-          style={{
-            msTransform: 'skewX(20deg)',
-            WebkitTransform: 'skewX(20deg)',
-            textTransform: 'uppercase',
-            // webkitTransform: "skewX(20deg)",
-            transform: 'skewX(20deg)',
-            display: 'inline-block',
-          }}
-          onClick={() => handleStartNewRound()}
-          disabled={gameData?.goToNextRound}
-          className={`text-white border-2 inline-block text-center text-[26px]  p-2 w-[250px] ${
-            gameData?.goToNextRound
-              ? 'opacity-50 cursor-not-allowed'
-              : ' opacity-100 cursor-pointer'
-          }`}
-        >
-          <span
-            style={{
-              transform: 'skewX(-20deg)', // Counter the skew for the text
-            }}
-            className="text-white border-solid border-[2px] border-red-600 inline-block"
+        {gameData?.rounds === 5 ? (
+          <button
+            className={`text-white border-2 inline-block text-center text-[26px]  p-2 w-[250px] ${
+              gameData?.goToNextRound
+                ? 'opacity-50 cursor-not-allowed'
+                : ' opacity-100 cursor-pointer'
+            }`}
+            onClick={() => handleStartNewRound()}
           >
-            Begin round {gameData?.players?.playerTwo?.id}
-            {gameData?.rounds === 5 ? gameData?.rounds : gameData?.rounds! ?? '' + 1} / 5
-          </span>
-        </button>
+            Restart Game
+          </button>
+        ) : (
+          <button
+            style={{
+              msTransform: 'skewX(20deg)',
+              WebkitTransform: 'skewX(20deg)',
+              textTransform: 'uppercase',
+              transform: 'skewX(20deg)',
+              display: 'inline-block',
+            }}
+            onClick={() => handleStartNewRound()}
+            disabled={gameData?.goToNextRound}
+            className={`text-white border-2 inline-block text-center text-[26px]  p-2 w-[250px] ${
+              gameData?.goToNextRound
+                ? 'opacity-50 cursor-not-allowed'
+                : ' opacity-100 cursor-pointer'
+            }`}
+          >
+            <span
+              style={{
+                transform: 'skewX(-20deg)',
+              }}
+              className="text-white border-solid inline-block"
+            >
+              Begin round
+              {gameData?.rounds === 5 ? gameData?.rounds : gameData?.rounds! + 1} / 5
+            </span>
+          </button>
+        )}
       </div>
+      <AnimatePresence>
+        {openModal && (
+          <ChatModal
+            setOpenModal={setOpenModal}
+            combinedId={combinedId}
+            playersChat={playerChat}
+            gameData={gameData}
+            // setChatId={setChatId}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

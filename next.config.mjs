@@ -5,7 +5,9 @@ const nextConfig = {
             'https://narutodb.xyz/api/character',
             'vignette.wikia.nocookie.net',
             'static.wikia.nocookie.net',
-            'avatar.iran.liara.run'],
+         'avatar.iran.liara.run',
+      'i.pinimg.com'
+    ],
         remotePatterns: [
       {
         protocol: 'https',
@@ -22,6 +24,12 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'avatar.iran.liara.run',
+        port: '',
+        pathname: '/your-account/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'i.pinimg.com',
         port: '',
         pathname: '/your-account/**',
       },

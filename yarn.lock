@@ -1677,6 +1677,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/react-lottie@npm:^1.2.10":
+  version: 1.2.10
+  resolution: "@types/react-lottie@npm:1.2.10"
+  dependencies:
+    "@types/react": "*"
+  checksum: 83eb419d636a7a7f61af58bfdad9cbe6a4beda4bf4e608a5c489eb77b6c2d99ac29efbd99c73d080c73ffcba3de65e0f33835a5b8bf984217e1f66bb687fccdb
+  languageName: node
+  linkType: hard
+
 "@types/react@npm:*":
   version: 18.3.12
   resolution: "@types/react@npm:18.3.12"
@@ -2545,6 +2554,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"emoji-picker-react@npm:^4.12.0":
+  version: 4.12.0
+  resolution: "emoji-picker-react@npm:4.12.0"
+  dependencies:
+    flairup: 1.0.0
+  peerDependencies:
+    react: ">=16"
+  checksum: 2c8b10e8ae14922d571c239183e7760e6386460c3cc4e737dbc45b151f1b3be775252d0bf0292e0627661fa9e34bbeb78548a7940a2e10c8cc9d718b906a1aec
+  languageName: node
+  linkType: hard
+
 "emoji-regex@npm:^8.0.0":
   version: 8.0.0
   resolution: "emoji-regex@npm:8.0.0"
@@ -3149,6 +3169,13 @@ __metadata:
     "@firebase/util": 1.9.7
     "@firebase/vertexai-preview": 0.0.3
   checksum: 82dcc2e9e8aec87a8b3d045248aed161ee056fa259dbdb78ca82b8a648cbe847ae7fd89c49d410d848369b3b57c9f4cfcdcaf59da331f7ed5bbc9bf7c5adc8df
+  languageName: node
+  linkType: hard
+
+"flairup@npm:1.0.0":
+  version: 1.0.0
+  resolution: "flairup@npm:1.0.0"
+  checksum: cf062568ed211c95b3ed4e378046803519616426c450d37d7659c10a8ad842f862bef1216aa55ddd91971433a5883272004286a06a13c27b428bc5f740d97c50
   languageName: node
   linkType: hard
 
@@ -4116,6 +4143,25 @@ __metadata:
   bin:
     loose-envify: cli.js
   checksum: 6517e24e0cad87ec9888f500c5b5947032cdfe6ef65e1c1936a0c48a524b81e65542c9c3edc91c97d5bddc806ee2a985dbc79be89215d613b1de5db6d1cfe6f4
+  languageName: node
+  linkType: hard
+
+"lottie-react@npm:^2.4.0":
+  version: 2.4.0
+  resolution: "lottie-react@npm:2.4.0"
+  dependencies:
+    lottie-web: ^5.10.2
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: e9ea4a89be90a29bde4a83956f76a80d1f8031882f18ea38ef5271d2aafd8e68348ae6297f185ed85b149ca4896fe33aee7faf9780b88a1b289b8e146f477448
+  languageName: node
+  linkType: hard
+
+"lottie-web@npm:^5.10.2":
+  version: 5.12.2
+  resolution: "lottie-web@npm:5.12.2"
+  checksum: af5bc3bc405fd760de8b17a36158d5a8c3e8c586c711d0c63681ddf056b65bc6b54ea36b1fcad782fb02dbe12e696a40e0ba72daf41b8f10ab5b5d1113793636
   languageName: node
   linkType: hard
 
@@ -5683,14 +5729,17 @@ __metadata:
     "@types/node": ^20
     "@types/react": 18.3.3
     "@types/react-dom": ^18
+    "@types/react-lottie": ^1.2.10
     "@types/redux": ^3.6.0
     axios: ^1.7.9
     class-variance-authority: ^0.7.0
     clsx: ^2.1.1
+    emoji-picker-react: ^4.12.0
     eslint: ^8
     eslint-config-next: latest
     firebase: ^10.12.5
     framer-motion: ^11.3.19
+    lottie-react: ^2.4.0
     lucide-react: ^0.416.0
     next: latest
     next-redux-wrapper: ^8.1.0

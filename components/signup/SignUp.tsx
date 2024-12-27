@@ -46,7 +46,9 @@ const AvatarComp = React.lazy(() => import('@/components/AvatarComp'));
 
 const SignUp = (props: Props) => {
   const [playerName, setPlayerName] = useState<string>('');
-  const [Avatar, setAvatar] = useState<string>('');
+  const [Avatar, setAvatar] = useState<string>(
+    'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg'
+  );
   const [avatarType, setAvatarType] = useState<AvatarType | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [randomControl, setRandomControl] = useState<boolean>(false); //To pick the random player
@@ -55,8 +57,6 @@ const SignUp = (props: Props) => {
   const dispatch = useAppDispatch();
 
   const router = useRouter();
-
-  // console.log(Avatar, 'avatar');
 
   useEffect(() => {
     const randomNumber = Math.random();
@@ -236,6 +236,7 @@ const SignUp = (props: Props) => {
           sessionId: combinedId,
           currentTurn: randomControl ? playerOneDetails?.id : opponent?.id,
           firstPlayer: randomControl ? playerOneDetails?.id : opponent?.id,
+          unChangeableFirstPlayer: randomControl ? playerOneDetails?.id : opponent?.id,
           rounds: 1,
           createdAt: new Date().toISOString(),
           scores: {
@@ -252,14 +253,12 @@ const SignUp = (props: Props) => {
             playerOne: {
               id: playerOneDetails?.id,
               name: playerOneDetails?.name,
-              avatar: playerOneDetails?.avatar,
+              avatar: playerOneDetails?.avatar!,
             },
             playerTwo: {
               id: opponent?.id,
               name: opponent?.name,
-              avatar:
-                opponent?.avatar! ??
-                'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg',
+              avatar: opponent?.avatar!,
             },
           },
         };
