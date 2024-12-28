@@ -104,7 +104,11 @@ const ChatModal: React.FC<Props> = ({
           <div className="rounded-full">
             <div className="flex items-center gap-3">
               <Image
-                src={playersObject?.playerTwo?.avatar!}
+                src={
+                  gameData?.players?.playerOne?.id === playersObject?.playerOne?.id
+                    ? gameData?.players?.playerTwo?.avatar!
+                    : gameData?.players?.playerOne?.avatar!
+                }
                 width={50}
                 height={50}
                 alt="img"

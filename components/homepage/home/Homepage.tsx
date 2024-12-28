@@ -9,7 +9,7 @@ import {
 } from '@/app/types/types';
 import Possible from '@/components/possible/Possible';
 import Image from 'next/image';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAppSelector, useAppDispatch, useAppStore } from '@/lib/hooks';
 import { useSelector } from 'react-redux';
@@ -60,10 +60,19 @@ const Homepage = (props: Props) => {
   // usePresence(playerId);
   const router = useRouter();
 
-  const combinedId =
-    playersObject?.playerOne?.id > playersObject?.playerTwo?.id
-      ? playersObject?.playerOne?.id + playersObject?.playerTwo?.id
-      : playersObject?.playerTwo?.id + playersObject?.playerOne?.id;
+  const combinedId = useMemo(() => {
+    const playerOneId = playersObject?.playerOne?.id;
+    const playerTwoId = playersObject?.playerTwo?.id;
+    return playerOneId > playerTwoId
+      ? playerOneId + playerTwoId
+      : playerTwoId + playerOneId;
+  }, [playersObject]);
+
+  // const combinedId = useMemo(() => {
+  //   playersObject?.playerOne?.id > playersObject?.playerTwo?.id
+  //     ? playersObject?.playerOne?.id + playersObject?.playerTwo?.id
+  //     : playersObject?.playerTwo?.id + playersObject?.playerOne?.id;
+  // }, [playersObject]);
 
   // const removePlayerFromGame = async () => {
   //   // Update player's status to offline
@@ -165,7 +174,7 @@ const Homepage = (props: Props) => {
     }
   }, [db, playersObject]);
 
-  const handleStartNewRound = async () => {
+  const handleStartNewRound = useCallback(async () => {
     //Update the game sessions
     //First we update the rounds to 2.
     //Then we update the currentTurn to be the next person other than the first player
@@ -198,9 +207,12 @@ const Homepage = (props: Props) => {
     dispatch(setTrackRounds(gameData?.rounds));
     dispatch(setTrackDisableRound(true));
     setMovesData([]);
-  };
+  }, [gameData, combinedId]);
 
-  const restartGame = async () => {
+  // const handleStartNewRound = async () => {
+  // };
+
+  const restartGame = useCallback(async () => {
     await updateDoc(doc(db, 'gameSessions', combinedId), {
       rounds: 1,
       currentTurn: gameData?.unChangeableFirstPlayer,
@@ -217,7 +229,7 @@ const Homepage = (props: Props) => {
       moves: [],
     });
     toast.success('Game is restarted');
-  };
+  }, [gameData, combinedId]);
 
   // const defaultOptions = {
   //   loop: false,

@@ -41,7 +41,11 @@ const ChatField: React.FC<IProps> = ({ res, combinedId }) => {
     return `${formattedHours}:${formattedMinutes}`; // Returns time in HH:MM format
   };
 
-  const handleReactions = async (emoji: EmojiClickData, messageId: string | null) => {
+  const handleReactions = async (
+    emoji: EmojiClickData,
+    messageId: string | null,
+    senderId: string | null
+  ) => {
     // handle reactions
     if (messageId) {
       try {
@@ -53,29 +57,50 @@ const ChatField: React.FC<IProps> = ({ res, combinedId }) => {
 
         if (!chatDoc.empty) {
           const chatId = chatDoc.docs[0].id;
-          const chatRef = doc(db, 'playersChats', chatId); // Adjust the path based on your Firestore structure
+          const chatRef = doc(db, 'playersChats', chatId);
           const chatData = chatDoc.docs[0].data();
 
-          const messages = chatData.messages; // Assuming messages is an array
+          const messages: Chat[] = chatData.messages; //Where messages is an array of object of all messages
 
-          // Map through messages and update the specific message
+          //Then I Map through messages to update the specific message
           const updatedMessages = messages.map((msg: Chat) => {
-            if (msg?._id === messageId) {
-              // If the message ID matches, update the reactions
-              return {
-                ...msg,
-                reactions: [
-                  ...(msg.reactions || []), // Ensure existing reactions are preserved
-                  {
+            //First I check If the msg_ id matches the messageId.
+            if (msg._id === messageId) {
+              //Then I map through the reactions to find the specific reaction having the same userId as the senderId and if I see one, I update the reaction for that message, Mow A user can't react to their message twice.
+              const updatedReaction = msg.reactions?.map((react) => {
+                if (react?.userId === senderId) {
+                  return {
+                    ...react,
                     reaction: emoji.emoji,
-                    userId: playersObject?.playerOne?.id, // or the appropriate user ID
-                  },
-                ],
-              };
+                  };
+                }
+                return react;
+              });
+              console.log(updatedReaction, 'updatedReaction');
+
+              //Now to be sure the user isn't actually in the reactions array already, I check if the updatedReaction array has the senderId in it.
+              const checkForExistingReaction = updatedReaction?.some(
+                (reaction) => reaction.userId === senderId
+              );
+              console.log(checkForExistingReaction, 'checked');
+
+              //If the checkForExisiting reaction returns false then it means the user hasn't reacted already then I push the new reaction to the reactions array.
+              if (!checkForExistingReaction) {
+                return {
+                  ...msg,
+                  reactions: [
+                    ...(updatedReaction || []), //To Ensure the existing reactions are preserved
+                    {
+                      reaction: emoji.emoji,
+                      userId: senderId,
+                    },
+                  ],
+                };
+              }
+              return { ...msg, reactions: updatedReaction };
             }
-            return msg; // Return the unchanged message
+            return msg;
           });
-          console.log(updatedMessages, 'updatedMessages');
 
           await updateDoc(chatRef, {
             messages: updatedMessages,
@@ -87,16 +112,18 @@ const ChatField: React.FC<IProps> = ({ res, combinedId }) => {
     }
   };
 
-  console.log(storedId, 'storedId');
-
   return (
     <div>
       <div
-        className={`relative ${
+        className={`relative border border-red-600 ${
           res.senderId === playersObject?.playerOne?.id
             ? 'flex w-full mt-2 space-x-3 max-w-xs ml-auto justify-end'
             : 'flex w-full mt-2 space-x-3 max-w-xs'
         }`}
+        onMouseOver={() => setStoredId(res?._id)}
+        // onFocus={() => setStoredId(res?._id)}
+        onMouseOut={() => setStoredId(null)}
+        // onBlur={() => setStoredId(null)}
       >
         {res.senderId !== playersObject?.playerOne?.id && (
           <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300">
@@ -109,46 +136,46 @@ const ChatField: React.FC<IProps> = ({ res, combinedId }) => {
           </div>
         )}
         <div>
-          {storedId === res._id && (
+          {storedId === res?._id && (
             <div
               className={
-                res.senderId === playersObject?.playerOne?.id
+                res?.senderId === playersObject?.playerOne?.id
                   ? 'absolute left-0 bottom-[-35px] z-30 border border-blue-500'
                   : 'absolute left-0 bottom-[-35px] z-30 border border-red-600'
               }
             >
               <EmojiPicker
                 reactionsDefaultOpen={true}
-                onEmojiClick={(e: EmojiClickData) => handleReactions(e, res?._id)}
+                onEmojiClick={(e: EmojiClickData) =>
+                  handleReactions(e, res?._id, res?.senderId)
+                }
               />
             </div>
           )}
           <div
-            onMouseOver={() => setStoredId(res._id)}
-            onFocus={() => setStoredId(res._id)}
-            onMouseOut={() => setStoredId(null)}
-            onBlur={() => setStoredId(null)}
             className={
               res.senderId === playersObject?.playerOne?.id
                 ? 'bg-blue-600 text-white p-3 rounded-l-lg rounded-br-lg'
                 : 'bg-gray-300 p-3 rounded-r-lg rounded-bl-lg'
             }
           >
-            <p className="text-sm">{res.message ? res.message : ''}</p>
+            <p className="text-sm">{res?.message ? res?.message : ''}</p>
           </div>
           <span className="text-xs text-gray-500 leading-none">
-            {formatTime(res.timeStamp)}
+            {formatTime(res?.timeStamp)}
           </span>
           {
-            <span
+            <p
               className={
-                res.senderId === playersObject?.playerOne?.id
-                  ? 'absolute left-0 bottom-[-30px] z-20 border border-blue-500'
-                  : 'absolute right-0 bottom-[-30px] z-20 border border-red-600'
+                res?.senderId === playersObject?.playerOne?.id
+                  ? 'absolute right-[40px] bottom-[0px] bg-white rounded-md p-[2px] z-20'
+                  : 'absolute left-[40px] bottom-[0px] bg-white z-20 rounded-md p-[2px]'
               }
             >
-              {/* {}{' '} */}
-            </span>
+              {res.reactions.map((reaction) => (
+                <span key={reaction.userId}>{reaction.reaction}</span>
+              ))}
+            </p>
           }
         </div>
         {res.senderId === playersObject?.playerOne?.id && (
