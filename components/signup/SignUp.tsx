@@ -3,7 +3,16 @@ import React, { Suspense, useEffect, useState } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { LoadingSpinner } from './Loader';
-import { get, onDisconnect, onValue, push, ref, set, update } from 'firebase/database';
+import {
+  get,
+  onDisconnect,
+  onValue,
+  push,
+  ref,
+  runTransaction,
+  set,
+  update,
+} from 'firebase/database';
 import { database, db } from '@/firebase-config/firebase';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { setAPlayerId } from '@/lib/features/userSlice';
@@ -119,105 +128,134 @@ const SignUp = (props: Props) => {
   // };
 
   const searchForOpponent = async (playerId: string) => {
-    //This function will search for an opponent in the activePlayers db
-    //If an opponent is found, it will update the status of the player to "inGame"
-    const playersRef = ref(database, 'activePlayers'); //First, reference the db we want to search through
-    console.log('i ran to here');
+    try {
+      //This function will search for an opponent in the activePlayers db
+      //If an opponent is found, it will update the status of the player to "inGame"
+      const playersRef = ref(database, 'activePlayers'); //First, reference the db we want to search through
+      console.log('i ran to here');
 
-    //Listen for changes in the activePlayers
-    onValue(
-      playersRef,
-      async (snapshot) => {
-        const players = snapshot.val(); //Returns an object of all the players name and status
-        console.log(players, 'players');
+      //Listen for changes in the activePlayers
+      onValue(
+        playersRef,
+        async (snapshot) => {
+          const players = snapshot.val(); //Returns an object of all the players name and status
+          console.log(players, 'players');
 
-        //Search for a player by mapping over the players array and find the first player with an id that isn't the same with the currentPlayer but also with a status of "looking"
-        const opponentId = Object?.keys(players).find(
-          (id: string) => id !== playerId && players[id].status === 'looking'
-        );
-        console.log(opponentId, 'opponentId');
-
-        if (opponentId) {
-          const opponentData = players[opponentId];
-          console.log(opponentData, 'opponentData');
-
-          setSearchingActive(true); //Changes the button to "Found a player"
-
-          //Since an opponent has been found, I ref the database I defined in database and pass in the "activePlayers" collection  / the exact opponentId then i update
-          await update(ref(database, `activePlayers/${opponentId}`), {
-            playerName: opponentData.playerName,
-            status: 'inGame',
-            gameId: opponentId,
-          });
-          console.log('update to here');
-
-          //Update Current players status
-          await update(ref(database, `activePlayers/${playerId}`), {
-            playerName: playerName!,
-            status: 'inGame',
-            gameId: playerId,
-          });
-
-          const playerOneDetails = {
-            id: playerId,
-            name: playerName!,
-            avatar:
-              Avatar ??
-              'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg',
-          };
-
-          const playerTwoDetails = {
-            id: opponentId,
-            name: opponentData.playerName,
-            avatar:
-              opponentData?.avatar ??
-              'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg',
-          };
-          console.log(playerOneDetails, playerTwoDetails);
-
-          //Create Game Session
-          const getSessionId = await createGameSession(playerId, opponentId); //Creates Game session on realtime db
-          const getGameSession = await handleGameSession(
-            //Creates Game session on firestore db
-            playerOneDetails,
-            playerTwoDetails
+          //Search for a player by mapping over the players array and find the first player with an id that isn't the same with the currentPlayer but also with a status of "looking"
+          const opponentId = Object?.keys(players).find(
+            (id: string) => id !== playerId && players[id].status === 'looking'
           );
+          console.log(opponentId, 'opponentId');
 
-          console.log(getGameSession, 'getGameSession');
+          if (opponentId) {
+            const opponentData = players[opponentId];
+            console.log(opponentData, 'opponentData');
 
-          // Update both players' records with the session ID
-          await update(ref(database, `activePlayers/${playerId}`), {
-            status: 'inGame',
-            sessionId: getSessionId,
-          });
+            setSearchingActive(true); //Changes the button to "Found a player"
 
-          await update(ref(database, `activePlayers/${opponentId}`), {
-            status: 'inGame',
-            sessionId: getSessionId,
-          });
+            // Use a transaction to safely update the opponent's status
+            await runTransaction(
+              ref(database, `activePlayers/${opponentId}`),
+              (currentData) => {
+                if (currentData && currentData.status === 'looking') {
+                  currentData.status = 'inGame';
+                  currentData.gameId = opponentId;
+                  return currentData;
+                }
+                return; // Abort if the status is not 'looking'
+              }
+            );
 
-          dispatch(setAPlayerId(playerId)); //Store the currentPlayersId
+            // Update Current player's status
+            await runTransaction(
+              ref(database, `activePlayers/${playerId}`),
+              (currentData) => {
+                if (currentData && currentData.status === 'looking') {
+                  currentData.status = 'inGame';
+                  currentData.gameId = playerId;
+                  return currentData;
+                }
+                return; // Abort if the status is not 'looking'
+              }
+            );
+            // //Since an opponent has been found, I ref the database I defined in database and pass in the "activePlayers" collection  / the exact opponentId then i update
+            // await update(ref(database, `activePlayers/${opponentId}`), {
+            //   playerName: opponentData.playerName,
+            //   status: 'inGame',
+            //   gameId: opponentId,
+            // });
+            // console.log('update to here');
 
-          dispatch(
-            setPlayersSessionId({
-              playerOneSessionId: getSessionId,
-            })
-          );
-          dispatch(setSessionId(getSessionId)); //Store the currentGameSessionId
-          setLoading(false); //stopLoadingSpinner after searching for opponent
+            // //Update Current players status
+            // await update(ref(database, `activePlayers/${playerId}`), {
+            //   playerName: playerName!,
+            //   status: 'inGame',
+            //   gameId: playerId,
+            // });
 
-          setTimeout(() => {
-            //Route to Homepage
-            router.push('/');
-          }, 2000);
-        } else {
-          console.log('Could not find you an opponent at this time');
+            const playerOneDetails = {
+              id: playerId,
+              name: playerName!,
+              avatar:
+                Avatar ??
+                'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg',
+            };
+
+            const playerTwoDetails = {
+              id: opponentId,
+              name: opponentData.playerName,
+              avatar:
+                opponentData?.avatar ??
+                'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg',
+            };
+            console.log(playerOneDetails, playerTwoDetails);
+
+            //Create Game Session
+            const getSessionId = await createGameSession(playerId, opponentId); //Creates Game session on realtime db
+            const getGameSession = await handleGameSession(
+              //Creates Game session on firestore db
+              playerOneDetails,
+              playerTwoDetails
+            );
+
+            console.log(getGameSession, 'getGameSession');
+
+            // Update both players' records with the session ID
+            await update(ref(database, `activePlayers/${playerId}`), {
+              status: 'inGame',
+              sessionId: getSessionId,
+            });
+
+            await update(ref(database, `activePlayers/${opponentId}`), {
+              status: 'inGame',
+              sessionId: getSessionId,
+            });
+
+            dispatch(setAPlayerId(playerId)); //Store the currentPlayersId
+
+            dispatch(
+              setPlayersSessionId({
+                playerOneSessionId: getSessionId,
+              })
+            );
+            dispatch(setSessionId(getSessionId)); //Store the currentGameSessionId
+            setLoading(false); //stopLoadingSpinner after searching for opponent
+
+            setTimeout(() => {
+              //Route to Homepage
+              router.push('/');
+            }, 2000);
+          } else {
+            console.log('Could not find you an opponent at this time');
+          }
+        },
+        (error) => {
+          console.error(error, 'An error has occurred onValue');
         }
-      },
-      (error) => {
-        console.error(error, 'An error has occurred onValue');
-      }
-    );
+      );
+    } catch (error) {
+      console.log(error, 'error occurred in searchOpponent');
+    }
   };
 
   //Handle Game Session in the firestore db
