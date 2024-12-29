@@ -48,7 +48,6 @@ const ChatModal: React.FC<Props> = ({
     const q = query(chatRef, where('combinedId', '==', combinedId));
 
     const chatDoc = await getDocs(q);
-    console.log(chatDoc, 'chatDoc');
 
     if (!chatDoc.empty) {
       const chatId = chatDoc.docs[0].id;

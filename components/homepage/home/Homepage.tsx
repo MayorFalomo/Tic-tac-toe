@@ -1,18 +1,10 @@
 'use client';
-import {
-  Chat,
-  Combinations,
-  GameSession,
-  MovesObject,
-  Selected,
-  SelectedAnswer,
-} from '@/app/types/types';
+import { Chat, GameSession, MovesObject } from '@/app/types/types';
 import Possible from '@/components/possible/Possible';
 import Image from 'next/image';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAppSelector, useAppDispatch, useAppStore } from '@/lib/hooks';
-import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import { useRouter } from 'next/navigation';
 import {
@@ -23,28 +15,20 @@ import {
   updateDoc,
   where,
   getDocs,
-  orderBy,
   addDoc,
   doc,
-  Timestamp,
 } from 'firebase/firestore';
 import { db } from '@/firebase-config/firebase';
-import {
-  setTrackDisableRound,
-  setTrackRounds,
-  setTrackWinner,
-} from '@/lib/features/TrackerSlice';
+import { setTrackDisableRound, setTrackRounds } from '@/lib/features/TrackerSlice';
 import { toast } from 'react-hot-toast';
-import Lottie from 'lottie-react';
-import animationData from '@/public/fireworks.json';
+// import Lottie from 'lottie-react';
+// import animationData from '@/public/fireworks.json';
 import { Bell, EllipsisVertical } from 'lucide-react';
 import ChatModal from '@/components/ChatModal';
 
 type Props = {};
 
 const Homepage = (props: Props) => {
-  const track = useAppSelector((state: RootState) => state.track);
-
   const playersObject = useAppSelector((state: RootState) => state.players.players);
 
   const playerId = useAppSelector((state: RootState) => state.user.playerId);
@@ -55,9 +39,7 @@ const Homepage = (props: Props) => {
   const [movesData, setMovesData] = useState<MovesObject[]>([]);
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [playerChat, setPlayerChat] = useState<Chat[]>([]);
-  const [chatId, setChatId] = useState<number | null>();
   const [getTheChatId, setTheChatId] = useState<any>(null);
-  // usePresence(playerId);
   const router = useRouter();
 
   const combinedId = useMemo(() => {
@@ -73,13 +55,6 @@ const Homepage = (props: Props) => {
   //     ? playersObject?.playerOne?.id + playersObject?.playerTwo?.id
   //     : playersObject?.playerTwo?.id + playersObject?.playerOne?.id;
   // }, [playersObject]);
-
-  // const removePlayerFromGame = async () => {
-  //   // Update player's status to offline
-  //   await updateDoc(doc(db, "activePlayers", playerId), {
-  //     status: "offline",
-  //   });
-  // };
 
   useEffect(() => {
     if (combinedId) {
@@ -512,6 +487,7 @@ const Homepage = (props: Props) => {
                     movesData={movesData}
                     setMovesData={setMovesData}
                     setGameData={setGameData}
+                    combinedId={combinedId}
                   />
                 </div>
               ))}

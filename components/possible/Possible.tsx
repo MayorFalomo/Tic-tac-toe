@@ -32,6 +32,7 @@ type MappedOver = {
   movesData: MovesObject[];
   setMovesData: React.Dispatch<React.SetStateAction<MovesObject[]>>;
   setGameData: React.Dispatch<React.SetStateAction<GameSession | null>>;
+  combinedId: string;
 };
 
 const Possible: React.FC<MappedOver> = ({
@@ -42,6 +43,7 @@ const Possible: React.FC<MappedOver> = ({
   movesData,
   setMovesData,
   setGameData,
+  combinedId,
 }) => {
   const [storedCurrentPlayerChoices, setStoredCurrentPlayerChoices] = useState<number[]>(
     []
@@ -180,16 +182,11 @@ const Possible: React.FC<MappedOver> = ({
   };
 
   const handleMoves = async () => {
-    const combinedId =
-      playersObject?.playerOne?.id > playersObject?.playerTwo?.id
-        ? playersObject?.playerOne?.id + playersObject?.playerTwo?.id
-        : playersObject?.playerTwo?.id + playersObject?.playerOne?.id;
-
     try {
       const movesDoc = await getDoc(doc(db, 'playersMoves', combinedId));
       if (movesDoc.exists()) {
         const movesData = movesDoc.data();
-        console.log(movesData, 'movesData');
+        // console.log(movesData, 'movesData');
       } else {
         const moveObject = {
           moves: [],
@@ -236,16 +233,6 @@ const Possible: React.FC<MappedOver> = ({
       console.log(error, 'error');
     }
   };
-
-  const combinedId =
-    playersObject?.playerOne?.id > playersObject?.playerTwo?.id
-      ? playersObject?.playerOne?.id + playersObject?.playerTwo?.id
-      : playersObject?.playerTwo?.id + playersObject?.playerOne?.id;
-
-  // Inside your GameComponent
-
-  // console.log(gameData, 'gameData');
-  // console.log(movesData, 'movesData');
 
   const updateGameState = async (selected: number) => {
     try {
