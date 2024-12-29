@@ -19,12 +19,22 @@ import { db } from '@/firebase-config/firebase';
 type IProps = {
   res: Chat;
   combinedId: string;
+  playerChats: Chat[];
+  storedId: string | null;
+  chatUniqueId: string | null;
+  setStoredId: (arg: string | null) => void;
 };
 
-const ChatField: React.FC<IProps> = ({ res, combinedId }) => {
+const ChatField: React.FC<IProps> = ({
+  res,
+  combinedId,
+  playerChats,
+  storedId,
+  setStoredId,
+  chatUniqueId,
+}) => {
   const playersObject = useAppSelector((state: RootState) => state.players.players);
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
-  const [storedId, setStoredId] = useState<string | null>(null);
 
   const formatTime = (timestamp: TimeStamp) => {
     //First run conversions to a formatable date
@@ -46,66 +56,52 @@ const ChatField: React.FC<IProps> = ({ res, combinedId }) => {
     messageId: string | null,
     senderId: string | null
   ) => {
-    // handle reactions
     if (messageId) {
       try {
-        const chatRef = collection(db, 'playersChats');
-        const q = query(chatRef, where('combinedId', '==', combinedId));
+        // Map through all the messages to find and update the specific message
+        const updatedMessages = playerChats.map((msg: Chat) => {
+          // Check if the msg id matches the messageId
+          if (msg._id === messageId) {
+            //I then Check if the user has already reacted previously
+            const hasReacted = msg.reactions?.some((react) => react.userId === senderId);
 
-        const chatDoc = await getDocs(q);
-        console.log(chatDoc, 'chatDoc');
-
-        if (!chatDoc.empty) {
-          const chatId = chatDoc.docs[0].id;
-          const chatRef = doc(db, 'playersChats', chatId);
-          const chatData = chatDoc.docs[0].data();
-
-          const messages: Chat[] = chatData.messages; //Where messages is an array of object of all messages
-
-          //Then I Map through messages to update the specific message
-          const updatedMessages = messages.map((msg: Chat) => {
-            //First I check If the msg_ id matches the messageId.
-            if (msg._id === messageId) {
-              //Then I map through the reactions to find the specific reaction having the same userId as the senderId and if I see one, I update the reaction for that message, Mow A user can't react to their message twice.
-              const updatedReaction = msg.reactions?.map((react) => {
-                if (react?.userId === senderId) {
-                  return {
-                    ...react,
-                    reaction: emoji.emoji,
-                  };
-                }
-                return react;
-              });
-              console.log(updatedReaction, 'updatedReaction');
-
-              //Now to be sure the user isn't actually in the reactions array already, I check if the updatedReaction array has the senderId in it.
-              const checkForExistingReaction = updatedReaction?.some(
-                (reaction) => reaction.userId === senderId
-              );
-              console.log(checkForExistingReaction, 'checked');
-
-              //If the checkForExisiting reaction returns false then it means the user hasn't reacted already then I push the new reaction to the reactions array.
-              if (!checkForExistingReaction) {
-                return {
-                  ...msg,
-                  reactions: [
-                    ...(updatedReaction || []), //To Ensure the existing reactions are preserved
-                    {
+            if (hasReacted) {
+              //If User has reacted, update the reaction
+              return {
+                ...msg,
+                reactions: msg.reactions.map((react) => {
+                  if (react.userId === senderId) {
+                    return {
+                      ...react,
                       reaction: emoji.emoji,
-                      userId: senderId,
-                    },
-                  ],
-                };
-              }
-              return { ...msg, reactions: updatedReaction };
+                    };
+                  }
+                  return react; // Return an unchanged reaction if the user hasn't reacted before
+                }),
+              };
+            } else {
+              // User hasn't reacted yet, add a new reaction
+              return {
+                ...msg,
+                reactions: [
+                  ...(msg.reactions || []), // Preserve existing reactions
+                  {
+                    reaction: emoji.emoji,
+                    userId: senderId,
+                  },
+                ],
+              };
             }
-            return msg;
-          });
+          }
+          return msg;
+        });
 
-          await updateDoc(chatRef, {
-            messages: updatedMessages,
-          });
-        }
+        // Update Firebase
+        const chatRef = doc(db, 'playersChats', chatUniqueId!);
+        await updateDoc(chatRef, {
+          messages: updatedMessages,
+        });
+        setStoredId(null);
       } catch (error) {
         console.log(error);
       }
@@ -115,7 +111,7 @@ const ChatField: React.FC<IProps> = ({ res, combinedId }) => {
   return (
     <div>
       <div
-        className={`relative border border-red-600 ${
+        className={`relative ${
           res.senderId === playersObject?.playerOne?.id
             ? 'flex w-full mt-2 space-x-3 max-w-xs ml-auto justify-end'
             : 'flex w-full mt-2 space-x-3 max-w-xs'
@@ -140,14 +136,14 @@ const ChatField: React.FC<IProps> = ({ res, combinedId }) => {
             <div
               className={
                 res?.senderId === playersObject?.playerOne?.id
-                  ? 'absolute left-0 bottom-[-35px] z-30 border border-blue-500'
-                  : 'absolute left-0 bottom-[-35px] z-30 border border-red-600'
+                  ? 'absolute left-0 bottom-[-35px] z-30 '
+                  : 'absolute left-0 bottom-[-35px] z-30'
               }
             >
               <EmojiPicker
                 reactionsDefaultOpen={true}
                 onEmojiClick={(e: EmojiClickData) =>
-                  handleReactions(e, res?._id, res?.senderId)
+                  handleReactions(e, res?._id, playersObject?.playerOne?.id)
                 }
               />
             </div>

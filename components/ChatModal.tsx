@@ -24,6 +24,7 @@ type Props = {
   combinedId: string;
   playersChat: any;
   gameData: GameSession | null;
+  chatUniqueId: string | null;
   //   setChatId: (arg: number) => void;
 };
 
@@ -32,10 +33,12 @@ const ChatModal: React.FC<Props> = ({
   combinedId,
   playersChat,
   gameData,
+  chatUniqueId,
   //   setChatId,
 }) => {
   const playersObject = useAppSelector((state: RootState) => state.players.players);
   const [textMessage, setTextMessage] = useState<string>('');
+  const [storedId, setStoredId] = useState<string | null>(null);
 
   const sendMessage = async (message: string) => {
     // Generate a unique message ID (could be a timestamp or UUID)
@@ -74,14 +77,10 @@ const ChatModal: React.FC<Props> = ({
         },
       });
       setTextMessage('');
-      console.log('Message sent:', message);
     } else {
       console.log('No chat session found to send the message.');
     }
   };
-
-  //   console.log(playersChat, 'playersChats');
-  //   console.log(playersObject?.playerTwo?.avatar, 'playersChats');
 
   return (
     <motion.div
@@ -97,7 +96,7 @@ const ChatModal: React.FC<Props> = ({
         x: 300,
         opacity: 0,
       }}
-      className="fixed right-0 top-0 z-10 flex flex-col items-center justify-center w-[40%] min-h-screen bg-gray-100 text-gray-800"
+      className="fixed right-0 top-0 z-10 flex flex-col items-center justify-center w-[40%] max-[1100px]:w-[60%] max-[600px]:w-[90%] min-h-screen bg-gray-100 text-gray-800"
     >
       <div className="flex flex-col gap-4 w-[90%] h-screen min-h-screen">
         <div className="flex items-center justify-between w-full mt-2">
@@ -117,14 +116,28 @@ const ChatModal: React.FC<Props> = ({
               <p>{playersObject?.playerTwo?.name} </p>
             </div>
           </div>
-          <Button onClick={() => setOpenModal(false)}>Close</Button>
+          <Button
+            onClick={() => {
+              setOpenModal(false);
+              setStoredId(null);
+            }}
+          >
+            Close
+          </Button>
         </div>
         <div className="flex flex-col flex-grow w-full h-full max-w-xl bg-black shadow-xl rounded-lg overflow-hidden">
           <div className="flex flex-col flex-grow h-0 p-4 overflow-auto">
             {playersChat?.length > 0 ? (
               playersChat.map((res: Chat, index: number) => (
                 <div key={res._id}>
-                  <ChatField res={res} combinedId={combinedId} />
+                  <ChatField
+                    res={res}
+                    combinedId={combinedId}
+                    playerChats={playersChat}
+                    storedId={storedId}
+                    setStoredId={setStoredId}
+                    chatUniqueId={chatUniqueId}
+                  />
                 </div>
               ))
             ) : (
@@ -133,6 +146,7 @@ const ChatModal: React.FC<Props> = ({
                   Start conversation with {playersObject?.playerTwo?.name}{' '}
                 </p>{' '}
                 <p className="text-gray-500">Enter your message below. </p>
+                <p>Click on a message to send reactions </p>
               </div>
             )}
           </div>

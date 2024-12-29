@@ -56,7 +56,7 @@ const Homepage = (props: Props) => {
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [playerChat, setPlayerChat] = useState<Chat[]>([]);
   const [chatId, setChatId] = useState<number | null>();
-
+  const [getTheChatId, setTheChatId] = useState<any>(null);
   // usePresence(playerId);
   const router = useRouter();
 
@@ -95,17 +95,17 @@ const Homepage = (props: Props) => {
         }
       });
 
-      const unSubscribeChats = onSnapshot(doc(db, 'playersChats', combinedId), (doc) => {
-        if (doc.exists()) {
-          console.log(doc.data().messages, 'doc data messages');
-          setPlayerChat(doc.data()?.messages || []);
-        }
-      });
+      // const unSubscribeChats = onSnapshot(doc(db, 'playersChats', combinedId), (doc) => {
+      //   if (doc.exists()) {
+      //     console.log(doc.data().messages, 'doc data messages');
+      //     setPlayerChat(doc.data()?.messages || []);
+      //   }
+      // });
 
       return () => {
         unsubscribeGame();
         unsubscribeMoves();
-        unSubscribeChats();
+        // unSubscribeChats();
       };
     }
   }, [combinedId]);
@@ -113,6 +113,8 @@ const Homepage = (props: Props) => {
   useEffect(() => {
     const chatRef = collection(db, 'playersChats');
     const q = query(chatRef, where('combinedId', '==', combinedId));
+    // const gotten = getId(q);
+    // setTheChatId(gotten);
 
     const unsubscribeChats = onSnapshot(q, (snapshot) => {
       snapshot.forEach((doc) => {
@@ -131,9 +133,13 @@ const Homepage = (props: Props) => {
     };
   }, [combinedId]);
 
-  console.log(chatId, 'chatId');
+  // const getId = async (q: any) => {
+  //   const chatDoc = await getDocs(q);
+  //   console.log(chatDoc, 'chatDoc');
 
-  console.log(playerChat, 'chats');
+  //   const chatId = chatDoc.docs[0].id;
+  //   return chatId;
+  // };
 
   useEffect(() => {
     if (!playerId) {
@@ -257,46 +263,25 @@ const Homepage = (props: Props) => {
     const chatRef = collection(db, 'playersChats');
     const q = query(chatRef, where('combinedId', '==', combinedId));
 
-    console.log('Checking for existing chat session...');
-
     // Check if the chat session already exists
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
-      console.log('Chat session found, loading messages.');
-      const chats: any = [];
-      querySnapshot.forEach((doc) => {
-        chats.push({ id: doc.id, ...doc.data() });
-      });
-      setPlayerChat(chats[0].messages); // Assuming messages are stored in an array
+      const chatId = querySnapshot.docs[0].id;
+
+      setTheChatId(chatId);
+      if (!querySnapshot.empty) {
+        // console.log('Chat session found, loading messages.');
+        const chats: any = [];
+        querySnapshot.forEach((doc) => {
+          chats.push({ id: doc.id, ...doc.data() });
+        });
+        setPlayerChat(chats[0].messages);
+      }
     } else {
-      console.log('No chat session found, creating a new session.');
       await createChatSession(); // Create new chat session if it doesn't exist
     }
   };
-
-  // const loadChat = async () => {
-  //   const chatRef = collection(db, 'playersChats');
-  //   const q = query(chatRef, where('combinedId', '==', combinedId), orderBy('timestamp'));
-  //   console.log('created');
-
-  //   // Set up real-time listener
-  //   onSnapshot(q, (querySnapshot) => {
-  //     const chats: any = [];
-  //     querySnapshot.forEach((doc) => {
-  //       chats.push({ id: doc.id, ...doc.data() });
-  //     });
-  //     if (chats.length > 0) {
-  //       console.log('player update');
-
-  //       setPlayerChat(chats[0].messages); // Assuming messages are stored in an array
-  //     } else {
-  //       console.log('created session');
-  //       // Create new chat session if it doesn't exist
-  //       createChatSession();
-  //     }
-  //   });
-  // };
 
   const createChatSession = async () => {
     const chatRef = collection(db, 'playersChats');
@@ -313,17 +298,22 @@ const Homepage = (props: Props) => {
 
   return (
     <div className=" relative flex flex-col gap-[10px] items-center w-full h-[100vh] overflow-x-hidden">
-      <div className="flex items-center justify-end gap-4 p-4 w-full">
-        <button
-          onClick={handleModal}
-          className="border border-red-600 cursor-pointer outline-none border-none"
-        >
-          {' '}
-          <Bell size={30} color="white" />
-        </button>
-        <button className="cursor-pointer outline-none border-none">
-          <EllipsisVertical size={30} color="white" />{' '}
-        </button>
+      <div className="flex items-center justify-between gap-4 p-4 w-full">
+        <h1 className="text-white border w-[150px] text-center text-[18px] px-3 py-3">
+          <span className="text-white inline-block">Round: {gameData?.rounds} / 5</span>
+        </h1>
+        <div className="flex items-center gap-4 p-4">
+          <button
+            onClick={handleModal}
+            className="cursor-pointer outline-none border-none"
+          >
+            {' '}
+            <Bell size={30} color="white" />
+          </button>
+          <button className="cursor-pointer outline-none border-none">
+            <EllipsisVertical size={30} color="white" />{' '}
+          </button>
+        </div>
       </div>
       <div className=" flex justify-center items-center m-auto  w-full h-[85%] max-[500px]:h-[100%]">
         <div className="flex flex-col w-full gap-[10px] items-center  justify-center">
@@ -530,44 +520,15 @@ const Homepage = (props: Props) => {
         </div>
       </div>
       <div className="flex justify-between text-center  w-full">
-        <h1
-          style={{
-            msTransform: 'skewX(20deg)',
-            WebkitTransform: 'skewX(20deg)',
-            textTransform: 'uppercase',
-
-            // webkitTransform: "skewX(20deg)",
-            transform: 'skewX(20deg)',
-            display: 'inline-block',
-          }}
-          className="text-white border-2 inline-block text-center text-[26px]  p-2 w-[250px]"
-        >
-          <span
-            style={{
-              transform: 'skewX(-20deg)', // Counter the skew for the text
-            }}
-            className="text-white inline-block"
-          >
-            Round: {gameData?.rounds} / 5
-          </span>
-        </h1>
         <button
-          style={{
-            msTransform: 'skewX(20deg)',
-            WebkitTransform: 'skewX(20deg)',
-            textTransform: 'uppercase',
-            // webkitTransform: "skewX(20deg)",
-            transform: 'skewX(20deg)',
-            display: 'inline-block',
-          }}
-          className={`text-white border-2 inline-block text-center text-[26px]  p-2 w-[250px]`}
+          className={`text-white border inline-block text-center text-[18px] px-3 py-2`}
           onClick={restartGame}
         >
           Restart Game
         </button>
         {gameData?.rounds === 5 ? (
           <button
-            className={`text-white border-2 inline-block text-center text-[26px]  p-2 w-[250px] ${
+            className={`text-white border-2 inline-block text-center text-[18px] px-3 py-2 ${
               gameData?.goToNextRound
                 ? 'opacity-50 cursor-not-allowed'
                 : ' opacity-100 cursor-pointer'
@@ -578,28 +539,17 @@ const Homepage = (props: Props) => {
           </button>
         ) : (
           <button
-            style={{
-              msTransform: 'skewX(20deg)',
-              WebkitTransform: 'skewX(20deg)',
-              textTransform: 'uppercase',
-              transform: 'skewX(20deg)',
-              display: 'inline-block',
-            }}
             onClick={() => handleStartNewRound()}
             disabled={gameData?.goToNextRound}
-            className={`text-white border-2 inline-block text-center text-[26px]  p-2 w-[250px] ${
+            className={`text-white border inline-block text-center text-[20px]  p-2${
               gameData?.goToNextRound
                 ? 'opacity-50 cursor-not-allowed'
                 : ' opacity-100 cursor-pointer'
             }`}
           >
-            <span
-              style={{
-                transform: 'skewX(-20deg)',
-              }}
-              className="text-white border-solid inline-block"
-            >
-              Begin round
+            <span className="text-white border-solid inline-block">Begin round</span>
+            <span>
+              {' '}
               {gameData?.rounds === 5 ? gameData?.rounds : gameData?.rounds! + 1} / 5
             </span>
           </button>
@@ -612,6 +562,7 @@ const Homepage = (props: Props) => {
             combinedId={combinedId}
             playersChat={playerChat}
             gameData={gameData}
+            chatUniqueId={getTheChatId}
             // setChatId={setChatId}
           />
         )}
