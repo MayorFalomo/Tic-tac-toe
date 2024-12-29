@@ -32,17 +32,22 @@ console.log(playerName, 'playerName');
   
    //Logic to create a game session
   // A function that takes in two params which are playerId and opponentId
-  export const createGameSession = async (playerId: string, opponentId: string) => {
-    //might return the sessionId,
-    const sessionRef = push(ref(database, 'gameSessions')); //creates a ref to our database and name it "gameSessions"
-
-    //Our session ref would create/set a new object in a sessionRef
-    await set(sessionRef, {
-      playerOneId: playerId,
-      playerTwoId: opponentId,
-      status: 'active',
-      createdAt: new Date().toISOString(),
-    });
-
-    return sessionRef.key;
+export const createGameSession = async (playerId: string, opponentId: string) => {
+    try {
+      //might return the sessionId,
+      const sessionRef = push(ref(database, 'gameSessions')); //creates a ref to our database and name it "gameSessions"
+  
+      //Our session ref would create/set a new object in a sessionRef
+      await set(sessionRef, {
+        playerOneId: playerId,
+        playerTwoId: opponentId,
+        status: 'active',
+        createdAt: new Date().toISOString(),
+      });
+  
+      return sessionRef.key;
+    } catch (error) {
+      console.log(error, 'error in gamesession');
+      
+    }
 };
