@@ -6,15 +6,15 @@ import { push, ref, set, } from "@firebase/database";
 export const handleUserPresence = async (userId: string, playerName: string) => {
   try {
     const userRef = ref(database, `activePlayers/${userId}`); //We reference the "activePlayers" db we created in the createPlayerfunc and find a player by their userId
-    console.log(userRef, 'userRef');
+    // console.log(userRef, 'userRef');
     //Set the users status to online when they connect
     await set(userRef, {
       playerName: playerName,
       status: 'looking',
     });
-console.log(playerName, 'playerName');
+// console.log(playerName, 'playerName');
 
-  console.log('ran past here');
+  // console.log('ran past here');
   
     //Using firebase onDisconnect functionality to detect when a user goes offline
   await onDisconnect(userRef).set({

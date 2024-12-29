@@ -129,16 +129,17 @@ const SignUp = (props: Props) => {
       playersRef,
       async (snapshot) => {
         const players = snapshot.val(); //Returns an object of all the players name and status
-        // console.log(players, 'players');
+        console.log(players, 'players');
 
         //Search for a player by mapping over the players array and find the first player with an id that isn't the same with the currentPlayer but also with a status of "looking"
         const opponentId = Object?.keys(players).find(
           (id: string) => id !== playerId && players[id].status === 'looking'
         );
-        // console.log(opponentId, 'opponentId');
+        console.log(opponentId, 'opponentId');
 
         if (opponentId) {
           const opponentData = players[opponentId];
+          console.log(opponentData, 'opponentData');
 
           setSearchingActive(true); //Changes the button to "Found a player"
 
@@ -148,6 +149,7 @@ const SignUp = (props: Props) => {
             status: 'inGame',
             gameId: opponentId,
           });
+          console.log('update to here');
 
           //Update Current players status
           await update(ref(database, `activePlayers/${playerId}`), {
@@ -171,6 +173,7 @@ const SignUp = (props: Props) => {
               opponentData?.avatar ??
               'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg',
           };
+          console.log(playerOneDetails, playerTwoDetails);
 
           //Create Game Session
           const getSessionId = await createGameSession(playerId, opponentId); //Creates Game session on realtime db
