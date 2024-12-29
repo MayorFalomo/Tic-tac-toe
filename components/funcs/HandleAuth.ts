@@ -1,8 +1,6 @@
 import { onDisconnect } from "firebase/database";
-import { database, db } from "@/firebase-config/firebase";
-import { onValue, push, ref, set, update } from "@firebase/database";
-import { GameSession, PlayerDetails } from "@/app/types/types";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { database,} from "@/firebase-config/firebase";
+import { push, ref, set, } from "@firebase/database";
 
 
 export const handleUserPresence = async (userId: string, playerName: string) => {
@@ -14,11 +12,15 @@ export const handleUserPresence = async (userId: string, playerName: string) => 
       status: 'looking',
     });
 
+  console.log('ran past here');
+  
     //Using firebase onDisconnect functionality to detect when a user goes offline
   onDisconnect(userRef).set({
     playerName: playerName,
     status: 'offline',
   });
+  console.log('ran past disconnect');
+  
 };
   
    //Logic to create a game session

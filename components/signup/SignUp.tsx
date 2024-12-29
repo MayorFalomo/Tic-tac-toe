@@ -74,7 +74,7 @@ const SignUp = (props: Props) => {
 
       //create a separate db instance in the database named activePlayers
       const playerRef = push(ref(database, 'activePlayers')); //Create a new child reference
-      const playerId = playerRef.key || ''; // Get the unique key
+      const playerId = playerRef?.key ?? ''; // Get the unique key
       //Create a new player Object by referencing the database ref and setting the object we want inside the db reference
       await set(playerRef, {
         player: playerNameSelect,
@@ -97,7 +97,7 @@ const SignUp = (props: Props) => {
       //Since we've handled changing a users status we can now search for other players with a status of looking too
       await searchForOpponent(playerId);
     } catch (error) {
-      console.log(error);
+      console.log(error, 'error is from me');
       setLoading(false);
     }
   };
@@ -122,6 +122,7 @@ const SignUp = (props: Props) => {
     //This function will search for an opponent in the activePlayers db
     //If an opponent is found, it will update the status of the player to "inGame"
     const playersRef = ref(database, 'activePlayers'); //First, reference the db we want to search through
+    console.log('i ran to here');
 
     //Listen for changes in the activePlayers
     onValue(
