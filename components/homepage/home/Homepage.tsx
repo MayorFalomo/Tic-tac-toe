@@ -271,6 +271,15 @@ const Homepage = (props: Props) => {
     });
   };
 
+  // useEffect(() => {
+  //   //If the player logs in first while the other couldn't cos the status has changed
+  //   // We want to pull the person into the game
+  //   //So even if their status has changed before the other person we drag them into the game.
+  //   //First we check for their id from fireStore then once gotten we get the id from the gameSession.
+  //   //We can then check that if the other player with this id gotten from the gameSession having a specificId from firestore database and having a status of inGame from firestore database is true
+  //   //Then we route them into the game.
+  // }, []);
+
   return (
     <div className=" relative flex flex-col gap-[10px] items-center w-full h-[100vh] overflow-x-hidden">
       <div className="flex items-center justify-between gap-4 p-4 w-full">

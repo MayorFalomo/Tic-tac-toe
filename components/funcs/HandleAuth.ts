@@ -12,6 +12,7 @@ export const handleUserPresence = async (userId: string, playerName: string) => 
       playerName: playerName,
       status: 'looking',
     });
+    
 // console.log(playerName, 'playerName');
 
   // console.log('ran past here');

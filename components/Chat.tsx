@@ -59,34 +59,39 @@ const ChatField: React.FC<IProps> = ({
     if (messageId) {
       try {
         // Map through all the messages to find and update the specific message
-        const updatedMessages = playerChats.map((msg: Chat) => {
+        const updatedMessages = playerChats?.map((msg: Chat) => {
           // Check if the msg id matches the messageId
           if (msg._id === messageId) {
             //I then Check if the user has already reacted previously
-            const hasReacted = msg.reactions?.some((react) => react.userId === senderId);
+            const hasReacted = msg?.reactions?.some(
+              (react) => react?.userId === senderId
+            );
+            console.log(hasReacted, 'hasReacted');
 
             if (hasReacted) {
               //If User has reacted, update the reaction
               return {
                 ...msg,
-                reactions: msg.reactions.map((react) => {
-                  if (react.userId === senderId) {
+                reactions: msg?.reactions?.map((react) => {
+                  if (react?.userId === senderId) {
                     return {
                       ...react,
-                      reaction: emoji.emoji,
+                      reaction: emoji?.emoji,
                     };
                   }
                   return react; // Return an unchanged reaction if the user hasn't reacted before
                 }),
               };
             } else {
+              console.log('else has rann');
+
               // User hasn't reacted yet, add a new reaction
               return {
                 ...msg,
                 reactions: [
-                  ...(msg.reactions || []), // Preserve existing reactions
+                  ...(msg?.reactions || []), // Preserve existing reactions
                   {
-                    reaction: emoji.emoji,
+                    reaction: emoji?.emoji,
                     userId: senderId,
                   },
                 ],

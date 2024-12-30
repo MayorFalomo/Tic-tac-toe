@@ -132,7 +132,7 @@ const SignUp = (props: Props) => {
       //This function will search for an opponent in the activePlayers db
       //If an opponent is found, it will update the status of the player to "inGame"
       const playersRef = ref(database, 'activePlayers'); //First, reference the db we want to search through
-      console.log('i ran to here');
+      console.log('I ran to here');
 
       //Listen for changes in the activePlayers
       onValue(
@@ -147,44 +147,77 @@ const SignUp = (props: Props) => {
           );
           console.log(opponentId, 'opponentId');
 
+          //returns a string id of the opponent
           if (opponentId) {
-            const opponentData = players[opponentId];
+            const opponentData = players[opponentId]; // finds and provides the object of the person with that opponentId
             console.log(opponentData, 'opponentData');
 
             setSearchingActive(true); //Changes the button to "Found a player"
 
             // Use a transaction to safely update the opponent's status
-            await runTransaction(
+            // Update Opponent's Status
+            const opponentTransaction = await runTransaction(
               ref(database, `activePlayers/${opponentId}`),
               (currentData) => {
                 if (currentData && currentData.status === 'looking') {
-                  currentData.status = 'inGame';
-                  currentData.gameId = opponentId;
+                  currentData.status = 'pending';
                   return currentData;
                 }
                 return; // Abort if the status is not 'looking'
               }
             );
 
-            // Update Current player's status
-            await runTransaction(
+            // Update Current Player's Status
+            const playerTransaction = await runTransaction(
               ref(database, `activePlayers/${playerId}`),
               (currentData) => {
                 if (currentData && currentData.status === 'looking') {
-                  currentData.status = 'inGame';
-                  currentData.gameId = playerId;
+                  currentData.status = 'pending';
                   return currentData;
                 }
                 return; // Abort if the status is not 'looking'
               }
             );
+
+            // Check if both players are in the "pending" state
+            if (opponentTransaction && playerTransaction) {
+              // Fetch the opponent's data
+              const opponentDataSnapshot = await get(
+                ref(database, `activePlayers/${opponentId}`)
+              );
+              const currentPlayerDataSnapshot = await get(
+                ref(database, `activePlayers/${playerId}`)
+              );
+
+              // Check if the opponent's status is pending
+              if (opponentDataSnapshot.exists() && currentPlayerDataSnapshot.exists()) {
+                const opponentData = opponentDataSnapshot.val();
+                const currentPlayerData = currentPlayerDataSnapshot.val();
+
+                if (
+                  opponentData.status === 'pending' &&
+                  currentPlayerData.status === 'pending'
+                ) {
+                  // Update both players' statuses to "inGame"
+                  await update(ref(database, `activePlayers/${opponentId}`), {
+                    status: 'inGame',
+                    gameId: playerId, // Assuming the gameId should point to the current player
+                  });
+                  await update(ref(database, `activePlayers/${playerId}`), {
+                    status: 'inGame',
+                    gameId: opponentId,
+                  });
+                }
+              }
+            }
             // //Since an opponent has been found, I ref the database I defined in database and pass in the "activePlayers" collection  / the exact opponentId then i update
             // await update(ref(database, `activePlayers/${opponentId}`), {
+            //   //Before the player can update he's opponents status the opponent also has to have found player1, if they have found each other then the opponent would need to check if the id is the same with the opponentData
             //   playerName: opponentData.playerName,
             //   status: 'inGame',
             //   gameId: opponentId,
             // });
-            // console.log('update to here');
+            // // console.log('update to here');
 
             // //Update Current players status
             // await update(ref(database, `activePlayers/${playerId}`), {
@@ -449,3 +482,12 @@ export default SignUp;
 
 //If I'm going to be using the two for this
 //The player status and matching would still be handled as
+
+//!The Problem
+//First player to click the search button gets to find an opoonentId and change the found opponents status before the opponent can pair with the person since their own code running first already changed the status of the person to inGame
+//So basically player1 finds player2 first and he's status changes to inGame first while also changing player2 status, meanwhile player2 cannot find playerOne since player1 status is now inGame instead of looking.
+
+//*My Options
+// Find a way for playerOne to find player2 and vice versa at the same time so that both players status change at the same time
+// If player1 is looking but finds player 2 and updates player 2 to inGame before player 2 can find player 1, then player 2 should get the details of the player 1 that was paired with him update the statuf of playerOne to Looking then pair with them.
+// Next option is to maybe use a validation check so that
