@@ -20,7 +20,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/firebase-config/firebase';
 import { setTrackDisableRound, setTrackRounds } from '@/lib/features/TrackerSlice';
-import { toast } from 'react-hot-toast';
+import { toast, Toaster } from 'react-hot-toast';
 // import Lottie from 'lottie-react';
 // import animationData from '@/public/fireworks.json';
 import { Bell, EllipsisVertical } from 'lucide-react';
@@ -115,7 +115,6 @@ const Homepage = (props: Props) => {
   //   const chatId = chatDoc.docs[0].id;
   //   return chatId;
   // };
-
   useEffect(() => {
     if (!playerId) {
       router.push('/signup');
@@ -272,6 +271,42 @@ const Homepage = (props: Props) => {
   };
 
   // useEffect(() => {
+  //   const checkPlayerStatus = async () => {
+  //     try {
+  //       // Fetch the player document
+  //       const playerRef = doc(db, 'activePlayers', playerId);
+  //       const playerDoc = await getDoc(playerRef);
+
+  //       if (playerDoc.exists()) {
+  //         const playerData = playerDoc.data();
+
+  //         // Check the game session for the other player's status
+  //         const gameSessionRef = doc(db, 'gameSessions', combinedId);
+  //         const gameSessionDoc = await getDoc(gameSessionRef);
+
+  //         if (gameSessionDoc.exists()) {
+  //           const gameSessionData = gameSessionDoc.data();
+  //           const opponentId = gameSessionData.opponentId; // Assuming this field exists
+
+  //           // Check if the opponent is in the game and has the correct status
+  //           const opponentRef = doc(db, 'activePlayers', opponentId);
+  //           const opponentDoc = await getDoc(opponentRef);
+
+  //           if (opponentDoc.exists() && opponentDoc.data().status === 'inGame') {
+  //             // Route them into the game
+  //             router.push(`/`);
+  //           }
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error('Error checking player status:', error);
+  //     }
+  //   };
+
+  //   checkPlayerStatus();
+  // }, [playerId, combinedId, db]);
+
+  // useEffect(() => {
   //   //If the player logs in first while the other couldn't cos the status has changed
   //   // We want to pull the person into the game
   //   //So even if their status has changed before the other person we drag them into the game.
@@ -289,31 +324,44 @@ const Homepage = (props: Props) => {
         <div className="flex items-center gap-4 p-4">
           <button
             onClick={handleModal}
-            className="cursor-pointer outline-none border-none"
+            className=" relative cursor-pointer outline-none border-none"
           >
             {' '}
             <Bell size={30} color="white" />
+            {playersObject?.playerOne?.id === gameData?.players?.playerOne?.id && (
+              <span className="bg-red-600 text-white z-[4] absolute bottom-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 min-w-6 min-h-6 rounded-full">
+                {gameData?.unreadMessages?.playerOne ?? 0}
+              </span>
+            )}
+            {playersObject?.playerTwo?.id === gameData?.players?.playerTwo?.id && (
+              <span className="bg-green-500 text-white absolute bottom-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[4] min-w-6 min-h-6 rounded-full">
+                {gameData?.unreadMessages?.playerTwo ?? 0}
+              </span>
+            )}
           </button>
           <button className="cursor-pointer outline-none border-none">
             <EllipsisVertical size={30} color="white" />{' '}
           </button>
         </div>
       </div>
-      <div className=" flex justify-center items-center m-auto  w-full h-[85%] max-[500px]:h-[100%]">
+      <div className=" flex justify-center items-center m-auto w-full h-[85%] max-[500px]:h-[100%]">
         <div className="flex flex-col w-full gap-[10px] items-center  justify-center">
           <div className="relative">
             <div className="flex items-center justify-between w-[100%] ">
               <div className="flex items-center w-full justify-center gap-[20px]  ">
-                <Image
-                  width={40}
-                  height={40}
-                  src={
-                    currentPlayer === gameData?.players?.playerOne?.id
-                      ? gameData?.players?.playerOne?.avatar! ?? null
-                      : gameData?.players?.playerTwo?.avatar! ?? null
-                  }
-                  alt="img"
-                />
+                {gameData?.players?.playerOne?.avatar! &&
+                  gameData?.players?.playerTwo?.avatar! && (
+                    <Image
+                      width={40}
+                      height={40}
+                      src={
+                        currentPlayer === gameData?.players?.playerOne?.id
+                          ? gameData?.players?.playerOne?.avatar! ?? null
+                          : gameData?.players?.playerTwo?.avatar! ?? null
+                      }
+                      alt="img"
+                    />
+                  )}
                 <div
                   style={{
                     background: 'rgba(255, 255, 255, 0.1)',
@@ -323,20 +371,22 @@ const Homepage = (props: Props) => {
                   }}
                   className="flex flex-col gap-2 p-3"
                 >
-                  <h1 className="text-white text-[16px] ">
+                  <h1 className="text-white text-center text-[16px] ">
                     {currentPlayer === gameData?.players?.playerOne?.id
                       ? gameData?.players?.playerOne?.name
                       : gameData?.players?.playerTwo?.name}{' '}
                   </h1>
-                  <Image
-                    src="/SelectX.png"
-                    className="m-auto"
-                    width={30}
-                    height={30}
-                    alt="img"
-                  />
+                  {
+                    <Image
+                      src="/SelectX.png"
+                      className="m-auto"
+                      width={30}
+                      height={30}
+                      alt="img"
+                    />
+                  }
                 </div>
-                <h1 className="text-white text-[24px] ">
+                <h1 className="text-white text-center text-[24px] ">
                   {currentPlayer === gameData?.players?.playerOne?.id
                     ? gameData?.scores?.playerOne!
                     : gameData?.scores?.playerTwo!}{' '}
@@ -371,16 +421,19 @@ const Homepage = (props: Props) => {
                     alt="img"
                   />
                 </div>
-                <Image
-                  width={40}
-                  height={40}
-                  src={
-                    currentPlayer !== gameData?.players?.playerTwo?.id
-                      ? gameData?.players?.playerTwo?.avatar! ?? null
-                      : gameData?.players?.playerOne?.avatar! ?? null
-                  }
-                  alt="img"
-                />
+                {gameData?.players?.playerOne?.avatar! &&
+                  gameData?.players?.playerTwo?.avatar! && (
+                    <Image
+                      width={40}
+                      height={40}
+                      src={
+                        currentPlayer !== gameData?.players?.playerTwo?.id
+                          ? gameData?.players?.playerTwo?.avatar! ?? null
+                          : gameData?.players?.playerOne?.avatar! ?? null
+                      }
+                      alt="img"
+                    />
+                  )}
               </div>
               {gameData?.roundWinner!?.length > 0 && (
                 <AnimatePresence>
@@ -543,6 +596,7 @@ const Homepage = (props: Props) => {
       <AnimatePresence>
         {openModal && (
           <ChatModal
+            openModal={openModal}
             setOpenModal={setOpenModal}
             combinedId={combinedId}
             playersChat={playerChat}

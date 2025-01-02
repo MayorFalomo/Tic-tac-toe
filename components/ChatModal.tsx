@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from './ui/button';
 import Image from 'next/image';
@@ -20,15 +20,17 @@ import { Chat, GameSession } from '@/app/types/types';
 import ChatField from './Chat';
 
 type Props = {
+  openModal: boolean;
   setOpenModal: (arg: boolean) => void;
   combinedId: string;
-  playersChat: any;
+  playersChat: Chat[];
   gameData: GameSession | null;
   chatUniqueId: string | null;
   //   setChatId: (arg: number) => void;
 };
 
 const ChatModal: React.FC<Props> = ({
+  openModal,
   setOpenModal,
   combinedId,
   playersChat,
@@ -63,23 +65,38 @@ const ChatModal: React.FC<Props> = ({
           timeStamp: Timestamp.now(),
           reactions: [],
         }),
-        //I need to find which player is playerOne
-        unreadMessages: {
-          playerOne:
-            playersObject?.playerOne?.id === gameData?.players?.playerOne?.id
-              ? chatData?.unreadMessages?.playerTwo + 1
-              : 0,
-          playerTwo:
-            playersObject?.playerTwo?.id === gameData?.players?.playerTwo?.id
-              ? chatData?.unreadMessages?.playerOne + 1
-              : 0,
-        },
       });
+
       setTextMessage('');
     } else {
       console.log('No chat session found to send the message.');
     }
   };
+
+  useEffect(() => {
+    if (openModal) {
+      const clearNotif = async () => {
+        try {
+          // Determine which player is playerOne
+          const isPlayerOne =
+            playersObject?.playerOne?.id === gameData?.players?.playerOne?.id;
+
+          await updateDoc(doc(db, 'gameSessions', combinedId), {
+            unreadMessages: {
+              playerOne: isPlayerOne ? (gameData?.unreadMessages?.playerTwo || 0) + 1 : 0,
+              playerTwo: !isPlayerOne
+                ? (gameData?.unreadMessages?.playerOne || 0) + 1
+                : 0,
+            },
+          });
+        } catch (error) {
+          console.error('Error updating unread messages: ', error);
+        }
+      };
+
+      clearNotif();
+    }
+  }, [openModal, gameData, combinedId, playersObject]);
 
   return (
     <motion.div
@@ -136,6 +153,7 @@ const ChatModal: React.FC<Props> = ({
                     storedId={storedId}
                     setStoredId={setStoredId}
                     chatUniqueId={chatUniqueId}
+                    gameData={gameData}
                   />
                 </div>
               ))

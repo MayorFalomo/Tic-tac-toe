@@ -1,4 +1,4 @@
-import { Chat, TimeStamp } from '@/app/types/types';
+import { Chat, GameSession, TimeStamp } from '@/app/types/types';
 import { useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
 import Image from 'next/image';
@@ -23,6 +23,7 @@ type IProps = {
   storedId: string | null;
   chatUniqueId: string | null;
   setStoredId: (arg: string | null) => void;
+  gameData: GameSession | null;
 };
 
 const ChatField: React.FC<IProps> = ({
@@ -32,6 +33,7 @@ const ChatField: React.FC<IProps> = ({
   storedId,
   setStoredId,
   chatUniqueId,
+  gameData,
 }) => {
   const playersObject = useAppSelector((state: RootState) => state.players.players);
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
@@ -128,12 +130,14 @@ const ChatField: React.FC<IProps> = ({
       >
         {res.senderId !== playersObject?.playerOne?.id && (
           <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300">
-            <Image
-              src={playersObject?.playerTwo?.avatar!}
-              width={40}
-              height={40}
-              alt="img"
-            />
+            {playersObject?.playerTwo?.avatar! && (
+              <Image
+                src={playersObject?.playerTwo?.avatar!}
+                width={40}
+                height={40}
+                alt="img"
+              />
+            )}
           </div>
         )}
         <div>
@@ -181,13 +185,19 @@ const ChatField: React.FC<IProps> = ({
         </div>
         {res.senderId === playersObject?.playerOne?.id && (
           <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300">
-            <Image
-              src={playersObject?.playerOne?.avatar!}
-              width={40}
-              height={40}
-              alt="img"
-              className="h-10 w-10 rounded-full object-cover"
-            />
+            {playersObject?.playerOne?.avatar! && (
+              <Image
+                src={
+                  gameData?.players?.playerOne?.id! === playersObject?.playerOne?.id
+                    ? gameData?.players?.playerTwo?.avatar!
+                    : gameData?.players?.playerOne?.avatar!
+                }
+                width={40}
+                height={40}
+                alt="img"
+                className="h-10 w-10 rounded-full object-cover"
+              />
+            )}
           </div>
         )}
       </div>

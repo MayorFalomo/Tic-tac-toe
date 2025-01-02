@@ -13,7 +13,7 @@ import {
   set,
   update,
 } from 'firebase/database';
-import { database, db } from '@/firebase-config/firebase';
+import { database, db, firestore } from '@/firebase-config/firebase';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { setAPlayerId } from '@/lib/features/userSlice';
 import { RootState } from '@/lib/store';
@@ -143,73 +143,98 @@ const SignUp = (props: Props) => {
 
           //Search for a player by mapping over the players array and find the first player with an id that isn't the same with the currentPlayer but also with a status of "looking"
           const opponentId = Object?.keys(players).find(
-            (id: string) => id !== playerId && players[id].status === 'looking'
+            (id: string) => players[id].status === 'looking' && id !== playerId
           );
           console.log(opponentId, 'opponentId');
 
           //returns a string id of the opponent
-          if (opponentId) {
+          if (opponentId && opponentId !== playerId) {
             const opponentData = players[opponentId]; // finds and provides the object of the person with that opponentId
+
+            //!I've created a session immediately after finding an opponent
+            const playerOneDetails = {
+              id: playerId,
+              name: playerName!,
+              avatar:
+                Avatar ??
+                'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg',
+            };
+
+            const playerTwoDetails = {
+              id: opponentId,
+              name: opponentData.playerName,
+              avatar:
+                opponentData?.avatar ??
+                'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg',
+            };
+            const getSessionId = await createGameSession(playerId, opponentId); //Creates Game session on realtime db
+            const getGameSession = await handleGameSession(
+              //Creates Game session on firestore db
+              playerOneDetails,
+              playerTwoDetails
+            );
+
+            // const opponentData = players[opponentId]; // finds and provides the object of the person with that opponentId
             console.log(opponentData, 'opponentData');
 
             setSearchingActive(true); //Changes the button to "Found a player"
 
             // Use a transaction to safely update the opponent's status
             // Update Opponent's Status
-            const opponentTransaction = await runTransaction(
-              ref(database, `activePlayers/${opponentId}`),
-              (currentData) => {
-                if (currentData && currentData.status === 'looking') {
-                  currentData.status = 'pending';
-                  return currentData;
-                }
-                return; // Abort if the status is not 'looking'
-              }
-            );
+            // const opponentTransaction = await runTransaction(
+            //   ref(database, `activePlayers/${opponentId}`),
+            //   (currentData) => {
+            //     if (currentData && currentData.status === 'looking') {
+            //       currentData.status = 'pending';
+            //       return currentData;
+            //     }
+            //     return; // Abort if the status is not 'looking'
+            //   }
+            // );
 
             // Update Current Player's Status
-            const playerTransaction = await runTransaction(
-              ref(database, `activePlayers/${playerId}`),
-              (currentData) => {
-                if (currentData && currentData.status === 'looking') {
-                  currentData.status = 'pending';
-                  return currentData;
-                }
-                return; // Abort if the status is not 'looking'
-              }
-            );
+            // const playerTransaction = await runTransaction(
+            //   ref(database, `activePlayers/${playerId}`),
+            //   (currentData) => {
+            //     if (currentData && currentData.status === 'looking') {
+            //       currentData.status = 'pending';
+            //       return currentData;
+            //     }
+            //     return; // Abort if the status is not 'looking'
+            //   }
+            // );
 
             // Check if both players are in the "pending" state
-            if (opponentTransaction && playerTransaction) {
-              // Fetch the opponent's data
-              const opponentDataSnapshot = await get(
-                ref(database, `activePlayers/${opponentId}`)
-              );
-              const currentPlayerDataSnapshot = await get(
-                ref(database, `activePlayers/${playerId}`)
-              );
+            // if (opponentTransaction && playerTransaction) {
+            //   // Fetch the opponent's data
+            //   const opponentDataSnapshot = await get(
+            //     ref(database, `activePlayers/${opponentId}`)
+            //   );
+            //   const currentPlayerDataSnapshot = await get(
+            //     ref(database, `activePlayers/${playerId}`)
+            //   );
 
-              // Check if the opponent's status is pending
-              if (opponentDataSnapshot.exists() && currentPlayerDataSnapshot.exists()) {
-                const opponentData = opponentDataSnapshot.val();
-                const currentPlayerData = currentPlayerDataSnapshot.val();
+            //   // Check if the opponent's status is pending
+            //   if (opponentDataSnapshot.exists() && currentPlayerDataSnapshot.exists()) {
+            //     const opponentData = opponentDataSnapshot.val();
+            //     const currentPlayerData = currentPlayerDataSnapshot.val();
 
-                if (
-                  opponentData.status === 'pending' &&
-                  currentPlayerData.status === 'pending'
-                ) {
-                  // Update both players' statuses to "inGame"
-                  await update(ref(database, `activePlayers/${opponentId}`), {
-                    status: 'inGame',
-                    gameId: playerId, // Assuming the gameId should point to the current player
-                  });
-                  await update(ref(database, `activePlayers/${playerId}`), {
-                    status: 'inGame',
-                    gameId: opponentId,
-                  });
-                }
-              }
-            }
+            //     if (
+            //       opponentData.status === 'pending' &&
+            //       currentPlayerData.status === 'pending'
+            //     ) {
+            //       // Update both players' statuses to "inGame"
+            //       await update(ref(database, `activePlayers/${opponentId}`), {
+            //         status: 'inGame',
+            //         gameId: playerId, // Assuming the gameId should point to the current player
+            //       });
+            //       await update(ref(database, `activePlayers/${playerId}`), {
+            //         status: 'inGame',
+            //         gameId: opponentId,
+            //       });
+            //     }
+            //   }
+            // }
             // //Since an opponent has been found, I ref the database I defined in database and pass in the "activePlayers" collection  / the exact opponentId then i update
             // await update(ref(database, `activePlayers/${opponentId}`), {
             //   //Before the player can update he's opponents status the opponent also has to have found player1, if they have found each other then the opponent would need to check if the id is the same with the opponentData
@@ -226,58 +251,97 @@ const SignUp = (props: Props) => {
             //   gameId: playerId,
             // });
 
-            const playerOneDetails = {
-              id: playerId,
-              name: playerName!,
-              avatar:
-                Avatar ??
-                'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg',
-            };
+            // const playerOneDetails = {
+            //   id: playerId,
+            //   name: playerName!,
+            //   avatar:
+            //     Avatar ??
+            //     'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg',
+            // };
 
-            const playerTwoDetails = {
-              id: opponentId,
-              name: opponentData.playerName,
-              avatar:
-                opponentData?.avatar ??
-                'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg',
-            };
+            // const playerTwoDetails = {
+            //   id: opponentId,
+            //   name: opponentData.playerName,
+            //   avatar:
+            //     opponentData?.avatar ??
+            //     'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg',
+            // };
             console.log(playerOneDetails, playerTwoDetails);
 
             //Create Game Session
-            const getSessionId = await createGameSession(playerId, opponentId); //Creates Game session on realtime db
-            const getGameSession = await handleGameSession(
-              //Creates Game session on firestore db
-              playerOneDetails,
-              playerTwoDetails
-            );
+            //Note const getSessionId = await createGameSession(playerId, opponentId); //Creates Game session on realtime db
+            // const getGameSession = await handleGameSession(
+            //   //Creates Game session on firestore db
+            //   playerOneDetails,
+            //   playerTwoDetails
+            // );
 
+            // Assuming combinedId is available
+            const gameSessionDoc = await getDoc(
+              doc(db, 'gameSessions', getGameSession?.sessionId!)
+            ); // Replace 'sessionId' with your actual session ID
+            console.log(gameSessionDoc, 'gameSessionDoc');
+
+            if (gameSessionDoc.exists()) {
+              const gameSessionData = gameSessionDoc.data();
+
+              // Check if both players are ready
+              if (
+                gameSessionData.playersGameStatus.playerOne === 'ready' &&
+                gameSessionData.playersGameStatus.playerTwo === 'ready'
+              ) {
+                // Proceed to update players' statuses in Realtime Database
+                await update(ref(database, `activePlayers/${playerId}`), {
+                  status: 'inGame',
+                  sessionId: getSessionId,
+                });
+
+                await update(ref(database, `activePlayers/${opponentId}`), {
+                  status: 'inGame',
+                  sessionId: getSessionId,
+                });
+
+                dispatch(setAPlayerId(playerId)); //Store the currentPlayersId
+
+                dispatch(
+                  setPlayersSessionId({
+                    playerOneSessionId: getSessionId,
+                  })
+                );
+                dispatch(setSessionId(getSessionId)); //Store the currentGameSessionId
+                setLoading(false); //stopLoadingSpinner after searching for opponent
+
+                setTimeout(() => {
+                  //Route to Homepage
+                  router.push('/');
+                }, 2000);
+
+                // Redirect to home page
+                // For React Router v5
+                // history.push('/home');
+
+                // For React Router v6
+                // navigate('/home');
+              } else {
+                console.log('Players are not ready yet.');
+                // Handle the case where players are not ready
+              }
+            } else {
+              console.log('Game session does not exist.');
+              // Handle the case where the game session is not found
+            }
             console.log(getGameSession, 'getGameSession');
 
             // Update both players' records with the session ID
-            await update(ref(database, `activePlayers/${playerId}`), {
-              status: 'inGame',
-              sessionId: getSessionId,
-            });
+            // await update(ref(database, `activePlayers/${playerId}`), {
+            //   status: 'inGame',
+            //   sessionId: getSessionId,
+            // });
 
-            await update(ref(database, `activePlayers/${opponentId}`), {
-              status: 'inGame',
-              sessionId: getSessionId,
-            });
-
-            dispatch(setAPlayerId(playerId)); //Store the currentPlayersId
-
-            dispatch(
-              setPlayersSessionId({
-                playerOneSessionId: getSessionId,
-              })
-            );
-            dispatch(setSessionId(getSessionId)); //Store the currentGameSessionId
-            setLoading(false); //stopLoadingSpinner after searching for opponent
-
-            setTimeout(() => {
-              //Route to Homepage
-              router.push('/');
-            }, 2000);
+            // await update(ref(database, `activePlayers/${opponentId}`), {
+            //   status: 'inGame',
+            //   sessionId: getSessionId,
+            // });
           } else {
             console.log('Could not find you an opponent at this time');
           }
@@ -335,6 +399,10 @@ const SignUp = (props: Props) => {
               name: opponent?.name,
               avatar: opponent?.avatar!,
             },
+          },
+          playersGameStatus: {
+            playerOne: 'ready',
+            playerTwo: 'ready',
           },
         };
         await setDoc(doc(db, 'gameSessions', combinedId), newGameSession);
@@ -491,3 +559,21 @@ export default SignUp;
 // Find a way for playerOne to find player2 and vice versa at the same time so that both players status change at the same time
 // If player1 is looking but finds player 2 and updates player 2 to inGame before player 2 can find player 1, then player 2 should get the details of the player 1 that was paired with him update the statuf of playerOne to Looking then pair with them.
 // Next option is to maybe use a validation check so that
+
+//on the frontend having a state in a useEffect to store players like for gameSessions dunno how that would be useful yet sha
+//Chage it on the player1 side by having a field in GameSessions that would reflect ready when both have actually found people
+
+//Ensuring the other player also has the details before updating anything is actually critical
+
+//!New Solution
+//Since we need to immediately react to if a new person joins the "looking status pool"
+//*I'd continue to use firestore/database so I get the opponent to pair
+//!Differrence now is I won't update anything like status yet at all on firestore
+//Note Instead after opponentId, I then immediately create a game session on firebase/firestore.
+//? After creation the players would both have their own sessions right?
+//Now I'd need to combine the Id's of the gameSessions wHich is how my sessions would be created Normally
+//# Now If I can I'd also need to save maybe a reference from firestore rtdb to firestore gameSession i just created
+//With the power of my combinedId I can compare from which player side i'm viewing it.
+//When creating the sessions, I can have an object field in the session object just like scores but with status that would update to maybe 'inGame' when both are ready.
+//That process would determine whether a player gets logged in or not he's status on rtdb would have to update too at some point maybe after firestore has registered both are ready
+//So immediately after I get the opponent Id I don't u

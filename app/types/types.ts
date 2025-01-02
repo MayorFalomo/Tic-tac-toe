@@ -57,6 +57,14 @@ export type GameSession = {
     playerTwo: SessionPlayerDetails;
   };
   gameOver?: boolean;
+  playersGameStatus: {
+    playerOne: string;
+    playerTwo: string;
+  }
+  unreadMessages?: {
+    playerOne: number;
+    playerTwo: number;
+  }
 };
 
 export type SessionPlayerDetails = {

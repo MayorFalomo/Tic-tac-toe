@@ -42,7 +42,7 @@ export const createGameSession = async (playerId: string, opponentId: string) =>
       await set(sessionRef, {
         playerOneId: playerId,
         playerTwoId: opponentId,
-        status: 'active',
+        status: 'looking',
         createdAt: new Date().toISOString(),
       });
   
