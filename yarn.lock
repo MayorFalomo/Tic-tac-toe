@@ -5083,6 +5083,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-anchor-link-smooth-scroll@npm:^1.0.12":
+  version: 1.0.12
+  resolution: "react-anchor-link-smooth-scroll@npm:1.0.12"
+  checksum: 7639941e3d80644676e11fb066efca822a89a220c31876b96aeeda2b2fb433061be3583e6f157922cf932b7c74d037d57f0fc30658d7f00b5437b8ac557ac480
+  languageName: node
+  linkType: hard
+
 "react-dom@npm:latest":
   version: 18.3.1
   resolution: "react-dom@npm:18.3.1"
@@ -5934,6 +5941,7 @@ __metadata:
     next-redux-wrapper: ^8.1.0
     postcss: ^8
     react: latest
+    react-anchor-link-smooth-scroll: ^1.0.12
     react-dom: latest
     react-hot-toast: ^2.4.1
     react-redux: ^9.1.2

@@ -86,26 +86,28 @@ const Homepage = (props: Props) => {
   }, [combinedId]);
 
   useEffect(() => {
-    const chatRef = collection(db, 'playersChats');
-    const q = query(chatRef, where('combinedId', '==', combinedId));
-    // const gotten = getId(q);
-    // setTheChatId(gotten);
+    if (combinedId) {
+      const chatRef = collection(db, 'playersChats');
+      const q = query(chatRef, where('combinedId', '==', combinedId));
+      // const gotten = getId(q);
+      // setTheChatId(gotten);
 
-    const unsubscribeChats = onSnapshot(q, (snapshot) => {
-      snapshot.forEach((doc) => {
-        if (doc.exists()) {
-          const messages = doc.data().messages || [];
-          // console.log();
+      const unsubscribeChats = onSnapshot(q, (snapshot) => {
+        snapshot.forEach((doc) => {
+          if (doc.exists()) {
+            const messages = doc.data().messages || [];
+            // console.log();
 
-          setPlayerChat(messages); // Update state with the latest messages
-          console.log('Updated messages:', messages);
-        }
+            setPlayerChat(messages); // Update state with the latest messages
+            console.log('Updated messages:', messages);
+          }
+        });
       });
-    });
 
-    return () => {
-      unsubscribeChats(); // Unsubscribe when component unmounts
-    };
+      return () => {
+        unsubscribeChats(); // Unsubscribe when component unmounts
+      };
+    }
   }, [combinedId]);
 
   // const getId = async (q: any) => {
@@ -131,6 +133,7 @@ const Homepage = (props: Props) => {
 
   const [currentPlayer, setCurrentPlayer] = useState('');
   const [firstPlayer, setFirstPlayer] = useState('');
+  const [roundWinner, setRoundWinner] = useState<string | null>(null);
 
   useEffect(() => {
     if (combinedId) {
@@ -315,6 +318,12 @@ const Homepage = (props: Props) => {
   //   //Then we route them into the game.
   // }, []);
 
+  useEffect(() => {
+    if (gameData?.roundWinner) {
+      setRoundWinner(gameData?.roundWinner);
+    }
+  }, [gameData?.roundWinner]);
+
   return (
     <div className=" relative flex flex-col gap-[10px] items-center w-full h-[100vh] overflow-x-hidden">
       <div className="flex items-center justify-between gap-4 p-4 w-full">
@@ -328,14 +337,14 @@ const Homepage = (props: Props) => {
           >
             {' '}
             <Bell size={30} color="white" />
-            {playersObject?.playerOne?.id === gameData?.players?.playerOne?.id && (
-              <span className="bg-red-600 text-white z-[4] absolute bottom-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 min-w-6 min-h-6 rounded-full">
-                {gameData?.unreadMessages?.playerOne ?? 0}
+            {playersObject?.playerOne?.id === gameData?.players?.playerTwo?.id && (
+              <span className="bg-red-600 text-white z-[4] absolute bottom-1/2 left-[20px] transform -translate-x-1/2 -translate-y-1/2  min-w-[20px] min-h-[20px] place-content-center grid text-[14px] rounded-full">
+                {gameData?.unreadMessages?.playerTwo ?? 0}
               </span>
             )}
             {playersObject?.playerTwo?.id === gameData?.players?.playerTwo?.id && (
-              <span className="bg-green-500 text-white absolute bottom-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[4] min-w-6 min-h-6 rounded-full">
-                {gameData?.unreadMessages?.playerTwo ?? 0}
+              <span className="bg-green-500 text-white absolute bottom-1/2 left-[20px] transform -translate-x-1/2 -translate-y-1/2 z-[4] min-w-[20px] min-h-[20px] place-content-center grid text-[14px] rounded-full">
+                {gameData?.unreadMessages?.playerOne ?? 0}
               </span>
             )}
           </button>
@@ -392,9 +401,9 @@ const Homepage = (props: Props) => {
                     : gameData?.scores?.playerTwo!}{' '}
                 </h1>
               </div>
-              <h1 className="text-white text-[24px] "> : </h1>
-              <div className="flex items-center w-full justify-center   gap-[20px]">
-                <h1 className="text-white text-[24px] ">
+              <h1 className="text-white text-[24px]"> : </h1>
+              <div className="flex items-center w-full justify-center gap-[20px]">
+                <h1 className="text-white text-[24px]">
                   {currentPlayer === gameData?.players?.playerTwo?.id
                     ? gameData?.scores?.playerOne!
                     : gameData?.scores?.playerTwo!}{' '}
@@ -435,7 +444,7 @@ const Homepage = (props: Props) => {
                     />
                   )}
               </div>
-              {gameData?.roundWinner!?.length > 0 && (
+              {roundWinner!?.length > 0 && (
                 <AnimatePresence>
                   <motion.div
                     style={{
@@ -446,17 +455,16 @@ const Homepage = (props: Props) => {
                     }}
                     className="absolute z-20 left-0 right-0 top-[50%] w-full p-3"
                   >
-                    {' '}
                     <h1
                       style={{
-                        color: 'transparent',
-                        // color: "#ffffff",
+                        // color: 'transparent',
+                        color: '#ffffff',
                         // textShadow:
                         //   '0 -1px 4px #fff, 0 -2px 10px #ff0, 0 -10px 20px #ff8000, 0 -18px 40px #f00',
                       }}
                       className="text-[24px] text-center m-auto "
                     >
-                      {gameData?.roundWinner} wins{' '}
+                      {roundWinner!} wins{' '}
                     </h1>
                   </motion.div>
                 </AnimatePresence>
@@ -588,7 +596,7 @@ const Homepage = (props: Props) => {
             <span className="text-white border-solid inline-block">Begin round</span>
             <span>
               {' '}
-              {gameData?.rounds === 5 ? gameData?.rounds : gameData?.rounds! + 1} / 5
+              {gameData?.rounds === 5 ? gameData?.rounds ?? 0 : gameData?.rounds! + 1} / 5
             </span>
           </button>
         )}

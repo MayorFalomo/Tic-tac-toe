@@ -129,12 +129,17 @@ const ChatField: React.FC<IProps> = ({
         // onBlur={() => setStoredId(null)}
       >
         {res.senderId !== playersObject?.playerOne?.id && (
-          <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300">
+          <div className=" flex-shrink-0 h-10 w-10 rounded-full bg-gray-300">
             {playersObject?.playerTwo?.avatar! && (
               <Image
-                src={playersObject?.playerTwo?.avatar!}
+                src={
+                  res.senderId === gameData?.players?.playerOne?.id
+                    ? gameData?.players?.playerOne?.avatar!
+                    : gameData?.players?.playerTwo?.avatar!
+                }
                 width={40}
                 height={40}
+                className="w-full h-full object-cover rounded-full"
                 alt="img"
               />
             )}
@@ -169,7 +174,7 @@ const ChatField: React.FC<IProps> = ({
           <span className="text-xs text-gray-500 leading-none">
             {formatTime(res?.timeStamp)}
           </span>
-          {
+          {res.reactions && res.reactions.length > 0 && (
             <p
               className={
                 res?.senderId === playersObject?.playerOne?.id
@@ -181,16 +186,16 @@ const ChatField: React.FC<IProps> = ({
                 <span key={reaction.userId}>{reaction.reaction}</span>
               ))}
             </p>
-          }
+          )}
         </div>
         {res.senderId === playersObject?.playerOne?.id && (
           <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300">
             {playersObject?.playerOne?.avatar! && (
               <Image
                 src={
-                  gameData?.players?.playerOne?.id! === playersObject?.playerOne?.id
-                    ? gameData?.players?.playerTwo?.avatar!
-                    : gameData?.players?.playerOne?.avatar!
+                  res.senderId !== playersObject?.playerOne?.id
+                    ? playersObject?.playerTwo?.avatar!
+                    : playersObject?.playerOne?.avatar!
                 }
                 width={40}
                 height={40}

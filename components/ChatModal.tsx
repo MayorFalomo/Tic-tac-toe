@@ -43,33 +43,49 @@ const ChatModal: React.FC<Props> = ({
   const [storedId, setStoredId] = useState<string | null>(null);
 
   const sendMessage = async (message: string) => {
-    // Generate a unique message ID (could be a timestamp or UUID)
-    const messageId = new Date().getTime();
+    if (message.length > 1) {
+      // Generate a unique message ID (could be a timestamp or UUID)
+      const messageId = new Date().getTime();
 
-    const chatRef = collection(db, 'playersChats');
-    const q = query(chatRef, where('combinedId', '==', combinedId));
+      const chatRef = collection(db, 'playersChats');
+      const q = query(chatRef, where('combinedId', '==', combinedId));
 
-    const chatDoc = await getDocs(q);
+      const chatDoc = await getDocs(q);
 
-    if (!chatDoc.empty) {
-      const chatId = chatDoc.docs[0].id;
-      const chatDocumentRef = doc(db, 'playersChats', chatId);
-      const chatData = chatDoc.docs[0].data();
+      if (!chatDoc.empty) {
+        const chatId = chatDoc.docs[0].id;
+        const chatDocumentRef = doc(db, 'playersChats', chatId);
+        const chatData = chatDoc.docs[0].data();
 
-      // Update the messages array in the document
-      await updateDoc(chatDocumentRef, {
-        messages: arrayUnion({
-          _id: messageId,
-          senderId: playersObject?.playerOne?.id,
-          message,
-          timeStamp: Timestamp.now(),
-          reactions: [],
-        }),
-      });
+        // Update the messages array in the document
+        await updateDoc(chatDocumentRef, {
+          messages: arrayUnion({
+            _id: messageId,
+            senderId: playersObject?.playerOne?.id,
+            message,
+            timeStamp: Timestamp.now(),
+            reactions: [],
+          }),
+        });
+        // Update unread messages in gameSessions
+        const isPlayerOne =
+          playersObject?.playerOne?.id === gameData?.players?.playerOne?.id;
 
-      setTextMessage('');
-    } else {
-      console.log('No chat session found to send the message.');
+        await updateDoc(doc(db, 'gameSessions', combinedId), {
+          unreadMessages: {
+            playerOne: isPlayerOne
+              ? gameData?.unreadMessages?.playerOne!
+              : gameData?.unreadMessages?.playerOne! + 1,
+            playerTwo: isPlayerOne
+              ? gameData?.unreadMessages?.playerTwo! + 1
+              : gameData?.unreadMessages?.playerTwo!,
+          },
+        });
+
+        setTextMessage('');
+      } else {
+        console.log('No chat session found to send the message.');
+      }
     }
   };
 
@@ -80,13 +96,12 @@ const ChatModal: React.FC<Props> = ({
           // Determine which player is playerOne
           const isPlayerOne =
             playersObject?.playerOne?.id === gameData?.players?.playerOne?.id;
+          console.log(isPlayerOne, 'isplayerOne');
 
           await updateDoc(doc(db, 'gameSessions', combinedId), {
             unreadMessages: {
-              playerOne: isPlayerOne ? (gameData?.unreadMessages?.playerTwo || 0) + 1 : 0,
-              playerTwo: !isPlayerOne
-                ? (gameData?.unreadMessages?.playerOne || 0) + 1
-                : 0,
+              playerOne: isPlayerOne ? 0 : gameData?.unreadMessages?.playerOne!,
+              playerTwo: !isPlayerOne ? 0 : gameData?.unreadMessages?.playerTwo!,
             },
           });
         } catch (error) {
@@ -112,7 +127,7 @@ const ChatModal: React.FC<Props> = ({
         x: 300,
         opacity: 0,
       }}
-      className="fixed right-0 top-0 z-10 flex flex-col items-center justify-center w-[40%] max-[1100px]:w-[60%] max-[600px]:w-[90%] min-h-screen bg-gray-100 text-gray-800"
+      className="fixed right-0 top-0 z-40 flex flex-col items-center justify-center w-[40%] max-[1100px]:w-[60%] max-[600px]:w-[90%] min-h-screen bg-gray-100 text-gray-800"
     >
       <div className="flex flex-col gap-4 w-[90%] h-screen min-h-screen">
         <div className="flex items-center justify-between w-full mt-2">
@@ -163,7 +178,7 @@ const ChatModal: React.FC<Props> = ({
                   Start conversation with {playersObject?.playerTwo?.name}{' '}
                 </p>{' '}
                 <p className="text-gray-500">Enter your message below. </p>
-                <p>Click on a message to send reactions </p>
+                <p className="mt-3">Click on a message to send reactions 🤪</p>
               </div>
             )}
           </div>
