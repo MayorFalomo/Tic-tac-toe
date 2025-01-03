@@ -57,7 +57,7 @@ export type GameSession = {
     playerTwo: SessionPlayerDetails;
   };
   gameOver?: boolean;
-  playersGameStatus: {
+  playersGameStatus?: {
     playerOne: string;
     playerTwo: string;
   }

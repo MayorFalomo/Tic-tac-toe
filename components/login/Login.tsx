@@ -214,6 +214,11 @@ const Login = (props: Props) => {
               avatar: opponent?.avatar ?? null,
             },
           },
+          gameOver: false,
+          playersGameStatus: {
+            playerOne: 'ready',
+            playerTwo: 'ready',
+          },
         };
         await setDoc(doc(db, 'gameSessions', combinedId), newGameSession);
         return newGameSession;
