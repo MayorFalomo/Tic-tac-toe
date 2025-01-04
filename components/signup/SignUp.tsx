@@ -8,6 +8,7 @@ import {
   onDisconnect,
   onValue,
   push,
+  // query,
   ref,
   runTransaction,
   set,
@@ -26,7 +27,19 @@ import {
   setSessionId,
   setTrackWhoPlays,
 } from '@/lib/features/TrackerSlice';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import {
+  collection,
+  CollectionReference,
+  doc,
+  DocumentData,
+  getDoc,
+  onSnapshot,
+  QuerySnapshot,
+  setDoc,
+  updateDoc,
+  where,
+  query,
+} from 'firebase/firestore';
 import { GameSession, PlayerDetails } from '@/app/types/types';
 import { createGameSession, handleUserPresence } from '../funcs/HandleAuth';
 import {
@@ -50,6 +63,12 @@ export interface AvatarType {
   avatarType: string;
   avatarUrl: string;
 }
+// Define a type for your player data
+interface Player {
+  status: string;
+  name: string;
+  avatar: string;
+}
 
 const AvatarComp = React.lazy(() => import('@/components/AvatarComp'));
 
@@ -62,7 +81,11 @@ const SignUp = (props: Props) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [randomControl, setRandomControl] = useState<boolean>(false); //To pick the random player
   const [searchingActive, setSearchingActive] = useState<boolean>(false);
-  const [combinedId, setCombinedId] = useState<string>('');
+  const [confirmReady, setConFirmReady] = useState<boolean>(false);
+  const [playerId, setPlayerId] = useState<string | null>(null);
+  const [playerDetails, setPlayerDetails] = useState<playerDetails | null>(null);
+  const [opponentDetails, setOpponentDetails] = useState<playerDetails | null>(null);
+
   const dispatch = useAppDispatch();
 
   const router = useRouter();
@@ -84,9 +107,10 @@ const SignUp = (props: Props) => {
       //create a separate db instance in the database named activePlayers
       const playerRef = push(ref(database, 'activePlayers')); //Create a new child reference
       const playerId = playerRef?.key ?? ''; // Get the unique key
+      setPlayerId(playerId);
       //Create a new player Object by referencing the database ref and setting the object we want inside the db reference
       await set(playerRef, {
-        player: playerNameSelect,
+        name: playerNameSelect,
         status: 'online',
       });
       localStorage.setItem('playerKey', playerId);
@@ -94,9 +118,10 @@ const SignUp = (props: Props) => {
       //add a players field to firestore db
       await setDoc(doc(db, 'players', playerId), {
         id: playerId,
-        player: playerNameSelect,
+        name: playerNameSelect,
         avatar: Avatar,
         createdAt: new Date().toISOString(),
+        status: 'looking',
       });
 
       //Then it changes the players status to looking instead of online
@@ -104,7 +129,8 @@ const SignUp = (props: Props) => {
       console.log('Ran after handleUserPresence');
 
       //Since we've handled changing a users status we can now search for other players with a status of looking too
-      await searchForOpponent(playerId);
+      await search(playerId);
+      // await searchForOpponent(playerId);
     } catch (error) {
       console.log(error, 'error is from me');
       setLoading(false);
@@ -127,6 +153,228 @@ const SignUp = (props: Props) => {
   //   onDisconnect(userRef).set({ status: 'offline' });
   // };
 
+  const search = async (playerId: string) => {
+    try {
+      const playerRef = doc(db, 'players', playerId);
+
+      // Create a query to find players who are 'looking'
+      const playersRef = collection(db, 'players');
+      const q = query(playersRef, where('status', '==', 'looking'));
+      const retrieved = localStorage.getItem('playerKey');
+
+      // Listen for available opponents
+      const unsubscribe = onSnapshot(q, async (snapshot) => {
+        snapshot.forEach(async (doc: any) => {
+          const opponentId = doc.id;
+          console.log(doc.id, 'doc');
+
+          // Ensure the opponent is not the same as the current player
+          if (opponentId !== playerId) {
+            // Set both players to 'pending'
+            await Promise.all([
+              // updateDoc(playerRef, { status: 'pending' }),
+              updateDoc(doc.ref, { status: 'pending' }),
+            ]);
+
+            // Confirm both players are ready
+            const bothReady = await confirmBothPlayersReady();
+
+            if (bothReady) {
+              // Update both players to 'inGame'
+              await Promise.all([
+                // updateDoc(playerRef, { status: 'inGame' }),
+                updateDoc(doc.ref, { status: 'inGame' }),
+              ]);
+
+              const playerOneDetails = {
+                id: playerId,
+                name: playerName,
+                avatar: Avatar,
+              };
+
+              const playerTwoDetails = {
+                id: opponentId,
+                name: doc.data().name,
+                avatar: doc.data().avatar,
+              };
+              setPlayerDetails(playerOneDetails);
+              setOpponentDetails(playerTwoDetails);
+
+              // Navigate to game page or perform other actions
+              const getSessionId = await createGameSession(
+                playerId,
+                opponentId,
+                randomControl
+              );
+              const getGameSession = await handleGameSession(
+                playerOneDetails,
+                playerTwoDetails
+              );
+
+              console.log('Game session created:', getSessionId);
+              console.log(getGameSession, 'getGameSession');
+
+              dispatch(setAPlayerId(playerId)); //Store the currentPlayersId
+
+              dispatch(
+                setPlayersSessionId({
+                  playerOneSessionId: getSessionId,
+                })
+              );
+              dispatch(setSessionId(getSessionId)); //Store the currentGameSessionId
+              setLoading(false);
+              setTimeout(() => {
+                router.push('/');
+                // unsubscribe();
+              }, 2000);
+            } else {
+              console.log('Both players did not confirm readiness.');
+            }
+          }
+        });
+      });
+    } catch (error) {
+      console.error('Error has occurred:', error);
+    }
+  };
+
+  const opponentSearch = async (playerId: string) => {
+    try {
+      const playersRef = ref(database, 'activePlayers');
+
+      // Listen for changes in the activePlayers
+      onValue(playersRef, async (snapshot) => {
+        const players = snapshot.val();
+        console.log(players, 'players');
+
+        const opponentId = Object.keys(players).find(
+          (id: string) => players[id].status === 'looking' && id !== playerId
+        );
+        console.log(opponentId, 'opponentId');
+
+        if (opponentId) {
+          const opponentData = players[opponentId];
+
+          // Prepare player details
+          const playerOneDetails = {
+            id: playerId,
+            name: playerName,
+            avatar:
+              Avatar ??
+              'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg',
+          };
+
+          const playerTwoDetails = {
+            id: opponentId,
+            name: opponentData.playerName,
+            avatar:
+              opponentData?.avatar ??
+              'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg',
+          };
+
+          // Set both players to a 'pending' status first
+          await Promise.all([
+            runTransaction(
+              ref(database, `activePlayers/${playerId}/status`),
+              (currentStatus) => {
+                if (currentStatus === 'looking') {
+                  return 'pending'; // Set to pending
+                }
+                return; // Abort if status has changed
+              }
+            ),
+            runTransaction(
+              ref(database, `activePlayers/${opponentId}/status`),
+              (currentStatus) => {
+                if (currentStatus === 'looking') {
+                  return 'pending'; // Set to pending
+                }
+                return; // Abort if status has changed
+              }
+            ),
+          ]);
+          // Check if both players are now 'pending'
+          const updatedPlayersSnapshot = await get(playersRef);
+          const updatedPlayers = updatedPlayersSnapshot.val();
+
+          const playerOneStatus = updatedPlayers[playerId]?.status;
+          const playerTwoStatus = updatedPlayers[opponentId]?.status;
+
+          if (playerOneStatus === 'pending' && playerTwoStatus === 'pending') {
+            const bothReady = await confirmBothPlayersReady();
+
+            if (bothReady) {
+              // Only now update both players to 'inGame'
+              await Promise.all([
+                runTransaction(
+                  ref(database, `activePlayers/${playerId}/status`),
+                  (currentStatus) => {
+                    if (currentStatus === 'pending') {
+                      return 'inGame'; // Finalize to inGame
+                    }
+                    return; // Abort if status has changed
+                  }
+                ),
+                runTransaction(
+                  ref(database, `activePlayers/${opponentId}/status`),
+                  (currentStatus) => {
+                    if (currentStatus === 'pending') {
+                      return 'inGame'; // Finalize to inGame
+                    }
+                    return; // Abort if status has changed
+                  }
+                ),
+              ]);
+
+              const getSessionId = await createGameSession(
+                playerId,
+                opponentId,
+                randomControl
+              );
+              const getGameSession = await handleGameSession(
+                playerOneDetails,
+                playerTwoDetails
+              );
+
+              console.log('Game session created:', getSessionId);
+              console.log(getGameSession, 'getGameSession');
+
+              dispatch(setAPlayerId(playerId)); //Store the currentPlayersId
+
+              dispatch(
+                setPlayersSessionId({
+                  playerOneSessionId: getSessionId,
+                })
+              );
+              dispatch(setSessionId(getSessionId)); //Store the currentGameSessionId
+              setLoading(false);
+              setTimeout(() => {
+                router.push('/');
+              }, 2000);
+            } else {
+              console.log('Both players did not confirm readiness.');
+            }
+          } else {
+            console.log(
+              'One of the players is not in pending status. Cannot create game session.'
+            );
+          }
+        }
+      });
+    } catch (error) {
+      console.log('Error has occurred');
+    }
+  };
+
+  // Simulated confirmation function (replace with actual confirmation logic)
+  const confirmBothPlayersReady = async () => {
+    // Implement your logic to confirm both players are ready
+    // For example, you could use a UI prompt or a timeout
+    return new Promise((resolve) => {
+      setTimeout(() => resolve(true), 6000); // Simulate a 3-second wait for confirmation
+    });
+  };
+
   const searchForOpponent = async (playerId: string) => {
     try {
       //This function will search for an opponent in the activePlayers db
@@ -148,7 +396,7 @@ const SignUp = (props: Props) => {
           console.log(opponentId, 'opponentId');
 
           //returns a string id of the opponent
-          if (opponentId && opponentId !== playerId) {
+          if (opponentId) {
             const opponentData = players[opponentId]; // finds and provides the object of the person with that opponentId
 
             //!I've created a session immediately after finding an opponent
@@ -167,12 +415,25 @@ const SignUp = (props: Props) => {
                 opponentData?.avatar ??
                 'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg',
             };
-            const getSessionId = await createGameSession(playerId, opponentId); //Creates Game session on realtime db
+
+            //Returns the combinedSessionId of both players
+            const getSessionId = await createGameSession(
+              playerId,
+              opponentId,
+              randomControl
+            ); //Creates Game session on realtime db
             const getGameSession = await handleGameSession(
               //Creates Game session on firestore db
               playerOneDetails,
               playerTwoDetails
             );
+
+            // const retrieved = localStorage.getItem('playerKey');
+            // if (retrieved === getGameSession?.players?.playerOne?.id) {
+            //   await updateDoc(doc(db, 'gameSessions', combinedId), {
+            //     [retrieved]: 'ready',
+            //   });
+            // }
 
             // const opponentData = players[opponentId]; // finds and provides the object of the person with that opponentId
             console.log(opponentData, 'opponentData');
@@ -355,6 +616,39 @@ const SignUp = (props: Props) => {
     }
   };
 
+  useEffect(() => {
+    if (playerId && playerDetails && opponentDetails) {
+      // Create a combined ID based on player IDs
+      const combinedId =
+        playerDetails?.id! > opponentDetails?.id!
+          ? playerDetails?.id + opponentDetails?.id!
+          : opponentDetails?.id! + playerDetails?.id!;
+      // const combine = playerDetails?.id + opponentDetails?.id!;
+      // const combined = opponentDetails?.id! + playerDetails?.id!;
+      // Create a query to find the game session
+      const sessionsRef = collection(db, 'gameSessions');
+      const q = query(sessionsRef, where('id', '==', combinedId));
+      console.log(q, 'qquttee');
+
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        if (!snapshot.empty) {
+          snapshot.forEach((doc) => {
+            console.log(doc, 'docusaurus');
+
+            const gameSession = { id: doc.id, ...doc.data() };
+            dispatch(givePlayerNames(gameSession));
+            console.log(gameSession, 'gameSession line 643');
+
+            router.push('/'); // Redirect to homepage
+          });
+        }
+      });
+
+      // Cleanup function to unsubscribe from the listener
+      return () => unsubscribe();
+    }
+  }, [playerDetails, opponentDetails, playerId, router]);
+
   //Handle Game Session in the firestore db
   const handleGameSession = async (
     playerOneDetails: playerDetails,
@@ -367,10 +661,33 @@ const SignUp = (props: Props) => {
 
     try {
       const sessionDoc = await getDoc(doc(db, 'gameSessions', combinedId));
+
       if (sessionDoc.exists()) {
         const sessionData = sessionDoc.data();
-        console.log(sessionData, 'sessionData');
+        const playerOneDets = {
+          id: playerOneDetails?.id,
+          name: playerOneDetails?.name,
+          avatar: playerOneDetails?.avatar,
+        };
+
+        const playerTwoDets = {
+          id: opponent?.id,
+          name: opponent?.name,
+          avatar: opponent?.avatar,
+        };
+
+        dispatch(
+          givePlayerNames({
+            playerOne: playerOneDets,
+            playerTwo: playerTwoDets,
+          })
+        );
+
+        dispatch(setCombinedGameSessionId(combinedId));
+        console.log(sessionData, 'sessionData loaded');
+        return sessionData;
       } else {
+        // const retrieved = localStorage.getItem('playerKey');
         const newGameSession: GameSession = {
           sessionId: combinedId,
           currentTurn: randomControl ? playerOneDetails?.id : opponent?.id,
@@ -400,14 +717,15 @@ const SignUp = (props: Props) => {
               avatar: opponent?.avatar!,
             },
           },
-          playersGameStatus: {
-            playerOne: 'ready',
-            playerTwo: 'ready',
-          },
+          // playersGameStatus: {
+          //   playerOne: 'ready',
+          //   playerTwo: 'ready',
+          // },
         };
         await setDoc(doc(db, 'gameSessions', combinedId), newGameSession);
         await saveAvatar(playerOneDetails?.id, opponent?.id, combinedId);
 
+        setPlayersSessionId(doc(db, 'gameSessions', combinedId));
         const playerOneDets = {
           id: playerOneDetails?.id,
           name: playerOneDetails?.name,
@@ -419,12 +737,14 @@ const SignUp = (props: Props) => {
           name: opponent?.name,
           avatar: opponent?.avatar,
         };
+
         dispatch(
           givePlayerNames({
             playerOne: playerOneDets,
             playerTwo: playerTwoDets,
           })
         );
+
         dispatch(setCombinedGameSessionId(combinedId));
         return newGameSession;
       }
@@ -525,7 +845,7 @@ const SignUp = (props: Props) => {
                     <LoadingSpinner />{' '}
                   </span>
                 ) : (
-                  <span>Creating Profile </span>
+                  <span>Create Profile </span>
                 )}{' '}
               </Button>
             </div>

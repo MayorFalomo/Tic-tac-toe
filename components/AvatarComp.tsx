@@ -65,7 +65,7 @@ const AvatarComp: React.FC<Props> = ({ avatarType, setAvatarType, setAvatar }) =
           {<X />}
         </span>
         {isLoading && (
-          <div className="flex justify-center items-center h-full w-full text-white">
+          <div className="absolute left-1/2 top-1/2 flex justify-center items-center h-full w-full text-white">
             <div className="flex justify-center items-center gap-3">
               <LoadingSpinner className="w-[40px] h-[40px]" />
             </div>

@@ -124,7 +124,11 @@ const Login = (props: Props) => {
           };
 
           //Create Game Session
-          const getSessionId = await createGameSession(playerId, opponentId); //Creates Game session on realtime db
+          const getSessionId = await createGameSession(
+            playerId,
+            opponentId,
+            randomControl
+          ); //Creates Game session on realtime db
           const getGameSession = await handleGameSession(
             //Creates Game session on firestore db
             playerOneDetails,
