@@ -4,7 +4,7 @@ import Possible from '@/components/possible/Possible';
 import Image from 'next/image';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useAppSelector, useAppDispatch, useAppStore } from '@/lib/hooks';
+import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
 import { useRouter } from 'next/navigation';
 import {
@@ -20,11 +20,13 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/firebase-config/firebase';
 import { setTrackDisableRound, setTrackRounds } from '@/lib/features/TrackerSlice';
-import { toast, Toaster } from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 // import Lottie from 'lottie-react';
 // import animationData from '@/public/fireworks.json';
 import { Bell, EllipsisVertical } from 'lucide-react';
 import ChatModal from '@/components/ChatModal';
+import { useWindowSize } from 'react-use';
+import Confetti from 'react-confetti';
 
 type Props = {};
 
@@ -42,6 +44,7 @@ const Homepage = (props: Props) => {
   const [getTheChatId, setTheChatId] = useState<any>(null);
   const router = useRouter();
 
+  //To get the combinedId
   const combinedId = useMemo(() => {
     const playerOneId = playersObject?.playerOne?.id;
     const playerTwoId = playersObject?.playerTwo?.id;
@@ -50,17 +53,11 @@ const Homepage = (props: Props) => {
       : playerTwoId + playerOneId;
   }, [playersObject]);
 
-  // const combinedId = useMemo(() => {
-  //   playersObject?.playerOne?.id > playersObject?.playerTwo?.id
-  //     ? playersObject?.playerOne?.id + playersObject?.playerTwo?.id
-  //     : playersObject?.playerTwo?.id + playersObject?.playerOne?.id;
-  // }, [playersObject]);
-
   useEffect(() => {
     if (combinedId) {
       const unsubscribeGame = onSnapshot(doc(db, 'gameSessions', combinedId), (doc) => {
         if (doc.exists()) {
-          setGameData(doc.data() as GameSession);
+          setGameData((doc.data() as GameSession) || []);
         }
       });
 
@@ -70,17 +67,9 @@ const Homepage = (props: Props) => {
         }
       });
 
-      // const unSubscribeChats = onSnapshot(doc(db, 'playersChats', combinedId), (doc) => {
-      //   if (doc.exists()) {
-      //     console.log(doc.data().messages, 'doc data messages');
-      //     setPlayerChat(doc.data()?.messages || []);
-      //   }
-      // });
-
       return () => {
         unsubscribeGame();
         unsubscribeMoves();
-        // unSubscribeChats();
       };
     }
   }, [combinedId]);
@@ -89,14 +78,11 @@ const Homepage = (props: Props) => {
     if (combinedId) {
       const chatRef = collection(db, 'playersChats');
       const q = query(chatRef, where('combinedId', '==', combinedId));
-      // const gotten = getId(q);
-      // setTheChatId(gotten);
 
       const unsubscribeChats = onSnapshot(q, (snapshot) => {
         snapshot.forEach((doc) => {
           if (doc.exists()) {
             const messages = doc.data().messages || [];
-            // console.log();
 
             setPlayerChat(messages); // Update state with the latest messages
             console.log('Updated messages:', messages);
@@ -110,13 +96,6 @@ const Homepage = (props: Props) => {
     }
   }, [combinedId]);
 
-  // const getId = async (q: any) => {
-  //   const chatDoc = await getDocs(q);
-  //   console.log(chatDoc, 'chatDoc');
-
-  //   const chatId = chatDoc.docs[0].id;
-  //   return chatId;
-  // };
   useEffect(() => {
     if (!playerId) {
       router.push('/signup');
@@ -134,6 +113,8 @@ const Homepage = (props: Props) => {
   const [currentPlayer, setCurrentPlayer] = useState('');
   const [firstPlayer, setFirstPlayer] = useState('');
   const [roundWinner, setRoundWinner] = useState<string | null>(null);
+  const [ultimateWinner, setUltimateWinner] = useState<string | null>(null);
+  const { width, height } = useWindowSize();
 
   useEffect(() => {
     if (combinedId) {
@@ -176,9 +157,10 @@ const Homepage = (props: Props) => {
       rounds: gameData?.rounds === 5 ? 5 : gameData?.rounds! + 1,
       currentTurn: determineNextPlayer,
       goToNextRound: true,
-      roundWinner: '',
+      roundWinner: null,
       endOfRound: false,
       winningCombination: [],
+      ultimateWinner: null,
       firstPlayer:
         gameData?.firstPlayer === gameData?.players?.playerOne?.id
           ? gameData?.players?.playerTwo?.id
@@ -187,10 +169,21 @@ const Homepage = (props: Props) => {
     await updateDoc(doc(db, 'playersMoves', combinedId), {
       moves: [],
     });
+    setRoundWinner(null);
     dispatch(setTrackRounds(gameData?.rounds));
     dispatch(setTrackDisableRound(true));
     setMovesData([]);
-  }, [gameData, combinedId]);
+  }, [
+    gameData?.firstPlayer,
+    gameData?.players?.playerOne?.id,
+    gameData?.players?.playerTwo?.id,
+    gameData?.rounds,
+    combinedId,
+    dispatch,
+    setRoundWinner,
+  ]);
+
+  console.log(roundWinner, 'roundWiinner');
 
   // const handleStartNewRound = async () => {
   // };
@@ -205,14 +198,16 @@ const Homepage = (props: Props) => {
         playerTwo: 0,
       },
       winningCombination: [],
-      roundWinner: '',
+      roundWinner: null,
       endOfRound: false,
+      ultimateWinner: null,
     });
     await updateDoc(doc(db, 'playersMoves', combinedId), {
       moves: [],
     });
+    setRoundWinner(null);
     toast.success('Game is restarted');
-  }, [gameData, combinedId]);
+  }, [gameData?.unChangeableFirstPlayer, combinedId]);
 
   // const defaultOptions = {
   //   loop: false,
@@ -319,10 +314,18 @@ const Homepage = (props: Props) => {
   // }, []);
 
   useEffect(() => {
-    if (gameData?.roundWinner) {
-      setRoundWinner(gameData?.roundWinner);
+    if (gameData?.roundWinner === null || '') {
+      setRoundWinner(null);
+    } else {
+      setRoundWinner(gameData?.roundWinner!);
     }
-  }, [gameData?.roundWinner]);
+    if (gameData?.ultimateWinner) {
+      setUltimateWinner(gameData?.ultimateWinner!);
+    }
+  }, [gameData?.roundWinner, roundWinner, gameData, gameData?.ultimateWinner]);
+
+  console.log(roundWinner, 'roundewinner');
+  console.log(gameData?.roundWinner, 'gamdataRound');
 
   return (
     <div className=" relative flex flex-col gap-[10px] items-center w-full h-[100vh] overflow-x-hidden">
@@ -369,6 +372,7 @@ const Homepage = (props: Props) => {
                           : gameData?.players?.playerTwo?.avatar! ?? null
                       }
                       alt="img"
+                      className="w-[70px] h-[70px] object-cover object-top"
                     />
                   )}
                 <div
@@ -382,8 +386,8 @@ const Homepage = (props: Props) => {
                 >
                   <h1 className="text-white text-center text-[16px] ">
                     {currentPlayer === gameData?.players?.playerOne?.id
-                      ? gameData?.players?.playerOne?.name
-                      : gameData?.players?.playerTwo?.name}{' '}
+                      ? gameData?.players?.playerOne?.name.slice(0, 12)
+                      : gameData?.players?.playerTwo?.name.slice(0, 12)}{' '}
                   </h1>
                   {
                     <Image
@@ -419,8 +423,8 @@ const Homepage = (props: Props) => {
                 >
                   <h1 className="text-white text-[16px] ">
                     {currentPlayer === gameData?.players?.playerOne?.id
-                      ? gameData?.players?.playerTwo?.name
-                      : gameData?.players?.playerOne?.name}
+                      ? gameData?.players?.playerTwo?.name.slice(0, 12)
+                      : gameData?.players?.playerOne?.name.slice(0, 12)}
                   </h1>
                   <Image
                     src="/SelectO.png"
@@ -441,34 +445,38 @@ const Homepage = (props: Props) => {
                           : gameData?.players?.playerOne?.avatar! ?? null
                       }
                       alt="img"
+                      className="w-[70px] h-[70px] object-cover object-top"
                     />
                   )}
               </div>
-              {roundWinner!?.length > 0 && (
-                <AnimatePresence>
-                  <motion.div
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      backdropFilter: 'blur(3.6px)',
-                      WebkitBackdropFilter: 'filter(5px',
-                      boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-                    }}
-                    className="absolute z-20 left-0 right-0 top-[50%] w-full p-3"
-                  >
-                    <h1
+              <AnimatePresence>
+                {gameData?.ultimateWinner !== null ||
+                  (roundWinner !== null && roundWinner!?.length > 1 && (
+                    <motion.div
                       style={{
-                        // color: 'transparent',
-                        color: '#ffffff',
-                        // textShadow:
-                        //   '0 -1px 4px #fff, 0 -2px 10px #ff0, 0 -10px 20px #ff8000, 0 -18px 40px #f00',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(3.6px)',
+                        WebkitBackdropFilter: 'filter(5px',
+                        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
                       }}
-                      className="text-[24px] text-center m-auto "
+                      className="absolute z-20 left-0 right-0 top-[50%] w-full p-3"
                     >
-                      {roundWinner!} wins{' '}
-                    </h1>
-                  </motion.div>
-                </AnimatePresence>
-              )}
+                      <h1
+                        style={{
+                          // color: 'transparent',
+                          color: '#ffffff',
+                          // textShadow:
+                          //   '0 -1px 4px #fff, 0 -2px 10px #ff0, 0 -10px 20px #ff8000, 0 -18px 40px #f00',
+                        }}
+                        className="text-[24px] text-center m-auto "
+                      >
+                        {roundWinner !== null || gameData?.ultimateWinner !== null
+                          ? roundWinner + ' ' + 'wins'
+                          : ''}
+                      </h1>
+                    </motion.div>
+                  ))}
+              </AnimatePresence>
               {/* <button>Start Round 2 </button> */}
             </div>
             {/* <div className=" relative w-[500px] h-[500px] grid grid-cols-3 gap-2  m-auto border-2 border-blue-500 "> */}
@@ -538,15 +546,7 @@ const Homepage = (props: Props) => {
               >
                 {' '}
               </span>
-              {/* <div className="absolute left-0 right-0 top-0 bottom-0 z-[999] w-[100%] m-auto border border-red-500">
-                <Lottie
-                  animationData={animationData}
-                  width={'100%'}
-                  height={'100%'}
-                  autoPlay
-                  loop={true}
-                />
-              </div> */}
+              {ultimateWinner!?.length > 1 && <Confetti width={width} height={height} />}
               {Array.from({ length: 9 }, (_val, index) => (
                 <div key={index}>
                   <Possible
@@ -576,7 +576,7 @@ const Homepage = (props: Props) => {
           <button
             className={`text-white border-2 inline-block text-center text-[18px] px-3 py-2 ${
               gameData?.goToNextRound
-                ? 'opacity-50 cursor-not-allowed'
+                ? 'opacity-50 bg-red-500 cursor-not-allowed'
                 : ' opacity-100 cursor-pointer'
             }`}
             onClick={() => handleStartNewRound()}
@@ -589,7 +589,7 @@ const Homepage = (props: Props) => {
             disabled={gameData?.goToNextRound}
             className={`text-white border inline-block text-center text-[20px]  p-2${
               gameData?.goToNextRound
-                ? 'opacity-50 cursor-not-allowed'
+                ? 'opacity-30 cursor-not-allowed'
                 : ' opacity-100 cursor-pointer'
             }`}
           >
@@ -661,3 +661,9 @@ export default Homepage;
 //*Note Then once a player selects a box, I'd need to update the moves document with the move of the players and the playerId.
 //! I first need to check if the move has been played by both players.
 //? Then I'd need to check if the current player has won by comparing the moves to the possibility array.
+
+//world trigger
+//talentless nana
+//seraph of the end
+//violet evergarden
+//akadama drive

@@ -362,7 +362,8 @@ const Possible: React.FC<MappedOver> = ({
                   style: {
                     background: '#333', // Dark background
                     color: '#fff', // White text
-                    width: '250px',
+                    width: 'auto',
+                    minWidth: '250px',
                   },
                 });
                 setTimeout(async () => {
@@ -370,17 +371,22 @@ const Possible: React.FC<MappedOver> = ({
                     ultimateWinner: determineWinnerName,
                   });
                   toast.success(
-                    `Player ${determineFinalWinner} is the ultimate winner!`,
+                    `Player ${
+                      determineFinalWinner
+                        ? gameData?.players?.playerOne?.name
+                        : gameData?.players?.playerTwo?.name
+                    } is the ultimate winner!`,
                     {
                       style: {
                         background: '#333', // Dark background
                         color: '#fff', // White text
-                        width: '250px',
+                        minWidth: '250px',
+                        width: 'auto',
                       },
                       position: 'top-right',
                     }
                   );
-                }, 5000);
+                }, 7000);
                 return;
               }
               dispatch(setTrackWinner(determineWinnerName));

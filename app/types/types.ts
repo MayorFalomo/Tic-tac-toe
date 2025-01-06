@@ -41,10 +41,10 @@ export type GameSession = {
   unChangeableFirstPlayer?: string;
   rounds: number;
   createdAt: string;
-  roundWinner: string;
-  ultimateWinner?: string;
+  roundWinner: string | null;
+  ultimateWinner?: string | null;
   endOfRound: boolean;
-  winner: string | null;
+  // winner: string | null;
   winningCombination: number[] | null,
   goToNextRound?: boolean,
   trackRoundPlayer: string;
@@ -100,4 +100,10 @@ export type TimeStamp = {
 export type Reaction = {
   userId: string;
   reaction: string;
+}
+
+export type AvatarTheme = {
+  id: number,
+  character: string,
+  link: string;
 }

@@ -67,6 +67,7 @@ const ChatModal: React.FC<Props> = ({
             reactions: [],
           }),
         });
+
         // Update unread messages in gameSessions
         const isPlayerOne =
           playersObject?.playerOne?.id === gameData?.players?.playerOne?.id;
@@ -96,7 +97,7 @@ const ChatModal: React.FC<Props> = ({
           // Determine which player is playerOne
           const isPlayerOne =
             playersObject?.playerOne?.id === gameData?.players?.playerOne?.id;
-          console.log(isPlayerOne, 'isplayerOne');
+          // console.log(isPlayerOne, 'isplayerOne');
 
           await updateDoc(doc(db, 'gameSessions', combinedId), {
             unreadMessages: {

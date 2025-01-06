@@ -1,23 +1,12 @@
 'use client';
-import React, { Suspense, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { LoadingSpinner } from './Loader';
-import {
-  get,
-  onDisconnect,
-  onValue,
-  push,
-  // query,
-  ref,
-  runTransaction,
-  set,
-  update,
-} from 'firebase/database';
-import { database, db, firestore } from '@/firebase-config/firebase';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { get, onValue, push, ref, runTransaction, set, update } from 'firebase/database';
+import { database, db } from '@/firebase-config/firebase';
+import { useAppDispatch } from '@/lib/hooks';
 import { setAPlayerId } from '@/lib/features/userSlice';
-import { RootState } from '@/lib/store';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { givePlayerNames } from '@/lib/features/PlayerSlice';
@@ -25,22 +14,18 @@ import {
   setCombinedGameSessionId,
   setPlayersSessionId,
   setSessionId,
-  setTrackWhoPlays,
 } from '@/lib/features/TrackerSlice';
 import {
   collection,
-  CollectionReference,
   doc,
-  DocumentData,
   getDoc,
   onSnapshot,
-  QuerySnapshot,
   setDoc,
   updateDoc,
   where,
   query,
 } from 'firebase/firestore';
-import { GameSession, PlayerDetails } from '@/app/types/types';
+import { AvatarTheme, GameSession, PlayerDetails } from '@/app/types/types';
 import { createGameSession, handleUserPresence } from '../funcs/HandleAuth';
 import {
   Select,
@@ -51,6 +36,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import toast from 'react-hot-toast';
+import { AnimeAvatars, SuperHeroes } from '../PictureStore';
+import AvatarComp from '../AvatarComp';
 type Props = {};
 
 interface playerDetails {
@@ -63,14 +51,8 @@ export interface AvatarType {
   avatarType: string;
   avatarUrl: string;
 }
-// Define a type for your player data
-interface Player {
-  status: string;
-  name: string;
-  avatar: string;
-}
 
-const AvatarComp = React.lazy(() => import('@/components/AvatarComp'));
+// const AvatarComp = React.lazy(() => import('@/components/AvatarComp'));
 
 const SignUp = (props: Props) => {
   const [playerName, setPlayerName] = useState<string>('');
@@ -78,13 +60,10 @@ const SignUp = (props: Props) => {
     'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg'
   );
   const [avatarType, setAvatarType] = useState<AvatarType | null>(null);
+  const [AnimePictures, setAnimePictures] = useState<AvatarTheme[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [randomControl, setRandomControl] = useState<boolean>(false); //To pick the random player
   const [searchingActive, setSearchingActive] = useState<boolean>(false);
-  const [confirmReady, setConFirmReady] = useState<boolean>(false);
-  const [playerId, setPlayerId] = useState<string | null>(null);
-  const [playerDetails, setPlayerDetails] = useState<playerDetails | null>(null);
-  const [opponentDetails, setOpponentDetails] = useState<playerDetails | null>(null);
 
   const dispatch = useAppDispatch();
 
@@ -107,15 +86,16 @@ const SignUp = (props: Props) => {
       //create a separate db instance in the database named activePlayers
       const playerRef = push(ref(database, 'activePlayers')); //Create a new child reference
       const playerId = playerRef?.key ?? ''; // Get the unique key
-      setPlayerId(playerId);
+
       //Create a new player Object by referencing the database ref and setting the object we want inside the db reference
       await set(playerRef, {
         name: playerNameSelect,
         status: 'online',
       });
-      localStorage.setItem('playerKey', playerId);
 
-      //add a players field to firestore db
+      localStorage.setItem('playerKey', playerId); // Save the id key in localstorage as a key named 'playerKey'
+
+      //create a players field on firestore using the returned playerId from firestore db
       await setDoc(doc(db, 'players', playerId), {
         id: playerId,
         name: playerNameSelect,
@@ -126,109 +106,81 @@ const SignUp = (props: Props) => {
 
       //Then it changes the players status to looking instead of online
       await handleUserPresence(playerId, playerNameSelect);
-      console.log('Ran after handleUserPresence');
 
       //Since we've handled changing a users status we can now search for other players with a status of looking too
-      await search(playerId);
-      // await searchForOpponent(playerId);
+      await searchForOpponent(playerId);
     } catch (error) {
-      console.log(error, 'error is from me');
+      toast.error('Error while trying to create a player');
+      console.log(error, 'An error has occurred while trying to create player');
       setLoading(false);
     }
   };
 
-  //Function to
-  // const handleUserPresence = async (userId: string) => {
-  //   // console.log(userId, "Hello world");
+  console.log(Avatar, 'avatar');
 
-  //   const userRef = ref(database, `activePlayers/${userId}`); //We reference the "activePlayers" db we created in the createPlayerfunc and find a player by their userId
-
-  //   //Set the users status to online when they connect
-  //   set(userRef, {
-  //     playerName: playerName.length > 0 ? playerName : 'PlayerOne',
-  //     status: 'looking',
-  //   }); //This object shows first on console
-
-  //   //Using firebase onDisconnect functionality to detect when a user goes offline
-  //   onDisconnect(userRef).set({ status: 'offline' });
-  // };
-
-  const search = async (playerId: string) => {
+  const searchForOpponent = async (playerId: string) => {
     try {
-      const playerRef = doc(db, 'players', playerId);
+      const playersRef = collection(db, 'players'); //Create a reference to players collection on firestore
 
-      // Create a query to find players who are 'looking'
-      const playersRef = collection(db, 'players');
-      const q = query(playersRef, where('status', '==', 'looking'));
-      const retrieved = localStorage.getItem('playerKey');
+      const q = query(playersRef, where('status', '==', 'looking')); //Query our reference for status 'looking'
 
-      // Listen for available opponents
+      //Our Listener for available opponents
       const unsubscribe = onSnapshot(q, async (snapshot) => {
         snapshot.forEach(async (doc: any) => {
-          const opponentId = doc.id;
-          console.log(doc.id, 'doc');
+          const opponentId = doc.id; //The id of the opponent
 
           // Ensure the opponent is not the same as the current player
           if (opponentId !== playerId) {
-            // Set both players to 'pending'
+            setSearchingActive(true); //State to show an opponent has been found
+
+            //Only Set your opponents status to 'pending'
             await Promise.all([
               // updateDoc(playerRef, { status: 'pending' }),
               updateDoc(doc.ref, { status: 'pending' }),
             ]);
 
             // Confirm both players are ready
-            const bothReady = await confirmBothPlayersReady();
+            const bothReady = await confirmBothPlayersReady(); //A setTimeOut for 3s, th returns true
 
             if (bothReady) {
-              // Update both players to 'inGame'
+              //Only Update the opponents players status to 'inGame'
               await Promise.all([
                 // updateDoc(playerRef, { status: 'inGame' }),
                 updateDoc(doc.ref, { status: 'inGame' }),
               ]);
 
+              //Define the object for playerOne
               const playerOneDetails = {
                 id: playerId,
                 name: playerName,
                 avatar: Avatar,
               };
-
+              //Define the object for playerOne
               const playerTwoDetails = {
                 id: opponentId,
                 name: doc.data().name,
                 avatar: doc.data().avatar,
               };
-              setPlayerDetails(playerOneDetails);
-              setOpponentDetails(playerTwoDetails);
 
-              // Navigate to game page or perform other actions
+              // Create a gameSession on firestore db, It would return  the id of the gameSession on firestore
               const getSessionId = await createGameSession(
                 playerId,
                 opponentId,
                 randomControl
               );
-              const getGameSession = await handleGameSession(
-                playerOneDetails,
-                playerTwoDetails
-              );
 
-              console.log('Game session created:', getSessionId);
-              console.log(getGameSession, 'getGameSession');
+              //Pass our players object details to the handleGameSession to create a gameSession on firestore,The function would return the gameSession Data
+              await handleGameSession(playerOneDetails, playerTwoDetails);
 
               dispatch(setAPlayerId(playerId)); //Store the currentPlayersId
-
-              dispatch(
-                setPlayersSessionId({
-                  playerOneSessionId: getSessionId,
-                })
-              );
               dispatch(setSessionId(getSessionId)); //Store the currentGameSessionId
-              setLoading(false);
+              setLoading(false); //Stop the Loading spinner
               setTimeout(() => {
                 router.push('/');
                 // unsubscribe();
               }, 2000);
             } else {
-              console.log('Both players did not confirm readiness.');
+              console.log('Player is not ready.');
             }
           }
         });
@@ -236,6 +188,14 @@ const SignUp = (props: Props) => {
     } catch (error) {
       console.error('Error has occurred:', error);
     }
+  };
+
+  const confirmBothPlayersReady = async () => {
+    // Implement your logic to confirm both players are ready
+    // For example, you could use a UI prompt or a timeout
+    return new Promise((resolve) => {
+      setTimeout(() => resolve(true), 3000); // Simulate a 3-second wait for confirmation
+    });
   };
 
   const opponentSearch = async (playerId: string) => {
@@ -366,21 +326,12 @@ const SignUp = (props: Props) => {
     }
   };
 
-  // Simulated confirmation function (replace with actual confirmation logic)
-  const confirmBothPlayersReady = async () => {
-    // Implement your logic to confirm both players are ready
-    // For example, you could use a UI prompt or a timeout
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(true), 6000); // Simulate a 3-second wait for confirmation
-    });
-  };
-
-  const searchForOpponent = async (playerId: string) => {
+  const search = async (playerId: string) => {
     try {
       //This function will search for an opponent in the activePlayers db
       //If an opponent is found, it will update the status of the player to "inGame"
       const playersRef = ref(database, 'activePlayers'); //First, reference the db we want to search through
-      console.log('I ran to here');
+      // console.log('I ran to here');
 
       //Listen for changes in the activePlayers
       onValue(
@@ -415,194 +366,65 @@ const SignUp = (props: Props) => {
                 opponentData?.avatar ??
                 'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg',
             };
+            // //Since an opponent has been found, I ref the database I defined in database and pass in the "activePlayers" collection  / the exact opponentId then i update
+            await update(ref(database, `activePlayers/${opponentId}`), {
+              //Before the player can update he's opponents status the opponent also has to have found player1, if they have found each other then the opponent would need to check if the id is the same with the opponentData
+              playerName: opponentData.playerName,
+              status: 'inGame',
+              gameId: opponentId,
+            });
 
-            //Returns the combinedSessionId of both players
+            // //Update Current players status
+            await update(ref(database, `activePlayers/${playerId}`), {
+              playerName: playerName!,
+              status: 'inGame',
+              gameId: playerId,
+            });
+
+            //Create Game Session
             const getSessionId = await createGameSession(
               playerId,
               opponentId,
               randomControl
-            ); //Creates Game session on realtime db
+            );
+            //Creates Game session on realtime db
             const getGameSession = await handleGameSession(
               //Creates Game session on firestore db
               playerOneDetails,
               playerTwoDetails
             );
 
-            // const retrieved = localStorage.getItem('playerKey');
-            // if (retrieved === getGameSession?.players?.playerOne?.id) {
-            //   await updateDoc(doc(db, 'gameSessions', combinedId), {
-            //     [retrieved]: 'ready',
-            //   });
-            // }
+            await update(ref(database, `activePlayers/${playerId}`), {
+              status: 'inGame',
+              sessionId: getSessionId,
+            });
 
-            // const opponentData = players[opponentId]; // finds and provides the object of the person with that opponentId
-            console.log(opponentData, 'opponentData');
+            await update(ref(database, `activePlayers/${opponentId}`), {
+              status: 'inGame',
+              sessionId: getSessionId,
+            });
 
-            setSearchingActive(true); //Changes the button to "Found a player"
+            dispatch(setAPlayerId(playerId)); //Store the currentPlayersId
 
-            // Use a transaction to safely update the opponent's status
-            // Update Opponent's Status
-            // const opponentTransaction = await runTransaction(
-            //   ref(database, `activePlayers/${opponentId}`),
-            //   (currentData) => {
-            //     if (currentData && currentData.status === 'looking') {
-            //       currentData.status = 'pending';
-            //       return currentData;
-            //     }
-            //     return; // Abort if the status is not 'looking'
-            //   }
-            // );
-
-            // Update Current Player's Status
-            // const playerTransaction = await runTransaction(
-            //   ref(database, `activePlayers/${playerId}`),
-            //   (currentData) => {
-            //     if (currentData && currentData.status === 'looking') {
-            //       currentData.status = 'pending';
-            //       return currentData;
-            //     }
-            //     return; // Abort if the status is not 'looking'
-            //   }
-            // );
-
-            // Check if both players are in the "pending" state
-            // if (opponentTransaction && playerTransaction) {
-            //   // Fetch the opponent's data
-            //   const opponentDataSnapshot = await get(
-            //     ref(database, `activePlayers/${opponentId}`)
-            //   );
-            //   const currentPlayerDataSnapshot = await get(
-            //     ref(database, `activePlayers/${playerId}`)
-            //   );
-
-            //   // Check if the opponent's status is pending
-            //   if (opponentDataSnapshot.exists() && currentPlayerDataSnapshot.exists()) {
-            //     const opponentData = opponentDataSnapshot.val();
-            //     const currentPlayerData = currentPlayerDataSnapshot.val();
-
-            //     if (
-            //       opponentData.status === 'pending' &&
-            //       currentPlayerData.status === 'pending'
-            //     ) {
-            //       // Update both players' statuses to "inGame"
-            //       await update(ref(database, `activePlayers/${opponentId}`), {
-            //         status: 'inGame',
-            //         gameId: playerId, // Assuming the gameId should point to the current player
-            //       });
-            //       await update(ref(database, `activePlayers/${playerId}`), {
-            //         status: 'inGame',
-            //         gameId: opponentId,
-            //       });
-            //     }
-            //   }
-            // }
-            // //Since an opponent has been found, I ref the database I defined in database and pass in the "activePlayers" collection  / the exact opponentId then i update
-            // await update(ref(database, `activePlayers/${opponentId}`), {
-            //   //Before the player can update he's opponents status the opponent also has to have found player1, if they have found each other then the opponent would need to check if the id is the same with the opponentData
-            //   playerName: opponentData.playerName,
-            //   status: 'inGame',
-            //   gameId: opponentId,
-            // });
-            // // console.log('update to here');
-
-            // //Update Current players status
-            // await update(ref(database, `activePlayers/${playerId}`), {
-            //   playerName: playerName!,
-            //   status: 'inGame',
-            //   gameId: playerId,
-            // });
-
-            // const playerOneDetails = {
-            //   id: playerId,
-            //   name: playerName!,
-            //   avatar:
-            //     Avatar ??
-            //     'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg',
-            // };
-
-            // const playerTwoDetails = {
-            //   id: opponentId,
-            //   name: opponentData.playerName,
-            //   avatar:
-            //     opponentData?.avatar ??
-            //     'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg',
-            // };
-            console.log(playerOneDetails, playerTwoDetails);
-
-            //Create Game Session
-            //Note const getSessionId = await createGameSession(playerId, opponentId); //Creates Game session on realtime db
-            // const getGameSession = await handleGameSession(
-            //   //Creates Game session on firestore db
-            //   playerOneDetails,
-            //   playerTwoDetails
-            // );
-
-            // Assuming combinedId is available
-            const gameSessionDoc = await getDoc(
-              doc(db, 'gameSessions', getGameSession?.sessionId!)
-            ); // Replace 'sessionId' with your actual session ID
-            console.log(gameSessionDoc, 'gameSessionDoc');
-
-            if (gameSessionDoc.exists()) {
-              const gameSessionData = gameSessionDoc.data();
-
-              // Check if both players are ready
-              if (
-                gameSessionData.playersGameStatus.playerOne === 'ready' &&
-                gameSessionData.playersGameStatus.playerTwo === 'ready'
-              ) {
-                // Proceed to update players' statuses in Realtime Database
-                await update(ref(database, `activePlayers/${playerId}`), {
-                  status: 'inGame',
-                  sessionId: getSessionId,
-                });
-
-                await update(ref(database, `activePlayers/${opponentId}`), {
-                  status: 'inGame',
-                  sessionId: getSessionId,
-                });
-
-                dispatch(setAPlayerId(playerId)); //Store the currentPlayersId
-
-                dispatch(
-                  setPlayersSessionId({
-                    playerOneSessionId: getSessionId,
-                  })
-                );
-                dispatch(setSessionId(getSessionId)); //Store the currentGameSessionId
-                setLoading(false); //stopLoadingSpinner after searching for opponent
-
-                setTimeout(() => {
-                  //Route to Homepage
-                  router.push('/');
-                }, 2000);
-
-                // Redirect to home page
-                // For React Router v5
-                // history.push('/home');
-
-                // For React Router v6
-                // navigate('/home');
-              } else {
-                console.log('Players are not ready yet.');
-                // Handle the case where players are not ready
-              }
-            } else {
-              console.log('Game session does not exist.');
-              // Handle the case where the game session is not found
-            }
-            console.log(getGameSession, 'getGameSession');
+            dispatch(setSessionId(getSessionId)); //Store the currentGameSessionId
 
             // Update both players' records with the session ID
-            // await update(ref(database, `activePlayers/${playerId}`), {
-            //   status: 'inGame',
-            //   sessionId: getSessionId,
-            // });
+            await update(ref(database, `activePlayers/${playerId}`), {
+              status: 'inGame',
+              sessionId: getSessionId,
+            });
 
-            // await update(ref(database, `activePlayers/${opponentId}`), {
-            //   status: 'inGame',
-            //   sessionId: getSessionId,
-            // });
+            await update(ref(database, `activePlayers/${opponentId}`), {
+              status: 'inGame',
+              sessionId: getSessionId,
+            });
+
+            setLoading(false); //stopLoadingSpinner after searching for opponent
+
+            setTimeout(() => {
+              //Route to Homepage
+              router.push('/');
+            }, 2000);
           } else {
             console.log('Could not find you an opponent at this time');
           }
@@ -616,53 +438,23 @@ const SignUp = (props: Props) => {
     }
   };
 
-  useEffect(() => {
-    if (playerId && playerDetails && opponentDetails) {
-      // Create a combined ID based on player IDs
-      const combinedId =
-        playerDetails?.id! > opponentDetails?.id!
-          ? playerDetails?.id + opponentDetails?.id!
-          : opponentDetails?.id! + playerDetails?.id!;
-      // const combine = playerDetails?.id + opponentDetails?.id!;
-      // const combined = opponentDetails?.id! + playerDetails?.id!;
-      // Create a query to find the game session
-      const sessionsRef = collection(db, 'gameSessions');
-      const q = query(sessionsRef, where('id', '==', combinedId));
-      console.log(q, 'qquttee');
-
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        if (!snapshot.empty) {
-          snapshot.forEach((doc) => {
-            console.log(doc, 'docusaurus');
-
-            const gameSession = { id: doc.id, ...doc.data() };
-            dispatch(givePlayerNames(gameSession));
-            console.log(gameSession, 'gameSession line 643');
-
-            router.push('/'); // Redirect to homepage
-          });
-        }
-      });
-
-      // Cleanup function to unsubscribe from the listener
-      return () => unsubscribe();
-    }
-  }, [playerDetails, opponentDetails, playerId, router]);
-
   //Handle Game Session in the firestore db
   const handleGameSession = async (
     playerOneDetails: playerDetails,
     opponent: PlayerDetails
   ) => {
+    //Compare the Id then combine The Id to create something unique from both players
     const combinedId =
       playerOneDetails?.id > opponent?.id
         ? playerOneDetails?.id + opponent?.id
         : opponent?.id + playerOneDetails?.id;
 
     try {
+      //Get the the current game session using the combinedId
       const sessionDoc = await getDoc(doc(db, 'gameSessions', combinedId));
-
+      //If it exists
       if (sessionDoc.exists()) {
+        //get the data and return the session
         const sessionData = sessionDoc.data();
         const playerOneDets = {
           id: playerOneDetails?.id,
@@ -676,6 +468,7 @@ const SignUp = (props: Props) => {
           avatar: opponent?.avatar,
         };
 
+        //Set state on redux to store the playersDetails
         dispatch(
           givePlayerNames({
             playerOne: playerOneDets,
@@ -683,11 +476,10 @@ const SignUp = (props: Props) => {
           })
         );
 
-        dispatch(setCombinedGameSessionId(combinedId));
-        console.log(sessionData, 'sessionData loaded');
+        dispatch(setCombinedGameSessionId(combinedId)); //State to store the combinedId
         return sessionData;
       } else {
-        // const retrieved = localStorage.getItem('playerKey');
+        //Thi runs if the combinedId doesn't exist previously
         const newGameSession: GameSession = {
           sessionId: combinedId,
           currentTurn: randomControl ? playerOneDetails?.id : opponent?.id,
@@ -702,7 +494,7 @@ const SignUp = (props: Props) => {
           roundWinner: '',
           endOfRound: false,
           trackRoundPlayer: randomControl ? playerOneDetails?.id : opponent?.id,
-          winner: null,
+          ultimateWinner: null,
           winningCombination: [],
           goToNextRound: true,
           players: {
@@ -717,11 +509,12 @@ const SignUp = (props: Props) => {
               avatar: opponent?.avatar!,
             },
           },
-          // playersGameStatus: {
-          //   playerOne: 'ready',
-          //   playerTwo: 'ready',
-          // },
+          unreadMessages: {
+            playerOne: 0,
+            playerTwo: 0,
+          },
         };
+
         await setDoc(doc(db, 'gameSessions', combinedId), newGameSession);
         await saveAvatar(playerOneDetails?.id, opponent?.id, combinedId);
 
@@ -746,7 +539,7 @@ const SignUp = (props: Props) => {
         );
 
         dispatch(setCombinedGameSessionId(combinedId));
-        return newGameSession;
+        return newGameSession; //Return the created gameSession
       }
     } catch (error) {
       console.log(error);
@@ -754,7 +547,7 @@ const SignUp = (props: Props) => {
   };
 
   //Function to get the avatar from one doc and save the avatar in the gamesessions document.
-  //I'm not saving directly to the gameSessions doc because i need to have a combinedId already
+  //I'm not saving directly to the gameSessions doc because I need to have a combinedId already
   const saveAvatar = async (playerId: string, opponentId: string, combinedId: string) => {
     //get each players details
     const playerOneDetails = await getDoc(doc(db, 'players', playerId));
@@ -772,22 +565,7 @@ const SignUp = (props: Props) => {
     }
   };
 
-  //Logic to create a game session
-  // A function that takes in two params which are playerId and opponentId
-  // const createGameSession = async (playerId: string, opponentId: string) => {
-  //   //might return the sessionId,
-  //   const sessionRef = push(ref(database, 'gameSessions')); //creates a ref to our database and name it "gameSessions"
-
-  //   //Our session ref would create/set a new object in a sessionRef
-  //   await set(sessionRef, {
-  //     playerOneId: playerId,
-  //     playerTwoId: opponentId,
-  //     status: 'active',
-  //     createdAt: new Date().toISOString(),
-  //   });
-
-  //   return sessionRef.key;
-  // };
+  console.log(AnimePictures, 'animeOics');
 
   return (
     <div>
@@ -808,11 +586,10 @@ const SignUp = (props: Props) => {
               />
               <Select
                 onValueChange={(value) => {
-                  if (value === 'Naruto') {
-                    setAvatarType({
-                      avatarType: 'Naruto',
-                      avatarUrl: 'https://narutodb.xyz/api/character',
-                    });
+                  if (value === 'Anime') {
+                    setAnimePictures(AnimeAvatars);
+                  } else if (value === 'heroes') {
+                    setAnimePictures(SuperHeroes);
                   } else if (value === 'Avatar') {
                     setAvatarType({
                       avatarType: 'Avatar',
@@ -832,7 +609,8 @@ const SignUp = (props: Props) => {
                 <SelectContent>
                   <SelectGroup>
                     <SelectLabel>Select your Avatar </SelectLabel>
-                    <SelectItem value="Naruto">Naruto style</SelectItem>
+                    <SelectItem value="Anime">Anime style</SelectItem>
+                    <SelectItem value="heroes">Superheroes and Villains</SelectItem>
                     <SelectItem value="Avatar">Avatar last-bender</SelectItem>
                     <SelectItem value="Random">Random</SelectItem>
                   </SelectGroup>
@@ -855,12 +633,16 @@ const SignUp = (props: Props) => {
           </form>
         </div>
       </div>
-      {avatarType && (
+      {avatarType || AnimePictures?.length > 1 ? (
         <AvatarComp
           avatarType={avatarType}
           setAvatarType={setAvatarType}
           setAvatar={setAvatar}
+          animePictures={AnimePictures}
+          setAnimePictures={setAnimePictures}
         />
+      ) : (
+        ''
       )}
     </div>
   );
