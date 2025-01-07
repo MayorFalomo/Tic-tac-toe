@@ -38,8 +38,7 @@ import {
 } from '@/components/ui/select';
 import toast from 'react-hot-toast';
 import { AnimeAvatars, SuperHeroes } from '../PictureStore';
-import AvatarComp from '../AvatarComp';
-type Props = {};
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface playerDetails {
   id: string;
@@ -50,11 +49,12 @@ interface playerDetails {
 export interface AvatarType {
   avatarType: string;
   avatarUrl: string;
+  avatarName?: string;
 }
 
-// const AvatarComp = React.lazy(() => import('@/components/AvatarComp'));
+const AvatarComp = React.lazy(() => import('@/components/AvatarComp'));
 
-const SignUp = (props: Props) => {
+const SignUp: React.FC = () => {
   const [playerName, setPlayerName] = useState<string>('');
   const [Avatar, setAvatar] = useState<string>(
     'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg'
@@ -64,6 +64,7 @@ const SignUp = (props: Props) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [randomControl, setRandomControl] = useState<boolean>(false); //To pick the random player
   const [searchingActive, setSearchingActive] = useState<boolean>(false);
+  const [showPlayerName, setShowPlayerName] = useState<boolean>(false);
 
   const dispatch = useAppDispatch();
 
@@ -115,8 +116,6 @@ const SignUp = (props: Props) => {
       setLoading(false);
     }
   };
-
-  console.log(Avatar, 'avatar');
 
   const searchForOpponent = async (playerId: string) => {
     try {
@@ -565,23 +564,28 @@ const SignUp = (props: Props) => {
     }
   };
 
-  console.log(AnimePictures, 'animeOics');
-
   return (
-    <div>
-      <div className="text-white">
+    <div onClick={() => setAvatarType(null)} className="bg-[#000] w-[100vw] h-[100vh] ">
+      <div className="text-[#2CBF93]">
         <div className="flex justify-center items-center h-screen">
           <form
             onSubmit={createPlayer}
-            className="bg-gray-800 rounded-lg p-8 shadow-lg w-96"
+            className="border border-white/40 bg-black rounded-lg p-8 min-w-[250px] w-[400px] "
           >
-            <h1 className="text-3xl font-bold mb-4">Sign up PlayerName</h1>
-            <div className="flex flex-col gap-2">
-              <h2>Player Name </h2>
+            <h1 className="flex items-start gap-2 text-3xl font-bold mb-2">
+              <span>Welcome Player</span>
+              <AnimatePresence>
+                {showPlayerName && <motion.span>{playerName} </motion.span>}
+              </AnimatePresence>
+            </h1>
+            <p className="text-white text-[14px]">
+              Please Sign up and search for a player{' '}
+            </p>
+            <div className="flex flex-col gap-2 mt-2">
               <Input
-                className="text-black text-[17px] my-2 border-none outline-none"
+                className="text-white text-[16px] bg-transparent rounded-none my-2 placeholder:text-white/60 border-b border outline-none border-x-0 border-t-0 focus-visible:ring-0 focus-visible:ring-transparent focus-visible:ring-offset-0"
                 type="text"
-                placeholder="Pick a name"
+                placeholder="Enter your Player name"
                 onChange={(e) => setPlayerName(e.target.value)}
               />
               <Select
@@ -597,14 +601,18 @@ const SignUp = (props: Props) => {
                     });
                   } else {
                     setAvatarType({
-                      avatarType: 'Random',
-                      avatarUrl: `https://avatar.iran.liara.run/public`,
+                      avatarType: 'initials',
+                      avatarName: playerName ?? 'Hero Arlen',
+                      avatarUrl: ``,
                     });
                   }
                 }}
               >
-                <SelectTrigger className="w-[100%] text-[16px] text-black">
-                  <SelectValue placeholder="Select an Avatar" />
+                <SelectTrigger className="w-[100%] bg-transparent rounded-none border-b-white text-white/60 border-b border outline-none border-x-0 border-t-0 text-[16px] focus:ring-offset-0 focus:ring-0">
+                  <SelectValue
+                    className=" placeholder:text-white"
+                    placeholder="Select your Avatar"
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -612,11 +620,15 @@ const SignUp = (props: Props) => {
                     <SelectItem value="Anime">Anime style</SelectItem>
                     <SelectItem value="heroes">Superheroes and Villains</SelectItem>
                     <SelectItem value="Avatar">Avatar last-bender</SelectItem>
-                    <SelectItem value="Random">Random</SelectItem>
+                    <SelectItem value="initials">Initials style</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
-              <Button disabled={loading} type="submit" className="text-[16px] my-3">
+              <Button
+                disabled={loading}
+                type="submit"
+                className="text-[16px] bg-[#2CBF93] hover:bg-white text-black my-3"
+              >
                 {loading ? (
                   <span className="flex items-center gap-2">
                     {searchingActive ? 'Found a player!' : `Searching for player`}

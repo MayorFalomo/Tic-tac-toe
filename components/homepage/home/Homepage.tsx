@@ -333,6 +333,8 @@ const Homepage = (props: Props) => {
         <h1 className="text-white border w-[150px] text-center text-[18px] px-3 py-3">
           <span className="text-white inline-block">Round: {gameData?.rounds} / 5</span>
         </h1>
+        {ultimateWinner!?.length > 1 && <Confetti width={width} height={height} />}
+
         <div className="flex items-center gap-4 p-4">
           <button
             onClick={handleModal}
@@ -460,13 +462,13 @@ const Homepage = (props: Props) => {
                         boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
                       }}
                       className="absolute z-20 left-0 right-0 top-[50%] w-full p-3"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
                     >
                       <h1
                         style={{
-                          // color: 'transparent',
                           color: '#ffffff',
-                          // textShadow:
-                          //   '0 -1px 4px #fff, 0 -2px 10px #ff0, 0 -10px 20px #ff8000, 0 -18px 40px #f00',
                         }}
                         className="text-[24px] text-center m-auto "
                       >
@@ -477,9 +479,7 @@ const Homepage = (props: Props) => {
                     </motion.div>
                   ))}
               </AnimatePresence>
-              {/* <button>Start Round 2 </button> */}
             </div>
-            {/* <div className=" relative w-[500px] h-[500px] grid grid-cols-3 gap-2  m-auto border-2 border-blue-500 "> */}
             <div
               className="relative items-center justify-content w-[400px] max-[500px]:w-[320px] h-[400px] max-[500px]:h-[350px] grid grid-cols-3 gap-2 m-auto mt-[20px]"
               style={{
@@ -488,10 +488,6 @@ const Homepage = (props: Props) => {
                 boxShadow:
                   'inset -1.26228px 2.52455px 1.26228px rgba(255, 255, 255, 0.5)',
                 filter: 'blur(0.970982px)',
-                // borderRadius: '32.1429px',
-                // border: "12.6228px solid rgba(255, 201, 64, 0.2)",
-                //   filter:
-                //   "drop-shadow(0px 19.4196px 25.2455px #8F7000) drop-shadow(0px 12.6228px 9.70982px rgba(57, 38, 0, 0.7))",
               }}
             >
               <span
@@ -501,7 +497,6 @@ const Homepage = (props: Props) => {
                   border: '3px solid white',
                   boxShadow:
                     'inset -1.26228px 2.52455px 1.26228px rgba(255, 255, 255, 0.5)',
-                  // filter: 'blur(0.970982px)',
                   borderRadius: '   10.1429px',
                 }}
               >
@@ -514,7 +509,6 @@ const Homepage = (props: Props) => {
                   border: '3px solid #fff',
                   boxShadow:
                     'inset -1.26228px 2.52455px 1.26228px rgba(255, 255, 255, 0.5)',
-                  // filter: 'blur(0.970982px)',
                   borderRadius: '10.1429px',
                 }}
               >
@@ -540,13 +534,11 @@ const Homepage = (props: Props) => {
                   border: '3px solid #fff',
                   boxShadow:
                     'inset -1.26228px 2.52455px 1.26228px rgba(255, 255, 255, 0.5)',
-                  // filter: 'blur(0.970982px)',
                   borderRadius: '10.1429px',
                 }}
               >
                 {' '}
               </span>
-              {ultimateWinner!?.length > 1 && <Confetti width={width} height={height} />}
               {Array.from({ length: 9 }, (_val, index) => (
                 <div key={index}>
                   <Possible

@@ -7,7 +7,8 @@ const nextConfig = {
             'static.wikia.nocookie.net',
          'avatar.iran.liara.run',
          'i.pinimg.com',
-      'res.cloudinary.com'
+         'res.cloudinary.com',
+      'ui-avatars.com'
     ],
         remotePatterns: [
       {
@@ -37,6 +38,12 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
+        port: '',
+        pathname: '/your-account/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'https://ui-avatars.com',
         port: '',
         pathname: '/your-account/**',
       },

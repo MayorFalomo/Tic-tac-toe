@@ -44,9 +44,9 @@ export const AnimeAvatars: AvatarTheme[] = [
   },
   {
     id: 8,
-    character: 'Hinato',
+    character: 'Mikasa',
     link:
-      'https://res.cloudinary.com/dsghy4siv/image/upload/v1736012583/hinato_hl6npj.jpg',
+      'https://res.cloudinary.com/dsghy4siv/image/upload/v1736133196/wallpapersden.com_mikasa-ackerman_1920x1528_p3qapj.jpg',
   },
   {
     id: 9,
@@ -67,6 +67,12 @@ export const AnimeAvatars: AvatarTheme[] = [
   },
   {
     id: 12,
+    character: 'Hinato',
+    link:
+      'https://res.cloudinary.com/dsghy4siv/image/upload/v1736012583/hinato_hl6npj.jpg',
+  },
+  {
+    id: 13,
     character: 'Demon',
     link:
       'https://res.cloudinary.com/dsghy4siv/image/upload/v1736012558/Por_Qu%C3%A9_No_Me_Enamore_De_Ti_Antes__-_Capitulo_1_dqnoov.jpg',
