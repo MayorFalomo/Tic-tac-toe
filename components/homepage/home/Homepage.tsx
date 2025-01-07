@@ -183,8 +183,6 @@ const Homepage = (props: Props) => {
     setRoundWinner,
   ]);
 
-  console.log(roundWinner, 'roundWiinner');
-
   // const handleStartNewRound = async () => {
   // };
 
@@ -323,9 +321,6 @@ const Homepage = (props: Props) => {
       setUltimateWinner(gameData?.ultimateWinner!);
     }
   }, [gameData?.roundWinner, roundWinner, gameData, gameData?.ultimateWinner]);
-
-  console.log(roundWinner, 'roundewinner');
-  console.log(gameData?.roundWinner, 'gamdataRound');
 
   return (
     <div className=" relative flex flex-col gap-[10px] items-center w-full h-[100vh] overflow-x-hidden">

@@ -22,7 +22,6 @@ export const handleUserPresence = async (userId: string, playerName: string) => 
   } catch (error) {
     console.log(error, 'Error has happened in catch');
   }
-  
 };
   
    //Logic to create a game session
