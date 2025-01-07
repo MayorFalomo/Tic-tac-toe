@@ -574,7 +574,7 @@ const Homepage = (props: Props) => {
           <button
             onClick={() => handleStartNewRound()}
             disabled={gameData?.goToNextRound}
-            className={`text-white border inline-block text-center text-[20px]  p-2${
+            className={`text-white border inline-block text-center text-[20px] px-2 py-2 ${
               gameData?.goToNextRound
                 ? 'opacity-30 cursor-not-allowed'
                 : ' opacity-100 cursor-pointer'

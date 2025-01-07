@@ -10,7 +10,7 @@ export default function Home() {
   const playerId = useAppSelector((state: RootState) => state.user.playerId);
 
   return (
-    <main className="flex min-h-screen ">
+    <main className="flex min-h-screen overflow-y-hidden ">
       <Toaster />
       {playerId ? <Homepage /> : <SignUp />}
     </main>
