@@ -83,7 +83,7 @@ const SignUp: React.FC = () => {
     try {
       setLoading(true); //SetThe loading spinner to be true
       const playerNameSelect = playerName.length > 1 ? playerName : 'PlayerOne';
-
+      setShowPlayerName(true);
       //create a separate db instance in the database named activePlayers
       const playerRef = push(ref(database, 'activePlayers')); //Create a new child reference
       const playerId = playerRef?.key ?? ''; // Get the unique key
@@ -565,17 +565,21 @@ const SignUp: React.FC = () => {
   };
 
   return (
-    <div onClick={() => setAvatarType(null)} className="bg-[#000] w-[100vw] h-[100vh] ">
-      <div className="text-[#2CBF93]">
+    <div onClick={() => setAvatarType(null)} className="bg-[#000] w-[100vw] h-[100vh]">
+      <div className="text-brightGreen">
         <div className="flex justify-center items-center h-screen">
           <form
             onSubmit={createPlayer}
-            className="border border-white/40 bg-black rounded-lg p-8 min-w-[250px] w-[400px] "
+            className="border border-white/40 bg-black rounded-lg py-8 px-8 min-w-[250px] w-[400px] max-[550px]:w-[75%] max-[400px]:w-[90%] max-[550px]:px-3 "
           >
-            <h1 className="flex items-start gap-2 text-3xl font-bold mb-2">
+            <h1 className="flex items-start gap-2 text-2xl max-[550px]:text-[24px] font-bold mb-2">
               <span>Welcome Player</span>
               <AnimatePresence>
-                {showPlayerName && <motion.span>{playerName} </motion.span>}
+                {showPlayerName && (
+                  <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    {playerName}{' '}
+                  </motion.span>
+                )}
               </AnimatePresence>
             </h1>
             <p className="text-white text-[14px]">
@@ -635,7 +639,7 @@ const SignUp: React.FC = () => {
                     <LoadingSpinner />{' '}
                   </span>
                 ) : (
-                  <span>Create Profile </span>
+                  <span>Enter Game </span>
                 )}{' '}
               </Button>
             </div>

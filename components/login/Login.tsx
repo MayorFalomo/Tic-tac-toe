@@ -234,27 +234,18 @@ const Login = () => {
   };
 
   return (
-    <div>
-      <div className="text-white">
+    <div className="bg-[#000] w-[100vw] h-[100vh] ">
+      <div className="text-brightGreen">
         <div className="flex justify-center items-center h-screen">
           <form
             onSubmit={loginPlayer}
-            className="bg-gray-800 rounded-lg p-8 shadow-lg w-96"
+            className="border border-white/40 rounded-lg py-8 px-8 min-w-[250px] w-[400px] max-[550px]:w-[95%] max-[550px]:px-3"
           >
-            <h1 className="text-3xl font-bold mb-4">Login to your account</h1>
+            <h1 className="text-2xl text-center font-bold mb-4">Login to your account</h1>
             <div className="flex flex-col gap-2">
-              {/* <h2>Player Name </h2>
-              <Input
-                className="text-black text-[17px] my-2 border-none outline-none"
-                type="text"
-                placeholder="Pick a name"
-                onChange={(e) => setPlayerName(e.target.value)}
-              /> */}
-
               <Button
                 type="submit"
-                className="flex gap-2 items-center text-[16px] my-3"
-                // onClick={createPlayer}
+                className="text-[16px] bg-[#2CBF93] hover:bg-white text-black my-3 mr-2"
               >
                 {' '}
                 <span>
@@ -267,7 +258,7 @@ const Login = () => {
                 <span>{loading && <LoadingSpinner />}</span>
               </Button>
             </div>
-            <Link href="/signup" className="flex justify-center text-[14px]">
+            <Link href="/signup" className="flex justify-center text-[14px] text-white">
               Create new profile instead?{' '}
             </Link>
           </form>
