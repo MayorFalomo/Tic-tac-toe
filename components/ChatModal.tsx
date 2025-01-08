@@ -199,6 +199,7 @@ const ChatModal: React.FC<Props> = ({
                 setTextMessage(e.target.value);
               }}
               value={textMessage}
+              maxLength={100}
             />
             <Button
               onClick={() => sendMessage(textMessage)}

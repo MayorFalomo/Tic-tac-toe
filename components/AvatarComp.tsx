@@ -83,7 +83,7 @@ const AvatarComp: React.FC<Props> = ({
     <div
       className={`bg-black text-white fixed h-[450px] min-w-[500px] max-[600px]:min-w-[280px] max-[600px]:w-[85%] max-[400px]:w-[95%] max-w-[700px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 ${
         avatarType?.avatarType === 'initials' ? 'overflow-y-hidden' : 'overflow-y-auto'
-      } overflow-x-hidden p-4 border border-white/40 rounded-[8px]`}
+      } overflow-x-hidden p-4 max-[600px]:p-2 border border-white/40 rounded-[8px]`}
     >
       <div className="h-full">
         {animationDone && (

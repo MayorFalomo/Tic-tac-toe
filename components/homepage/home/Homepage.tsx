@@ -21,8 +21,6 @@ import {
 import { db } from '@/firebase-config/firebase';
 import { setTrackDisableRound, setTrackRounds } from '@/lib/features/TrackerSlice';
 import { toast } from 'react-hot-toast';
-// import Lottie from 'lottie-react';
-// import animationData from '@/public/fireworks.json';
 import { Bell, EllipsisVertical } from 'lucide-react';
 import ChatModal from '@/components/ChatModal';
 import { useWindowSize } from 'react-use';
@@ -114,7 +112,7 @@ const Homepage = (props: Props) => {
   const [firstPlayer, setFirstPlayer] = useState('');
   const [roundWinner, setRoundWinner] = useState<string | null>(null);
   const [ultimateWinner, setUltimateWinner] = useState<string | null>(null);
-  const { width, height } = useWindowSize();
+  const { width, height } = useWindowSize(); //For the Cofetti Animation
 
   useEffect(() => {
     if (combinedId) {
@@ -183,9 +181,6 @@ const Homepage = (props: Props) => {
     setRoundWinner,
   ]);
 
-  // const handleStartNewRound = async () => {
-  // };
-
   const restartGame = useCallback(async () => {
     await updateDoc(doc(db, 'gameSessions', combinedId), {
       rounds: 1,
@@ -207,19 +202,7 @@ const Homepage = (props: Props) => {
     toast.success('Game is restarted');
   }, [gameData?.unChangeableFirstPlayer, combinedId]);
 
-  // const defaultOptions = {
-  //   loop: false,
-  //   autoplay: true,
-  //   animationData: animationData,
-  //   rendererSettings: {
-  //     preserveAspectRatio: 'xMidYMid slice',
-  //   },
-  //   initialSegment: [3, 50],
-  // };
-
-  const handleModal = async () => {
-    setOpenModal(true);
-    await loadChat();
+  const handleModal = useCallback(async () => {
     //After the modal opens then I need to...
     //First I need to check if a player chat already exist between the two players using the combinedId as a check
     //If I find it, I load the chats between the two players and if not I create a new chat session for the players using their combinedId
@@ -227,7 +210,12 @@ const Homepage = (props: Props) => {
     //senderId, message, timestamp, Reaction
     //Then just the way we did the instant update with local state , we do the same thing here with the chat messages
     //So whatever messages we send appears instantly then we can sort it by the id so it shows who is in sender and receiver based on the id for each player.
-  };
+    setOpenModal(true);
+    await loadChat();
+  }, [openModal]);
+  // async () => {
+  //   setOpenModal(true);
+  //   await loadChat();
 
   const loadChat = async () => {
     const chatRef = collection(db, 'playersChats');
@@ -329,7 +317,6 @@ const Homepage = (props: Props) => {
           <span className="text-white inline-block">Round: {gameData?.rounds} / 5</span>
         </h1>
         {ultimateWinner!?.length > 1 && <Confetti width={width} height={height} />}
-
         <div className="flex items-center gap-4 p-4">
           <button
             onClick={handleModal}
@@ -356,8 +343,8 @@ const Homepage = (props: Props) => {
       <div className=" flex justify-center items-center m-auto w-full h-[85%] max-[500px]:h-[100%]">
         <div className="flex flex-col w-full gap-[10px] items-center  justify-center">
           <div className="relative">
-            <div className="flex items-center justify-between w-[100%] ">
-              <div className="flex items-center w-full justify-center gap-[20px]  ">
+            <div className="flex items-center justify-between gap-2 w-[100%]">
+              <div className="flex items-center w-full  max-w-[250px] justify-center gap-[10px]">
                 {gameData?.players?.playerOne?.avatar! &&
                   gameData?.players?.playerTwo?.avatar! && (
                     <Image
@@ -402,8 +389,8 @@ const Homepage = (props: Props) => {
                     : gameData?.scores?.playerTwo!}{' '}
                 </h1>
               </div>
-              <h1 className="text-white text-[24px]"> : </h1>
-              <div className="flex items-center w-full justify-center gap-[20px]">
+              <p className="text-white text-[24px]"> : </p>
+              <div className="flex items-center w-full max-w-[250px] justify-center gap-[10px] ">
                 <h1 className="text-white text-[24px]">
                   {currentPlayer === gameData?.players?.playerTwo?.id
                     ? gameData?.scores?.playerOne!
@@ -574,7 +561,7 @@ const Homepage = (props: Props) => {
           <button
             onClick={() => handleStartNewRound()}
             disabled={gameData?.goToNextRound}
-            className={`text-white border inline-block text-center text-[20px] px-2 py-2 ${
+            className={`text-white border inline-block text-center text-[18px] px-2 py-2 ${
               gameData?.goToNextRound
                 ? 'opacity-30 cursor-not-allowed'
                 : ' opacity-100 cursor-pointer'

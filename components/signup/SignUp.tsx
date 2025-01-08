@@ -570,14 +570,14 @@ const SignUp: React.FC = () => {
         <div className="flex justify-center items-center h-screen">
           <form
             onSubmit={createPlayer}
-            className="border border-white/40 bg-black rounded-lg py-8 px-8 min-w-[250px] w-[400px] max-[550px]:w-[75%] max-[400px]:w-[90%] max-[550px]:px-3 "
+            className="border border-white/40 bg-black rounded-lg py-8 px-8 min-w-[250px] w-[420px] max-[550px]:w-[90%] max-[400px]:w-[90%] max-[550px]:px-3 "
           >
-            <h1 className="flex items-start gap-2 text-2xl max-[550px]:text-[24px] font-bold mb-2">
+            <h1 className="flex flex-nowrap items-start gap-2 text-[20px] max-[550px]:text-[18px] font-bold mb-2 overflow-hidden">
               <span>Welcome Player</span>
               <AnimatePresence>
                 {showPlayerName && (
                   <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                    {playerName}{' '}
+                    - {playerName}{' '}
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -591,6 +591,7 @@ const SignUp: React.FC = () => {
                 type="text"
                 placeholder="Enter your Player name"
                 onChange={(e) => setPlayerName(e.target.value)}
+                maxLength={15}
               />
               <Select
                 onValueChange={(value) => {
@@ -631,12 +632,18 @@ const SignUp: React.FC = () => {
               <Button
                 disabled={loading}
                 type="submit"
-                className="text-[16px] bg-[#2CBF93] hover:bg-white text-black my-3"
+                className={`${
+                  loading ? 'cursor-not-allowed' : 'cursor-pointer'
+                } text-[16px] bg-[#2CBF93] hover:bg-white hover:text-black transition-all duration-500 text-white my-3`}
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
                     {searchingActive ? 'Found a player!' : `Searching for player`}
-                    <LoadingSpinner />{' '}
+                    <LoadingSpinner
+                      style={{
+                        marginLeft: '3px',
+                      }}
+                    />{' '}
                   </span>
                 ) : (
                   <span>Enter Game </span>
