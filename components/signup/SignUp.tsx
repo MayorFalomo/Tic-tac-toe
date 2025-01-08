@@ -570,9 +570,9 @@ const SignUp: React.FC = () => {
         <div className="flex justify-center items-center h-screen">
           <form
             onSubmit={createPlayer}
-            className="border border-white/40 bg-black rounded-lg py-8 px-8 min-w-[250px] w-[420px] max-[550px]:w-[90%] max-[400px]:w-[90%] max-[550px]:px-3 "
+            className="border border-white/40 bg-black rounded-lg py-8 px-8 min-w-[250px] w-[400px] max-[550px]:w-[80%] max-[550px]:px-3 "
           >
-            <h1 className="flex flex-nowrap items-start gap-2 text-[20px] max-[550px]:text-[18px] font-bold mb-2 overflow-hidden">
+            <h1 className="flex flex-nowrap items-start gap-2 text-[22px] max-[550px]:text-[20px] font-bold mb-2 overflow-hidden">
               <span>Welcome Player</span>
               <AnimatePresence>
                 {showPlayerName && (
