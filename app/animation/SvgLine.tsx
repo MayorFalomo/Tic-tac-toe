@@ -2,9 +2,9 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 type Props = {
-  x1: number; // Starting x coordinate
-  y1: number; // Starting y coordinate
-  x2: number; // Ending x coordinate
+  x1: number;
+  y1: number;
+  x2: number;
   y2: number; // Ending y coordinate
   strokeColor?: string; // Color of the line
 };

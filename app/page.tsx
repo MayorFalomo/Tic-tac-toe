@@ -1,4 +1,5 @@
 'use client';
+import GameMenu from '@/components/gameMenu/GameMenu';
 import Homepage from '@/components/homepage/home/Homepage';
 import SignUp from '@/components/signup/SignUp';
 import { useAppSelector } from '@/lib/hooks';
@@ -10,9 +11,9 @@ export default function Home() {
   const playerId = useAppSelector((state: RootState) => state.user.playerId);
 
   return (
-    <main className="flex min-h-screen overflow-y-hidden ">
+    <main className="flex min-h-screen overflow-y-hidden">
       <Toaster />
-      {playerId ? <Homepage /> : <SignUp />}
+      {playerId ? <Homepage /> : <GameMenu />}
     </main>
   );
 }

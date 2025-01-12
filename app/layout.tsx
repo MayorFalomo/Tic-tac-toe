@@ -3,7 +3,8 @@ import { Prompt } from 'next/font/google';
 import './globals.css';
 import StoreProvider from '@/storeProvider';
 import Providers from './QueryProvider';
-
+import { ThemeProvider } from './ThemeContext';
+import { AudioProvider } from './AudioContext';
 const inter = Prompt({ weight: '400', style: 'normal', subsets: ['latin'] });
 
 export const metadata: Metadata = {
@@ -21,7 +22,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <StoreProvider>
-          <Providers>{children}</Providers>
+          <Providers>
+            <ThemeProvider>
+              <AudioProvider src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">
+                {children}
+              </AudioProvider>
+            </ThemeProvider>
+          </Providers>
         </StoreProvider>
       </body>
     </html>

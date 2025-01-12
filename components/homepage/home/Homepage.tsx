@@ -25,6 +25,7 @@ import { Bell, EllipsisVertical } from 'lucide-react';
 import ChatModal from '@/components/ChatModal';
 import { useWindowSize } from 'react-use';
 import Confetti from 'react-confetti';
+import { MdMessage } from 'react-icons/md';
 
 type Props = {};
 
@@ -323,7 +324,12 @@ const Homepage = (props: Props) => {
             className=" relative cursor-pointer outline-none border-none"
           >
             {' '}
-            <Bell size={30} color="white" />
+            {playersObject?.playerOne?.id === gameData?.players?.playerTwo?.id &&
+            gameData?.unreadMessages?.playerTwo! > 0 ? (
+              <Bell size={30} color="white" />
+            ) : (
+              <MdMessage />
+            )}
             {playersObject?.playerOne?.id === gameData?.players?.playerTwo?.id && (
               <span className="bg-red-600 text-white z-[4] absolute bottom-1/2 left-[20px] transform -translate-x-1/2 -translate-y-1/2  min-w-[20px] min-h-[20px] place-content-center grid text-[14px] rounded-full">
                 {gameData?.unreadMessages?.playerTwo ?? 0}

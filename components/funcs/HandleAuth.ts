@@ -1,6 +1,7 @@
 import { onDisconnect } from "firebase/database";
-import { database,} from "@/firebase-config/firebase";
+import { database, db,} from "@/firebase-config/firebase";
 import { push, ref, set, } from "@firebase/database";
+import { collection, doc, getDocs, query, setDoc } from "firebase/firestore";
 
 
 export const handleUserPresence = async (userId: string, playerName: string) => {
@@ -20,7 +21,7 @@ export const handleUserPresence = async (userId: string, playerName: string) => 
   });
     
   } catch (error) {
-    console.log(error, 'Error has happened in catch');
+    console.log(error, 'Error has occurred');
   }
 };
   
@@ -40,6 +41,48 @@ export const createGameSession = async (playerId: string, opponentId: string, ge
       return sessionRef.key;
     } catch (error) {
       console.log(error, 'error in game session');
-       
     }
+};
+
+export const handlePlayersStatus = async (userId: string, status?: string) => {
+  try {
+    const userRef = ref(database, `activePlayers/${userId}`); //We reference the "activePlayers" db we created in the createPlayerfunc and find a player by their userId
+
+    //Set the users status to online when they connect on firestore db first
+    await set(userRef, {
+      status: status,
+    });
+
+    //Change on firestore
+     await setDoc(doc(db, 'players', userId), {
+        status: status,
+      });
+  
+    //Using firebase onDisconnect functionality to detect when a user goes offline
+  await onDisconnect(userRef).set({
+    status: 'offline',
+  });
+    
+    
+    
+  } catch (error) {
+    console.log(error, 'Error has occurred');
+  }
+};
+
+export const getAllPlayers = async (): Promise<any[]> => {
+  try {
+    const playersRef = collection(db, 'players'); // Reference to the players collection
+    const playersQuery = query(playersRef); // Create a query for the players collection
+    const querySnapshot = await getDocs(playersQuery); // Get all documents in the players collection
+
+    if (!querySnapshot.empty) {
+      return querySnapshot.docs.map((doc) => doc.data()); // Map over documents to extract data
+    } else {
+      return []; // Return an empty array if no players are found
+    }
+  } catch (error) {
+    console.error(error, 'Error has occurred while trying to get players');
+    throw error; // Rethrow the error for handling in the calling function
+  }
 };

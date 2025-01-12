@@ -1173,6 +1173,32 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@radix-ui/react-checkbox@npm:^1.1.3":
+  version: 1.1.3
+  resolution: "@radix-ui/react-checkbox@npm:1.1.3"
+  dependencies:
+    "@radix-ui/primitive": 1.1.1
+    "@radix-ui/react-compose-refs": 1.1.1
+    "@radix-ui/react-context": 1.1.1
+    "@radix-ui/react-presence": 1.1.2
+    "@radix-ui/react-primitive": 2.0.1
+    "@radix-ui/react-use-controllable-state": 1.1.0
+    "@radix-ui/react-use-previous": 1.1.0
+    "@radix-ui/react-use-size": 1.1.0
+  peerDependencies:
+    "@types/react": "*"
+    "@types/react-dom": "*"
+    react: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+    react-dom: ^16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+    "@types/react-dom":
+      optional: true
+  checksum: ff2e62ba5f4bfdd6ef0cbbdf38a9f2249793d3a95b8fa55f95506198276e01c849b09bf963ec435c3f3ed43b18e27ddcb3087be4f6558e8d4f4dab8a27c49399
+  languageName: node
+  linkType: hard
+
 "@radix-ui/react-collection@npm:1.1.0":
   version: 1.1.0
   resolution: "@radix-ui/react-collection@npm:1.1.0"
@@ -1830,6 +1856,13 @@ __metadata:
     react-native:
       optional: true
   checksum: 1aff0a476859386f8d32253fa0d0bde7b81769a6d4d4d9cbd78778f0f955459a3bdb7ee27a0d2ee7373090f12998b45df80db0b5b313bd0a7a39d36c6e8e51c5
+  languageName: node
+  linkType: hard
+
+"@types/howler@npm:^2.2.12":
+  version: 2.2.12
+  resolution: "@types/howler@npm:2.2.12"
+  checksum: 0f8b88abd9b0607db50c4fbc91cc6646a9eee4a337f3e8b9c39696e78eff1eb0b3f5913bf32cccc7a96d2be2af8544376ce3afa5de4b1ba9873d0287abe97a5b
   languageName: node
   linkType: hard
 
@@ -3790,6 +3823,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"howler@npm:^2.1.3":
+  version: 2.2.4
+  resolution: "howler@npm:2.2.4"
+  checksum: 14ad7ed8825ac4439a63429d25f3ba6f44daca1d6df4ad6b04f33e342269b80db5608d9f1e6e980e2d47027c7ceba7811068eba7f56e8e75f2601086e07f0b73
+  languageName: node
+  linkType: hard
+
 "http-cache-semantics@npm:^4.1.1":
   version: 4.1.1
   resolution: "http-cache-semantics@npm:4.1.1"
@@ -5229,6 +5269,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-icons@npm:^5.4.0":
+  version: 5.4.0
+  resolution: "react-icons@npm:5.4.0"
+  peerDependencies:
+    react: "*"
+  checksum: 6ee5fcda49d9628e33d97e955ed6ec9f30b26226a13b14d0f3f9a698d0d5dd2e3878af7de295e0241bdd8f46af96f16bfea1fd0647beddc447c1de98bdb2178e
+  languageName: node
+  linkType: hard
+
 "react-is@npm:^16.13.1":
   version: 16.13.1
   resolution: "react-is@npm:16.13.1"
@@ -6168,12 +6217,14 @@ __metadata:
   resolution: "tictactoe@workspace:."
   dependencies:
     "@firebase/database": ^1.0.7
+    "@radix-ui/react-checkbox": ^1.1.3
     "@radix-ui/react-select": ^2.1.2
     "@radix-ui/react-slot": ^1.1.0
     "@radix-ui/react-toast": ^1.2.4
     "@reduxjs/toolkit": ^2.2.7
     "@tanstack/eslint-plugin-query": ^5.62.1
     "@tanstack/react-query": 4
+    "@types/howler": ^2.2.12
     "@types/node": ^20
     "@types/react": 18.3.3
     "@types/react-dom": ^18
@@ -6196,6 +6247,7 @@ __metadata:
     react-confetti: ^6.2.2
     react-dom: latest
     react-hot-toast: ^2.4.1
+    react-icons: ^5.4.0
     react-redux: ^9.1.2
     react-use: ^17.6.0
     redux: ^5.0.1
@@ -6203,6 +6255,7 @@ __metadata:
     tailwindcss: ^3.4.1
     tailwindcss-animate: ^1.0.7
     typescript: 5.5.4
+    use-sound: ^4.0.3
   languageName: unknown
   linkType: soft
 
@@ -6450,6 +6503,17 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 925d1922f9853e516eaad526b6fed1be38008073067274f0ecc3f56b17bb8ab63480140dd7c271f94150027c996cea4efe83d3e3525e8f3eda22055f6a39220b
+  languageName: node
+  linkType: hard
+
+"use-sound@npm:^4.0.3":
+  version: 4.0.3
+  resolution: "use-sound@npm:4.0.3"
+  dependencies:
+    howler: ^2.1.3
+  peerDependencies:
+    react: ">=16.8"
+  checksum: 23729cf2e2ce87de95a0ff8915c99e126e6a55948c30c2563c3f4ad0bec851f968e34f90145bc06ea091f267174d7846a985378273e260675d1c77fbe22a2d54
   languageName: node
   linkType: hard
 

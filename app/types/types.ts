@@ -1,4 +1,10 @@
-import React from "react";
+
+export interface AudioContextType {
+  playSound: () => void;
+  pauseSound: () => void;
+  isPlaying: boolean;
+}
+
 
 export type Combinations = number[][];
 
