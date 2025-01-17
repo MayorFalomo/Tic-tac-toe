@@ -3,8 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 interface track {
   trackTheWinnner: string;
   trackRounds: number;
-  trackDisableRound: boolean;
-  disabledClick: boolean;
+   trackDisableRound: boolean;
   playersSessionId: SessionId;
   gameSessionId: string;
   combinedGameSessionId: string;
@@ -13,6 +12,8 @@ interface track {
     playerOne: number;
     playerTwo: number;
   };
+  trackSound: boolean;
+  notifBg: string;
 }
 
 export interface SessionId {
@@ -23,8 +24,7 @@ export interface SessionId {
 const initialState: track = {
   trackTheWinnner: "",
   trackRounds: 1,
-  trackDisableRound: true,
-  disabledClick: false,
+   trackDisableRound: true,
   gameSessionId: "",
   combinedGameSessionId: "",
   trackWhoPlays: null,
@@ -36,6 +36,8 @@ const initialState: track = {
     playerOne: 0,
     playerTwo: 0,
   },
+  trackSound: false,
+  notifBg: "red"
 };
 
 export const trackerSlice = createSlice({
@@ -62,7 +64,7 @@ export const trackerSlice = createSlice({
     state.playersSessionId.playerTwoSessionId = action.payload.playerTwoSessionId;
   }
     },
-    setTrackDisableRound: (state, action) => {
+     setTrackDisableRound: (state, action) => {
       state.trackDisableRound = action.payload;
     },
     setTrackScores: (state, action) => {
@@ -70,6 +72,12 @@ export const trackerSlice = createSlice({
     },
     setCombinedGameSessionId: (state, action) => {
       state.scores = action.payload;
+    },
+    setTrackSound: (state, action) => { 
+      state.trackSound = action.payload;
+    },
+    changeNotifBg: (state, action) => {
+      state.notifBg = action.payload;
     }
   },
 });
@@ -82,6 +90,8 @@ export const {
   setPlayersSessionId,
   setTrackDisableRound,
   setTrackScores,
-  setCombinedGameSessionId
+  setCombinedGameSessionId,
+  setTrackSound,
+  changeNotifBg
 } = trackerSlice.actions;
 export default trackerSlice.reducer;

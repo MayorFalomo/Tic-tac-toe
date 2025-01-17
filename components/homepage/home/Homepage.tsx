@@ -19,20 +19,32 @@ import {
   doc,
 } from 'firebase/firestore';
 import { db } from '@/firebase-config/firebase';
-import { setTrackDisableRound, setTrackRounds } from '@/lib/features/TrackerSlice';
-import { toast } from 'react-hot-toast';
-import { Bell, EllipsisVertical } from 'lucide-react';
+import {
+  setTrackDisableRound,
+  setTrackRounds,
+  setTrackSound,
+} from '@/lib/features/TrackerSlice';
+import { toast, Toaster } from 'react-hot-toast';
+import {
+  Bell,
+  CircleStop,
+  EllipsisVertical,
+  MessagesSquare,
+  MoonIcon,
+  Music,
+  SunIcon,
+} from 'lucide-react';
 import ChatModal from '@/components/ChatModal';
 import { useWindowSize } from 'react-use';
 import Confetti from 'react-confetti';
-import { MdMessage } from 'react-icons/md';
+import { useTheme } from '@/app/ThemeContext';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useAudio } from '@/app/AudioContext';
 
-type Props = {};
-
-const Homepage = (props: Props) => {
+const Homepage: React.FC = () => {
   const playersObject = useAppSelector((state: RootState) => state.players.players);
-
   const playerId = useAppSelector((state: RootState) => state.user.playerId);
+  const track = useAppSelector((state: RootState) => state.track);
 
   const dispatch = useAppDispatch();
 
@@ -41,7 +53,14 @@ const Homepage = (props: Props) => {
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [playerChat, setPlayerChat] = useState<Chat[]>([]);
   const [getTheChatId, setTheChatId] = useState<any>(null);
+  const [currentPlayer, setCurrentPlayer] = useState('');
+  const [firstPlayer, setFirstPlayer] = useState('');
+  const [roundWinner, setRoundWinner] = useState<string | null>(null);
+  const [ultimateWinner, setUltimateWinner] = useState<string | null>(null);
+  const { width, height } = useWindowSize(); //For the Cofetti Animation
+
   const router = useRouter();
+  const { currentTheme, setCurrentTheme } = useTheme();
 
   //To get the combinedId
   const combinedId = useMemo(() => {
@@ -99,21 +118,9 @@ const Homepage = (props: Props) => {
     if (!playerId) {
       router.push('/signup');
     } else {
-      toast.success('Welcome to the game', {
-        style: {
-          background: '#333',
-          color: '#fff',
-        },
-        position: 'top-right',
-      });
+      toast.success('Welcome to the game');
     }
   }, [playerId]);
-
-  const [currentPlayer, setCurrentPlayer] = useState('');
-  const [firstPlayer, setFirstPlayer] = useState('');
-  const [roundWinner, setRoundWinner] = useState<string | null>(null);
-  const [ultimateWinner, setUltimateWinner] = useState<string | null>(null);
-  const { width, height } = useWindowSize(); //For the Cofetti Animation
 
   useEffect(() => {
     if (combinedId) {
@@ -135,7 +142,7 @@ const Homepage = (props: Props) => {
       };
       fetchGameSession();
     }
-  }, [db, playersObject]);
+  }, [combinedId, playersObject]);
 
   const handleStartNewRound = useCallback(async () => {
     //Update the game sessions
@@ -168,6 +175,9 @@ const Homepage = (props: Props) => {
     await updateDoc(doc(db, 'playersMoves', combinedId), {
       moves: [],
     });
+    await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
+      status: 'inGame',
+    });
     setRoundWinner(null);
     dispatch(setTrackRounds(gameData?.rounds));
     dispatch(setTrackDisableRound(true));
@@ -178,8 +188,8 @@ const Homepage = (props: Props) => {
     gameData?.players?.playerTwo?.id,
     gameData?.rounds,
     combinedId,
+    playersObject?.playerOne?.id,
     dispatch,
-    setRoundWinner,
   ]);
 
   const restartGame = useCallback(async () => {
@@ -199,24 +209,25 @@ const Homepage = (props: Props) => {
     await updateDoc(doc(db, 'playersMoves', combinedId), {
       moves: [],
     });
+    await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
+      status: 'inGame',
+    });
     setRoundWinner(null);
+    // setUltimateWinner(null);
     toast.success('Game is restarted');
-  }, [gameData?.unChangeableFirstPlayer, combinedId]);
+  }, [combinedId, gameData?.unChangeableFirstPlayer, playersObject?.playerOne?.id]);
 
   const handleModal = useCallback(async () => {
-    //After the modal opens then I need to...
-    //First I need to check if a player chat already exist between the two players using the combinedId as a check
-    //If I find it, I load the chats between the two players and if not I create a new chat session for the players using their combinedId
+    //!After the modal opens then I need to...
+    //*First I need to check if a player chat already exist between the two players using the combinedId as a check
+    //?If I find it, I load the chats between the two players and if not I create a new chat session for the players using their combinedId
     //Meanwhile in my chat modal, when a player sends a message it sends an object containing
-    //senderId, message, timestamp, Reaction
+    //*Note senderId, message, timestamp, Reaction
     //Then just the way we did the instant update with local state , we do the same thing here with the chat messages
     //So whatever messages we send appears instantly then we can sort it by the id so it shows who is in sender and receiver based on the id for each player.
     setOpenModal(true);
     await loadChat();
   }, [openModal]);
-  // async () => {
-  //   setOpenModal(true);
-  //   await loadChat();
 
   const loadChat = async () => {
     const chatRef = collection(db, 'playersChats');
@@ -255,67 +266,49 @@ const Homepage = (props: Props) => {
     });
   };
 
-  // useEffect(() => {
-  //   const checkPlayerStatus = async () => {
-  //     try {
-  //       // Fetch the player document
-  //       const playerRef = doc(db, 'activePlayers', playerId);
-  //       const playerDoc = await getDoc(playerRef);
-
-  //       if (playerDoc.exists()) {
-  //         const playerData = playerDoc.data();
-
-  //         // Check the game session for the other player's status
-  //         const gameSessionRef = doc(db, 'gameSessions', combinedId);
-  //         const gameSessionDoc = await getDoc(gameSessionRef);
-
-  //         if (gameSessionDoc.exists()) {
-  //           const gameSessionData = gameSessionDoc.data();
-  //           const opponentId = gameSessionData.opponentId; // Assuming this field exists
-
-  //           // Check if the opponent is in the game and has the correct status
-  //           const opponentRef = doc(db, 'activePlayers', opponentId);
-  //           const opponentDoc = await getDoc(opponentRef);
-
-  //           if (opponentDoc.exists() && opponentDoc.data().status === 'inGame') {
-  //             // Route them into the game
-  //             router.push(`/`);
-  //           }
-  //         }
-  //       }
-  //     } catch (error) {
-  //       console.error('Error checking player status:', error);
-  //     }
-  //   };
-
-  //   checkPlayerStatus();
-  // }, [playerId, combinedId, db]);
-
-  // useEffect(() => {
-  //   //If the player logs in first while the other couldn't cos the status has changed
-  //   // We want to pull the person into the game
-  //   //So even if their status has changed before the other person we drag them into the game.
-  //   //First we check for their id from fireStore then once gotten we get the id from the gameSession.
-  //   //We can then check that if the other player with this id gotten from the gameSession having a specificId from firestore database and having a status of inGame from firestore database is true
-  //   //Then we route them into the game.
-  // }, []);
-
+  //useEffect to make sure it shows on both players interface
   useEffect(() => {
     if (gameData?.roundWinner === null || '') {
       setRoundWinner(null);
     } else {
       setRoundWinner(gameData?.roundWinner!);
     }
-    if (gameData?.ultimateWinner) {
+    //So the ultimate Winner reflects on both players interface
+    if (gameData?.ultimateWinner !== null || '') {
       setUltimateWinner(gameData?.ultimateWinner!);
+    } else {
+      setUltimateWinner(null);
     }
   }, [gameData?.roundWinner, roundWinner, gameData, gameData?.ultimateWinner]);
 
+  const { play, stop } = useAudio();
+
+  const handleSoundControl = useCallback(async () => {
+    dispatch(setTrackSound(!track?.trackSound));
+  }, [track?.trackSound]);
+
+  const handleThemeChange = useCallback(async (theme: string) => {
+    setCurrentTheme(theme);
+    localStorage.setItem('theme', theme);
+  }, []);
+
+  useEffect(() => {
+    if (track?.trackSound) {
+      play();
+    } else {
+      stop();
+    }
+  }, [track?.trackSound]);
+
   return (
-    <div className=" relative flex flex-col gap-[10px] items-center w-full h-[100vh] overflow-x-hidden">
+    <div
+      className={`${
+        currentTheme === 'light' ? 'bg-royalGreen text-white ' : 'bg-black text-white'
+      } transition-all duration-500 relative flex flex-col gap-[10px] items-center w-full h-[100vh] overflow-x-hidden`}
+    >
       <div className="flex items-center justify-between gap-4 p-4 w-full">
-        <h1 className="text-white border w-[150px] text-center text-[18px] px-3 py-3">
-          <span className="text-white inline-block">Round: {gameData?.rounds} / 5</span>
+        <h1 className="border w-[150px] text-center text-[18px] px-3 py-3">
+          <span className="inline-block">Round: {gameData?.rounds} / 5</span>
         </h1>
         {ultimateWinner!?.length > 1 && <Confetti width={width} height={height} />}
         <div className="flex items-center gap-4 p-4">
@@ -328,22 +321,58 @@ const Homepage = (props: Props) => {
             gameData?.unreadMessages?.playerTwo! > 0 ? (
               <Bell size={30} color="white" />
             ) : (
-              <MdMessage />
+              <MessagesSquare color="white" size={30} />
             )}
             {playersObject?.playerOne?.id === gameData?.players?.playerTwo?.id && (
-              <span className="bg-red-600 text-white z-[4] absolute bottom-1/2 left-[20px] transform -translate-x-1/2 -translate-y-1/2  min-w-[20px] min-h-[20px] place-content-center grid text-[14px] rounded-full">
+              <span
+                className={`${
+                  track?.notifBg ? `bg-[${track?.notifBg}]` : 'bg-[red]'
+                } z-[4] absolute bottom-1/2 left-[20px] transform -translate-x-1/2 -translate-y-1/2  min-w-[20px] min-h-[20px] place-content-center grid text-[14px] rounded-full`}
+              >
                 {gameData?.unreadMessages?.playerTwo ?? 0}
               </span>
             )}
             {playersObject?.playerTwo?.id === gameData?.players?.playerTwo?.id && (
-              <span className="bg-green-500 text-white absolute bottom-1/2 left-[20px] transform -translate-x-1/2 -translate-y-1/2 z-[4] min-w-[20px] min-h-[20px] place-content-center grid text-[14px] rounded-full">
+              <span
+                className={`${
+                  track?.notifBg ? `bg-[${track?.notifBg}]` : 'bg-[red]'
+                } z-[4] absolute bottom-1/2 left-[20px] transform -translate-x-1/2 -translate-y-1/2  min-w-[20px] min-h-[20px] place-content-center grid text-[14px] text-center align-middle rounded-full`}
+              >
                 {gameData?.unreadMessages?.playerOne ?? 0}
               </span>
             )}
           </button>
-          <button className="cursor-pointer outline-none border-none">
-            <EllipsisVertical size={30} color="white" />{' '}
-          </button>
+          <Popover>
+            <PopoverTrigger>
+              {' '}
+              <EllipsisVertical size={30} color="white" />
+            </PopoverTrigger>
+            <PopoverContent className="">
+              <ul className="flex flex-col gap-4 items-start">
+                <li className="w-[90%] flex items-center justify-between gap-4 mx-auto">
+                  <span>Light mode</span>
+                  <span
+                    onClick={() =>
+                      handleThemeChange(currentTheme === 'dark' ? 'light' : 'dark')
+                    }
+                    className=" cursor-pointer"
+                  >
+                    {currentTheme === 'light' ? <MoonIcon /> : <SunIcon />}
+                  </span>
+                </li>
+                <li className="w-[90%] flex items-center justify-between gap-4 mx-auto">
+                  <span>Control sound</span>
+                  <span onClick={handleSoundControl} className=" cursor-pointer">
+                    {track?.trackSound ? <CircleStop /> : <Music />}
+                  </span>
+                </li>
+                <li className="w-[90%] flex items-center justify-between gap-4 mx-auto">
+                  <span>Change Notif bg</span>
+                  <input type={'color'} />
+                </li>
+              </ul>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
       <div className=" flex justify-center items-center m-auto w-full h-[85%] max-[500px]:h-[100%]">
@@ -351,15 +380,15 @@ const Homepage = (props: Props) => {
           <div className="relative">
             <div className="flex items-center justify-between gap-2 w-[100%]">
               <div className="flex items-center w-full  max-w-[250px] justify-center gap-[10px]">
-                {gameData?.players?.playerOne?.avatar! &&
-                  gameData?.players?.playerTwo?.avatar! && (
+                {gameData?.players?.playerOne?.avatar &&
+                  gameData?.players?.playerTwo?.avatar && (
                     <Image
                       width={40}
                       height={40}
                       src={
                         currentPlayer === gameData?.players?.playerOne?.id
-                          ? gameData?.players?.playerOne?.avatar! ?? null
-                          : gameData?.players?.playerTwo?.avatar! ?? null
+                          ? gameData?.players?.playerOne?.avatar ?? null
+                          : gameData?.players?.playerTwo?.avatar ?? null
                       }
                       alt="img"
                       className="w-[70px] h-[70px] object-cover object-top"
@@ -440,32 +469,35 @@ const Homepage = (props: Props) => {
                   )}
               </div>
               <AnimatePresence>
-                {gameData?.ultimateWinner !== null ||
-                  (roundWinner !== null && roundWinner!?.length > 1 && (
-                    <motion.div
-                      style={{
-                        background: 'rgba(255, 255, 255, 0.1)',
-                        backdropFilter: 'blur(3.6px)',
-                        WebkitBackdropFilter: 'filter(5px',
-                        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-                      }}
-                      className="absolute z-20 left-0 right-0 top-[50%] w-full p-3"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
+                {ultimateWinner !== null ||
+                (roundWinner !== null && roundWinner!?.length > 1) ? (
+                  <motion.div
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      backdropFilter: 'blur(3.6px)',
+                      WebkitBackdropFilter: 'filter(5px',
+                      boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                    }}
+                    className="absolute z-20 left-0 right-0 top-[50%] w-full p-3"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                  >
+                    <h1
+                      className={`${
+                        ultimateWinner !== null || '' ? 'text-golden' : 'text-white'
+                      } text-[24px] text-center m-auto`}
                     >
-                      <h1
-                        style={{
-                          color: '#ffffff',
-                        }}
-                        className="text-[24px] text-center m-auto "
-                      >
-                        {roundWinner !== null || gameData?.ultimateWinner !== null
-                          ? roundWinner + ' ' + 'wins'
-                          : ''}
-                      </h1>
-                    </motion.div>
-                  ))}
+                      {ultimateWinner !== null
+                        ? 'Congrats!' + ' ' + ultimateWinner
+                        : roundWinner !== null || ''
+                        ? roundWinner + ' ' + 'wins'
+                        : null}
+                    </h1>
+                  </motion.div>
+                ) : (
+                  ''
+                )}
               </AnimatePresence>
             </div>
             <div
@@ -538,6 +570,8 @@ const Homepage = (props: Props) => {
                     setMovesData={setMovesData}
                     setGameData={setGameData}
                     combinedId={combinedId}
+                    setRoundWinner={setRoundWinner}
+                    setUltimateWinner={setUltimateWinner}
                   />
                 </div>
               ))}
@@ -556,10 +590,10 @@ const Homepage = (props: Props) => {
           <button
             className={`text-white border-2 inline-block text-center text-[18px] px-3 py-2 ${
               gameData?.goToNextRound
-                ? 'opacity-50 bg-red-500 cursor-not-allowed'
+                ? 'opacity-50 bg-brightGreen cursor-not-allowed'
                 : ' opacity-100 cursor-pointer'
             }`}
-            onClick={() => handleStartNewRound()}
+            onClick={restartGame}
           >
             Restart Game
           </button>
@@ -594,6 +628,18 @@ const Homepage = (props: Props) => {
           />
         )}
       </AnimatePresence>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#313235',
+            color: '#fff',
+            width: '300px',
+            height: '70px',
+          },
+        }}
+      />
     </div>
   );
 };

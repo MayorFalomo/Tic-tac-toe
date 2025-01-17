@@ -18,6 +18,7 @@ import { useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
 import { Chat, GameSession } from '@/app/types/types';
 import ChatField from './Chat';
+import { useTheme } from '@/app/ThemeContext';
 
 type Props = {
   openModal: boolean;
@@ -41,6 +42,8 @@ const ChatModal: React.FC<Props> = ({
   const playersObject = useAppSelector((state: RootState) => state.players.players);
   const [textMessage, setTextMessage] = useState<string>('');
   const [storedId, setStoredId] = useState<string | null>(null);
+
+  const { currentTheme } = useTheme();
 
   const sendMessage = async (message: string) => {
     if (message.length > 1) {
@@ -157,7 +160,11 @@ const ChatModal: React.FC<Props> = ({
             Close
           </Button>
         </div>
-        <div className="flex flex-col flex-grow w-full h-full max-w-xl bg-black shadow-xl rounded-lg overflow-hidden">
+        <div
+          className={`${
+            currentTheme === 'light' ? 'bg-royalGreen' : 'bg-black'
+          } flex flex-col flex-grow w-full h-full max-w-xl shadow-xl rounded-lg overflow-hidden`}
+        >
           <div className="flex flex-col flex-grow h-0 p-4 overflow-auto">
             {playersChat?.length > 0 ? (
               playersChat.map((res: Chat, index: number) => (
@@ -179,7 +186,9 @@ const ChatModal: React.FC<Props> = ({
                   Start conversation with {playersObject?.playerTwo?.name}{' '}
                 </p>{' '}
                 <p className="text-gray-500">Enter your message below. </p>
-                <p className="mt-3">Click on a message to send reactions 🤪</p>
+                <p className="mt-3 text-center">
+                  Click on a message to send reactions 🤪
+                </p>
               </div>
             )}
           </div>

@@ -5,7 +5,6 @@ export interface AudioContextType {
   isPlaying: boolean;
 }
 
-
 export type Combinations = number[][];
 
 export type SelectedAnswer = {
@@ -17,7 +16,6 @@ export type Selected = {
   score?: number;
   currrentPlayerControl?: boolean;
   gameId?: string;
-  // playerId: string;
 };
 
 export type PlayerNames = {
@@ -112,4 +110,12 @@ export type AvatarTheme = {
   id: number,
   character: string,
   link: string;
+}
+
+export enum PlayerStatus {
+  INGAME = 'inGame',
+  LOOKING = 'looking',
+  ACTIVE = 'active',
+  ONLINE = 'online',
+  OFFLINE = 'offline',
 }

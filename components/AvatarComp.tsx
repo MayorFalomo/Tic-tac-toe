@@ -1,4 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
 'use client';
 import Image from 'next/image';
 import React, { useState } from 'react';
@@ -36,7 +35,7 @@ const AvatarComp: React.FC<Props> = ({
       return fetchAvatars(
         avatarType?.avatarType === 'initials'
           ? ''
-          : 'https://last-airbender-api.fly.dev/api/v1/characters'
+          : `${process.env.NEXT_PUBLIC_AVATAR_API}/api/v1/characters`
       );
     },
   });

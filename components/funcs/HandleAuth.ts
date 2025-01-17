@@ -2,6 +2,7 @@ import { onDisconnect } from "firebase/database";
 import { database, db,} from "@/firebase-config/firebase";
 import { push, ref, set, } from "@firebase/database";
 import { collection, doc, getDocs, query, setDoc } from "firebase/firestore";
+import { PlayerStatus } from "@/app/types/types";
 
 
 export const handleUserPresence = async (userId: string, playerName: string) => {
@@ -10,14 +11,14 @@ export const handleUserPresence = async (userId: string, playerName: string) => 
 
     //Set the users status to online when they connect
     await set(userRef, {
-      playerName: playerName,
-      status: 'looking',
+      playerName: playerName ?? 'Player',
+      status: PlayerStatus?.LOOKING,
     });
   
     //Using firebase onDisconnect functionality to detect when a user goes offline
   await onDisconnect(userRef).set({
     playerName: playerName,
-    status: 'offline',
+    status: PlayerStatus?.OFFLINE,
   });
     
   } catch (error) {
@@ -34,7 +35,7 @@ export const createGameSession = async (playerId: string, opponentId: string, ge
       await set(sessionRef, {
         playerOneId: getBoolean ? playerId : opponentId,
         playerTwoId: getBoolean ? opponentId : playerId,
-        status: 'looking',
+        status: PlayerStatus?.LOOKING,
         createdAt: new Date().toISOString(),
       });
       
@@ -60,7 +61,7 @@ export const handlePlayersStatus = async (userId: string, status?: string) => {
   
     //Using firebase onDisconnect functionality to detect when a user goes offline
   await onDisconnect(userRef).set({
-    status: 'offline',
+    status: PlayerStatus?.OFFLINE,
   });
     
     

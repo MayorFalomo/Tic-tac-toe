@@ -25,7 +25,7 @@ import {
   where,
   query,
 } from 'firebase/firestore';
-import { AvatarTheme, GameSession, PlayerDetails } from '@/app/types/types';
+import { AvatarTheme, GameSession, PlayerDetails, PlayerStatus } from '@/app/types/types';
 import { createGameSession, handleUserPresence } from '../funcs/HandleAuth';
 import {
   Select,
@@ -39,6 +39,8 @@ import {
 import toast from 'react-hot-toast';
 import { AnimeAvatars, SuperHeroes } from '../PictureStore';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useTheme } from '@/app/ThemeContext';
+import FadeIn from '@/app/animation/FadeIn';
 
 interface playerDetails {
   id: string;
@@ -82,7 +84,7 @@ const SignUp: React.FC = () => {
 
     try {
       setLoading(true); //SetThe loading spinner to be true
-      const playerNameSelect = playerName.length > 1 ? playerName : 'PlayerOne';
+      const playerNameSelect = playerName ? playerName : 'PlayerOne';
       setShowPlayerName(true);
       //create a separate db instance in the database named activePlayers
       const playerRef = push(ref(database, 'activePlayers')); //Create a new child reference
@@ -91,7 +93,7 @@ const SignUp: React.FC = () => {
       //Create a new player Object by referencing the database ref and setting the object we want inside the db reference
       await set(playerRef, {
         name: playerNameSelect,
-        status: 'online',
+        status: PlayerStatus?.ONLINE,
       });
 
       localStorage.setItem('playerKey', playerId); // Save the id key in localstorage as a key named 'playerKey'
@@ -102,11 +104,11 @@ const SignUp: React.FC = () => {
         name: playerNameSelect,
         avatar: Avatar,
         createdAt: new Date().toISOString(),
-        status: 'looking',
+        status: PlayerStatus?.LOOKING,
       });
 
       //Then it changes the players status to looking instead of online
-      await handleUserPresence(playerId, playerNameSelect);
+      await handleUserPresence(playerId, playerName);
 
       //Since we've handled changing a users status we can now search for other players with a status of looking too
       await searchForOpponent(playerId);
@@ -121,7 +123,7 @@ const SignUp: React.FC = () => {
     try {
       const playersRef = collection(db, 'players'); //Create a reference to players collection on firestore
 
-      const q = query(playersRef, where('status', '==', 'looking')); //Query our reference for status 'looking'
+      const q = query(playersRef, where('status', '==', PlayerStatus?.LOOKING)); //Query our reference for status 'looking'
 
       //Our Listener for available opponents
       const unsubscribe = onSnapshot(q, async (snapshot) => {
@@ -145,7 +147,7 @@ const SignUp: React.FC = () => {
               //Only Update the opponents players status to 'inGame'
               await Promise.all([
                 // updateDoc(playerRef, { status: 'inGame' }),
-                updateDoc(doc.ref, { status: 'inGame' }),
+                updateDoc(doc.ref, { status: PlayerStatus?.INGAME }),
               ]);
 
               //Define the object for playerOne
@@ -564,110 +566,147 @@ const SignUp: React.FC = () => {
     }
   };
 
+  const { currentTheme } = useTheme();
+
   return (
-    <div onClick={() => setAvatarType(null)} className="bg-[#000] w-[100vw] h-[100vh]">
-      <div className="text-brightGreen">
-        <div className="flex justify-center items-center h-screen">
-          <form
-            onSubmit={createPlayer}
-            className="border border-white/40 bg-black rounded-lg py-8 px-8 min-w-[250px] w-[400px] max-[550px]:w-[80%] max-[550px]:px-3 "
-          >
-            <h1 className="flex flex-nowrap items-start gap-2 text-[22px] max-[550px]:text-[20px] font-bold mb-2 overflow-hidden">
-              <span>Welcome Player</span>
-              <AnimatePresence>
-                {showPlayerName && (
-                  <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                    - {playerName}{' '}
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </h1>
-            <p className="text-white text-[14px]">
-              Please Sign up and search for a player{' '}
-            </p>
-            <div className="flex flex-col gap-2 mt-2">
-              <Input
-                className="text-white text-[16px] bg-transparent rounded-none my-2 placeholder:text-white/60 border-b border outline-none border-x-0 border-t-0 focus-visible:ring-0 focus-visible:ring-transparent focus-visible:ring-offset-0"
-                type="text"
-                placeholder="Enter your Player name"
-                onChange={(e) => setPlayerName(e.target.value)}
-                maxLength={15}
-              />
-              <Select
-                onValueChange={(value) => {
-                  if (value === 'Anime') {
-                    setAnimePictures(AnimeAvatars);
-                  } else if (value === 'heroes') {
-                    setAnimePictures(SuperHeroes);
-                  } else if (value === 'Avatar') {
-                    setAvatarType({
-                      avatarType: 'Avatar',
-                      avatarUrl: 'https://last-airbender-api.fly.dev/api/v1/characters',
-                    });
-                  } else {
-                    setAvatarType({
-                      avatarType: 'initials',
-                      avatarName: playerName ?? 'Hero Arlen',
-                      avatarUrl: ``,
-                    });
-                  }
-                }}
+    <FadeIn>
+      <div
+        onClick={() => setAvatarType(null)}
+        className={`${
+          currentTheme === 'light'
+            ? 'bg-royalGreen text-golden'
+            : 'bg-[#000] text-brightGreen'
+        } w-[100vw] h-[100vh]`}
+      >
+        <div className="text-brightGreen">
+          <div className="flex justify-center items-center h-screen">
+            <form
+              onSubmit={createPlayer}
+              className={`${
+                currentTheme === 'light' ? 'bg-royalGreen text-golden' : 'bg-black'
+              } border border-white/40 rounded-lg py-8 px-8 min-w-[250px] w-[400px] max-[550px]:w-[80%] max-[550px]:px-3 `}
+            >
+              <h1 className="flex flex-nowrap items-start gap-2 text-[22px] max-[550px]:text-[20px] font-bold mb-2 overflow-hidden">
+                <span>Welcome Player</span>
+                <AnimatePresence>
+                  {showPlayerName && (
+                    <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                      - {playerName}{' '}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </h1>
+              <p
+                className={`text-white ${
+                  currentTheme === 'light' ? '' : 'text-white'
+                } text-[14px]`}
               >
-                <SelectTrigger className="w-[100%] bg-transparent rounded-none border-b-white text-white/60 border-b border outline-none border-x-0 border-t-0 text-[16px] focus:ring-offset-0 focus:ring-0">
-                  <SelectValue
-                    className=" placeholder:text-white"
-                    placeholder="Select your Avatar"
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectLabel>Select your Avatar </SelectLabel>
-                    <SelectItem value="Anime">Anime style</SelectItem>
-                    <SelectItem value="heroes">Superheroes and Villains</SelectItem>
-                    <SelectItem value="Avatar">Avatar last-bender</SelectItem>
-                    <SelectItem value="initials">Initials style</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <Button
-                disabled={loading}
-                type="submit"
-                className={`${
-                  loading ? 'cursor-not-allowed' : 'cursor-pointer'
-                } text-[16px] bg-[#2CBF93] hover:bg-white hover:text-black transition-all duration-500 text-white my-3`}
-              >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    {searchingActive ? 'Found a player!' : `Searching for player`}
-                    <LoadingSpinner
-                      style={{
-                        marginLeft: '3px',
-                      }}
-                    />{' '}
-                  </span>
-                ) : (
-                  <span>Enter Game </span>
-                )}{' '}
-              </Button>
-            </div>
-            <Link href="/login" className="flex justify-center text-[14px]">
-              Login instead?{' '}
-            </Link>
-          </form>
+                Please Sign up and search for a player{' '}
+              </p>
+              <div className="flex flex-col gap-2 mt-2">
+                <Input
+                  className="text-white text-[16px] bg-transparent rounded-none my-2 placeholder:text-white/60 border-b border outline-none border-x-0 border-t-0 focus-visible:ring-0 focus-visible:ring-transparent focus-visible:ring-offset-0"
+                  type="text"
+                  placeholder="Enter your Player name"
+                  onChange={(e) => setPlayerName(e.target.value)}
+                  maxLength={15}
+                />
+                <Select
+                  onValueChange={(value) => {
+                    if (value === 'Anime') {
+                      setAnimePictures(AnimeAvatars);
+                    } else if (value === 'heroes') {
+                      setAnimePictures(SuperHeroes);
+                    } else if (value === 'Avatar') {
+                      setAvatarType({
+                        avatarType: 'Avatar',
+                        avatarUrl: 'https://last-airbender-api.fly.dev/api/v1/characters',
+                      });
+                    } else {
+                      setAvatarType({
+                        avatarType: 'initials',
+                        avatarName: playerName ?? 'Hero Arlen',
+                        avatarUrl: ``,
+                      });
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-[100%] bg-transparent rounded-none border-b-white text-white/60 border-b border outline-none border-x-0 border-t-0 text-[16px] focus:ring-offset-0 focus:ring-0">
+                    <SelectValue
+                      className=" placeholder:text-white"
+                      placeholder="Select your Avatar"
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Select your Avatar </SelectLabel>
+                      <SelectItem value="Anime">Anime style</SelectItem>
+                      <SelectItem value="heroes">Superheroes and Villains</SelectItem>
+                      <SelectItem value="Avatar">Avatar last-bender</SelectItem>
+                      <SelectItem value="initials">Initials style</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <Button
+                  disabled={loading}
+                  type="submit"
+                  className={`${
+                    loading ? 'cursor-not-allowed' : 'cursor-pointer'
+                  } text-[16px] bg-[#2CBF93] hover:bg-white hover:text-black transition-all duration-500 text-white my-3`}
+                >
+                  {loading ? (
+                    <span className="flex items-center gap-2">
+                      {searchingActive ? 'Found a player!' : `Searching for player`}
+                      <LoadingSpinner
+                        style={{
+                          marginLeft: '3px',
+                        }}
+                      />{' '}
+                    </span>
+                  ) : (
+                    <span>Enter Game </span>
+                  )}{' '}
+                </Button>
+              </div>
+              <div className=" flex items-center justify-center gap-3">
+                <Link
+                  href="/login"
+                  className={` ${
+                    currentTheme === 'light' ? 'text-golden' : ''
+                  }flex justify-center text-[14px]`}
+                >
+                  Login instead?{' '}
+                </Link>
+                <p
+                  className={`${
+                    currentTheme === 'light' ? 'bg-brightGreen' : 'bg-white/50'
+                  } h-0.5 w-3 rotate-90`}
+                ></p>
+                <Link
+                  href="/"
+                  className={`${
+                    currentTheme === 'light' ? 'text-white' : 'text-white'
+                  } flex justify-center text-[14px]`}
+                >
+                  Game Menu{' '}
+                </Link>
+              </div>
+            </form>
+          </div>
         </div>
+        {avatarType || AnimePictures?.length > 1 ? (
+          <AvatarComp
+            avatarType={avatarType}
+            setAvatarType={setAvatarType}
+            setAvatar={setAvatar}
+            animePictures={AnimePictures}
+            setAnimePictures={setAnimePictures}
+          />
+        ) : (
+          ''
+        )}
       </div>
-      {avatarType || AnimePictures?.length > 1 ? (
-        <AvatarComp
-          avatarType={avatarType}
-          setAvatarType={setAvatarType}
-          setAvatar={setAvatar}
-          animePictures={AnimePictures}
-          setAnimePictures={setAnimePictures}
-        />
-      ) : (
-        ''
-      )}
-    </div>
+    </FadeIn>
   );
 };
 

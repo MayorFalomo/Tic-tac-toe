@@ -23,6 +23,8 @@ import { push, ref } from '@firebase/database';
 import { GameSession, PlayerDetails } from '@/app/types/types';
 import { setAPlayerId } from '@/lib/features/userSlice';
 import { setCombinedGameSessionId, setSessionId } from '@/lib/features/TrackerSlice';
+import FadeIn from '@/app/animation/FadeIn';
+import { useTheme } from '@/app/ThemeContext';
 
 const Login = () => {
   const [playerName, setPlayerName] = useState<string>('');
@@ -31,6 +33,7 @@ const Login = () => {
   const [randomControl, setRandomControl] = useState<boolean>(false); //To pick the random player
   const [searchingActive, setSearchingActive] = useState<boolean>(false);
   const dispatch = useAppDispatch();
+  const { currentTheme } = useTheme();
 
   const router = useRouter();
 
@@ -234,37 +237,65 @@ const Login = () => {
   };
 
   return (
-    <div className="bg-[#000] w-[100vw] h-[100vh] ">
-      <div className="text-brightGreen">
-        <div className="flex justify-center items-center h-screen">
-          <form
-            onSubmit={loginPlayer}
-            className="border border-white/40 rounded-lg py-8 px-8 min-w-[250px] w-[400px] max-[550px]:w-[95%] max-[550px]:px-3"
-          >
-            <h1 className="text-2xl text-center font-bold mb-4">Login to your account</h1>
-            <div className="flex flex-col gap-2">
-              <Button
-                type="submit"
-                className="text-[16px] bg-[#2CBF93] hover:bg-white text-black my-3 mr-2"
-              >
-                {' '}
-                <span>
-                  {searchingActive && loading
-                    ? 'Found a player!'
-                    : !searchingActive && loading
-                    ? 'Searching for a player'
-                    : 'Enter game'}{' '}
-                </span>
-                <span>{loading && <LoadingSpinner />}</span>
-              </Button>
-            </div>
-            <Link href="/signup" className="flex justify-center text-[14px] text-white">
-              Create new profile instead?{' '}
-            </Link>
-          </form>
+    <FadeIn>
+      <div
+        className={`${
+          currentTheme === 'light'
+            ? 'bg-royalGreen text-white'
+            : 'bg-black text-brightGreen'
+        } bg-[#000] w-[100vw] h-[100vh] `}
+      >
+        <div className="">
+          <div className="flex justify-center items-center h-screen">
+            <form
+              onSubmit={loginPlayer}
+              className="border border-white/40 rounded-lg py-8 px-8 min-w-[250px] w-[400px] max-[550px]:w-[95%] max-[550px]:px-3"
+            >
+              <h1 className="text-2xl text-center font-bold mb-4">
+                Login to your account
+              </h1>
+              <div className="flex flex-col gap-2">
+                <Button
+                  type="submit"
+                  className="text-[16px] bg-[#2CBF93] hover:bg-white text-black my-3 mr-2"
+                >
+                  {' '}
+                  <span>
+                    {searchingActive && loading
+                      ? 'Found a player!'
+                      : !searchingActive && loading
+                      ? 'Searching for a player'
+                      : 'Enter game'}{' '}
+                  </span>
+                  <span>{loading && <LoadingSpinner />}</span>
+                </Button>
+              </div>
+              <div className=" flex flex-col items-center justify-center gap-3">
+                <Link
+                  href="/signup"
+                  className="flex justify-center text-[14px] text-white"
+                >
+                  Create new profile instead?{' '}
+                </Link>
+                <p
+                  className={`${
+                    currentTheme === 'light' ? 'bg-brightGreen' : 'bg-white/30'
+                  } h-0.5 w-full`}
+                ></p>
+                <Link
+                  href="/"
+                  className={`${
+                    currentTheme === 'light' ? 'text-white' : 'text-white'
+                  } flex justify-center text-[14px]`}
+                >
+                  Game Menu{' '}
+                </Link>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
+    </FadeIn>
   );
 };
 

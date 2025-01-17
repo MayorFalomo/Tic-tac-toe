@@ -1,28 +1,20 @@
 import { GameSession, MovesObject } from '@/app/types/types';
 import {
-  SessionId,
   setPlayersSessionId,
   setTrackDisableRound,
-  setTrackScores,
   setTrackWinner,
 } from '@/lib/features/TrackerSlice';
 import { database, db } from '@/firebase-config/firebase';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
-import {
-  doc,
-  getDoc,
-  onSnapshot,
-  serverTimestamp,
-  setDoc,
-  updateDoc,
-} from 'firebase/firestore';
+import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
-import { get, onValue, push, ref, update } from '@firebase/database';
+import { get, ref } from '@firebase/database';
 import toast from 'react-hot-toast';
 import DrawLine from '@/app/animation/DrawLine';
 import { AnimatePresence } from 'framer-motion';
+import { useScreenSize } from '@/hooks/screenSize';
 
 type MappedOver = {
   val: any;
@@ -33,153 +25,29 @@ type MappedOver = {
   setMovesData: React.Dispatch<React.SetStateAction<MovesObject[]>>;
   setGameData: React.Dispatch<React.SetStateAction<GameSession | null>>;
   combinedId: string;
+  setRoundWinner: React.Dispatch<React.SetStateAction<string | null>>;
+  setUltimateWinner: React.Dispatch<React.SetStateAction<string | null>>;
 };
 
 const Possible: React.FC<MappedOver> = ({
-  val,
   index,
   firstPlayer,
   gameData,
   movesData,
-  setMovesData,
-  setGameData,
   combinedId,
+  setUltimateWinner,
 }) => {
   const [storedCurrentPlayerChoices, setStoredCurrentPlayerChoices] = useState<number[]>(
     []
   );
+
+  const isBiggerScreen = useScreenSize(500);
+
   const possibility = useAppSelector((state) => state.possible.possibility); //State to hold all the possible combinations
 
-  const playersChoice = useAppSelector((state: RootState) => state.players); //All the index chosen are pushed inside the playerOneChoice Array
-
-  const track = useAppSelector((state: RootState) => state.track); //State to track rounds
-
-  const disableDoubleClick = useAppSelector(
-    (state: RootState) => state.track.disabledClick
-  ); // State to try and control double clicking
-
   const playersObject = useAppSelector((state: RootState) => state.players.players);
-  // const gameId = useAppSelector((state: RootState) => state.user.gameId);
-  const movesPlayed = useAppSelector((state: RootState) => state.players?.moves);
 
   const dispatch = useAppDispatch();
-
-  //Function to handle what happens when a user clicks on a box
-  // const handleSelections = async (
-  //   selected: number,
-  //   currPlayerControl: boolean
-  // ) => {
-  //   // console.log(currPlayerControl, "curr");
-
-  //   if (disableDoubleClick) return; // Prevent further clicks if loading
-
-  //   dispatch(setDisabledClick(true)); // Set loading state to true
-
-  //   // If currPlayerControl is false then playerOne is the one playing
-  //   if (!currPlayerControl) {
-  //     const playerObj: Selected = {
-  //       player: "PlayerOne",
-  //       choice: selected,
-  //     };
-
-  //     dispatch(addPlayerOne(playerObj));
-
-  //     dispatch(changeCurrentPlayerControl(true));
-
-  //     // setPlayerOnesChoice((prev) => {
-  //     //   return [...prev, playerObj];
-  //     // });
-  //   } else if (
-  //     currPlayerControl
-  //     // &&
-  //     // playerOnesChoice &&
-  //     // playerOnesChoice.length > 0
-  //   ) {
-  //     const playerObj: Selected = {
-  //       player: "PlayerTwo",
-  //       choice: selected,
-  //     };
-
-  //     dispatch(addPlayerTwo(playerObj));
-  //     dispatch(changeCurrentPlayerControl(false));
-
-  //     // setPlayerTwosChoice((prev) => {
-  //     //   return [...prev, playerObj];
-  //     // });
-
-  //     // Simulate some delay for processing (optional)
-  //     await new Promise((resolve) => setTimeout(resolve, 1000)); // Adjust time as needed
-  //   }
-  //   dispatch(setDisabledClick(false)); // Reset loading state
-  // };
-  // console.log(playersObject, 'playersObj');
-
-  const handleSelections = async (selected: number, sessionId: SessionId) => {
-    //# First I reference both the documents which would be called playerMoves based on the combined sessionId of both players.
-    //! Then I also need to check who plays first by checking the currentlyPlaying field in the players object.
-    //* Before I play, I need to determine whose turn it is first by checking the currentTurn field in the gameSession object.
-    //? If the currentTurn is equal to the playerId of the current player, then it is their turn.
-    //? If it isn't, then I throw an error saying it is not their turn.
-    // When I know whose turn it is, The Id of the current players turn must match what is being sent from the move object, If they aren't a match Then I throw an error saying it is not their turn.
-    //? If it is their turn, then I check on firebase, if the choice has been played before in the player moves ...If it has, then I throw an error saying box has been selected previously.
-    //# If it hasn't been selected before, then I go on and push the object to firebase playerMoves based on the sessionId and whoever's turn it is.
-    //? After that I update the currentTurn field to the next player's id, so that I can determine whose turn is next
-    // //Reference the playerMoves database
-    // const playerOneMovesRef = ref(
-    //   database,
-    //   `playersMoves/${sessionId.playerOneSessionId}`
-    // );
-    // const playerTwoMovesRef = ref(
-    //   database,
-    //   `playersMoves/${sessionId.playerTwoSessionId}`
-    // );
-    // //?Getting the playerObject details
-    // const playerOne = playersObject?.playerOne;
-    // const playerTwo = playersObject?.playerTwo;
-    // // Determine which player's id is used based on currentlyPlaying, If currentlyPlaying for playerOne is true, then we know we're using playerOneId else we're gonna use playerTwoId
-    // const currentPlayerId = playerOne?.currentlyPlaying
-    //   ? playerOne?.id
-    //   : playerTwo?.currentlyPlaying
-    //   ? playerTwo?.id
-    //   : '';
-    // if (playerOne.currentlyPlaying && currentPlayerId === trackCurrentPlayerId) {
-    //   //# Check for if the selected box is already taken
-    //   //# i'm getting the two playerMoves so I can check through them if the move has been picked
-    //   const existingPlayerOneMoves = await get(playerOneMovesRef);
-    //   const existingPlayerTwoMoves = await get(playerTwoMovesRef);
-    //   const movesOneData = existingPlayerOneMoves.val() || {};
-    //   const movesTwoData = existingPlayerTwoMoves.val() || {};
-    //   // Check if the box is already taken
-    //   const isBoxTaken =
-    //     Object.values(movesOneData).some((move) => move?.choice === selected) &&
-    //     Object.values(movesTwoData).some((move) => move?.choice === selected);
-    //   if (isBoxTaken) {
-    //     console.error('This box is already taken!');
-    //     return;
-    //   }
-    //   // Prepare the move data
-    //   const singleMove = {
-    //     choice: selected,
-    //     playerId: currentPlayerId,
-    //     timeStamp: new Date().toISOString(),
-    //   };
-    //   // console.log('singleMove playerOne');
-    //   // Push the move to Firebase
-    //   const res = await push(playerOneMovesRef, singleMove);
-    //   // fetchGameMoves(gameSessionId?.playerOneSessionId);
-    //   // console.log(res, 'move result');
-    //   if (res) {
-    //     // Fetch moves from both players
-    //     const playerOneMoves = await get(playerOneMovesRef);
-    //     const playerTwoMoves = await get(playerTwoMovesRef);
-    //     const movesOneData = playerOneMoves.val() || {};
-    //     const movesTwoData = playerTwoMoves.val() || {};
-    //     // Dispatch or store the combined moves
-    //     dispatch(setMoves(movesPlayed)); // Assuming setMoves updates the game state
-    //     dispatch(updateCurrentlyPlaying(playerOne?.id)); // Update the local state to reflect the next player's turn
-    //   }
-    // }
-  };
 
   const handleMoves = async () => {
     try {
@@ -254,8 +122,6 @@ const Possible: React.FC<MappedOver> = ({
           const currentTurn = getGameData.currentTurn;
           const movesDoc = await getDoc(doc(db, 'playersMoves', combinedId));
 
-          // console.log(movesDoc.data(), 'movesDoc');
-
           const moves = movesDoc.data()?.moves || [];
 
           // Check if it's the player's turn
@@ -269,8 +135,6 @@ const Possible: React.FC<MappedOver> = ({
             });
             return;
           }
-
-          // console.log(moves, 'moves');
 
           // Check if the choice field in the moves array matches the selected choice
           const isChoiceTaken = moves.some((move: any) => move.choice === selected);
@@ -307,6 +171,7 @@ const Possible: React.FC<MappedOver> = ({
             //Check if the current player has won based on what was just played
             const winning = checkForWinningCombination(currentTurn, updatedMoves);
             const draw = checkForDraw(updatedMoves); //Check if the game is a draw
+            console.log(draw, 'draw');
 
             if (winning) {
               await updateDoc(doc(db, 'playersMoves', combinedId), {
@@ -323,16 +188,6 @@ const Possible: React.FC<MappedOver> = ({
                   ? gameData?.players?.playerOne?.id
                   : gameData?.players?.playerTwo?.id;
 
-              const determineNextPlayer =
-                gameData?.firstPlayer === gameData?.players?.playerOne?.id
-                  ? gameData?.players?.playerTwo?.id
-                  : gameData?.players?.playerOne?.id;
-
-              // const playerTwoScore =
-              //   determineWinnerName === playersObject?.playerTwo?.name
-              //     ? gameData?.scores?.playerTwo! + 1
-              //     : gameData?.scores?.playerTwo!;
-
               await updateDoc(doc(db, 'gameSessions', combinedId), {
                 scores: {
                   playerOne:
@@ -344,20 +199,20 @@ const Possible: React.FC<MappedOver> = ({
                       ? gameData?.scores?.playerTwo! + 1
                       : gameData?.scores?.playerTwo!,
                 },
-                // firstPlayer: determineNextPlayer,
                 roundWinner: determineWinnerName,
                 goToNextRound: false, //For the round button
                 endOfRound: true,
               });
 
-              if (gameData?.rounds! === 5) {
+              if (gameData?.rounds === 5 && !draw) {
                 const determineFinalWinner =
-                  getGameData?.scores?.playerOne > getGameData?.scores?.playerTwo;
+                  gameData?.scores?.playerOne > gameData?.scores?.playerTwo;
                 await updateDoc(doc(db, 'gameSessions', combinedId), {
                   roundWinner: determineWinnerName,
                   endOfRound: true,
                 });
-                toast.success(`Player ${determineWinnerName} is the ultimate winner!`, {
+
+                toast.success(`Player ${determineWinnerName} wins this round!`, {
                   position: 'top-center',
                   style: {
                     background: '#333', // Dark background
@@ -366,8 +221,10 @@ const Possible: React.FC<MappedOver> = ({
                     minWidth: '250px',
                   },
                 });
+
                 setTimeout(async () => {
                   await updateDoc(doc(db, 'gameSessions', combinedId), {
+                    roundWinner: '',
                     ultimateWinner: determineWinnerName,
                   });
                   toast.success(
@@ -386,7 +243,21 @@ const Possible: React.FC<MappedOver> = ({
                       position: 'top-right',
                     }
                   );
-                }, 7000);
+                  setUltimateWinner(
+                    determineFinalWinner
+                      ? gameData?.players?.playerOne?.name
+                      : gameData?.players?.playerTwo?.name
+                  );
+                }, 6000);
+                //So it reflects offline after since most players go off here
+                await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
+                  status: 'offline',
+                });
+                // setRoundWinner(
+                //   determineFinalWinner
+                //     ? gameData?.players?.playerOne?.name
+                //     : gameData?.players?.playerTwo?.name
+                // );
                 return;
               }
               dispatch(setTrackWinner(determineWinnerName));
@@ -410,9 +281,9 @@ const Possible: React.FC<MappedOver> = ({
               });
               dispatch(setTrackDisableRound(false));
 
-              if (gameData?.rounds! === 5) {
+              if (gameData?.rounds === 5) {
                 const checkForDrawInGame =
-                  getGameData?.scores?.playerOne === getGameData?.scores?.playerTwo;
+                  gameData?.scores?.playerOne === gameData?.scores?.playerTwo;
 
                 setTimeout(async () => {
                   toast.success(`${checkForDrawInGame && 'Game has ended in a draw!'}`, {
@@ -488,8 +359,13 @@ const Possible: React.FC<MappedOver> = ({
   };
 
   const checkForDraw = (moves: MovesObject[]) => {
-    if (moves.length === 9) {
+    const result =
+      moves.length === 9 &&
+      !checkForWinningCombination(gameData?.currentTurn!, movesData);
+    if (result) {
       return true;
+    } else {
+      return false;
     }
   };
 
@@ -609,7 +485,7 @@ const Possible: React.FC<MappedOver> = ({
               width="90%"
               height="5px"
               top="20px"
-              left="60px"
+              left={isBiggerScreen ? '65px' : '55px'}
               style="bg-blue-500"
               rotate={90}
             />
@@ -618,33 +494,57 @@ const Possible: React.FC<MappedOver> = ({
             <DrawLine
               width="110%"
               height="5px"
-              top="45px"
+              top={isBiggerScreen ? '45px' : '40px'}
               left="53px"
-              rotate="45"
+              rotate={isBiggerScreen ? '45' : '48'}
               transformOrigin="top left"
             />
           )}
           {possibility[3].every((res) => gameData?.winningCombination!.includes(res)) && (
-            <DrawLine width="90%" height="5px" top="20px" left="50%" rotate={90} />
+            <DrawLine
+              width="90%"
+              height="5px"
+              top="20px"
+              left={isBiggerScreen ? '50%' : '51%'}
+              rotate={90}
+            />
           )}
           {possibility[4].every((res) => gameData?.winningCombination!.includes(res)) && (
             <DrawLine
               width="110%"
               height="5px"
               top="40px"
-              left="340px"
+              left={isBiggerScreen ? '340px' : '270px'}
               rotate="-224"
               transformOrigin="bottom left"
             />
           )}
           {possibility[5].every((res) => gameData?.winningCombination!.includes(res)) && (
-            <DrawLine width="90%" height="5px" top="20px" left="330px" rotate="90" />
+            <DrawLine
+              width="90%"
+              height="5px"
+              top="20px"
+              left={isBiggerScreen ? '330px' : '270px'}
+              rotate="90"
+            />
           )}
           {possibility[6].every((res) => gameData?.winningCombination!.includes(res)) && (
-            <DrawLine width="90%" height="5px" top="190px" left="20px" rotate="0" />
+            <DrawLine
+              width="90%"
+              height="5px"
+              top={isBiggerScreen ? '190px' : '160px'}
+              left="20px"
+              rotate="0"
+            />
           )}
           {possibility[7].every((res) => gameData?.winningCombination!.includes(res)) && (
-            <DrawLine width="90%" height="5px" bottom="60px" left="20px" rotate="0" />
+            <DrawLine
+              width="90%"
+              height="5px"
+              bottom={isBiggerScreen ? '60px' : '65px'}
+              left="20px"
+              rotate="0"
+            />
           )}
         </AnimatePresence>
       </div>

@@ -4,16 +4,7 @@ import { RootState } from '@/lib/store';
 import Image from 'next/image';
 import React, { useState } from 'react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
-import {
-  arrayUnion,
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  updateDoc,
-  where,
-} from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/firebase-config/firebase';
 
 type IProps = {
@@ -36,7 +27,6 @@ const ChatField: React.FC<IProps> = ({
   gameData,
 }) => {
   const playersObject = useAppSelector((state: RootState) => state.players.players);
-  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
 
   const formatTime = (timestamp: TimeStamp) => {
     //First run conversions to a formatable date
@@ -68,7 +58,6 @@ const ChatField: React.FC<IProps> = ({
             const hasReacted = msg?.reactions?.some(
               (react) => react?.userId === senderId
             );
-            console.log(hasReacted, 'hasReacted');
 
             if (hasReacted) {
               //If User has reacted, update the reaction
@@ -85,8 +74,6 @@ const ChatField: React.FC<IProps> = ({
                 }),
               };
             } else {
-              console.log('else has rann');
-
               // User hasn't reacted yet, add a new reaction
               return {
                 ...msg,
@@ -124,9 +111,7 @@ const ChatField: React.FC<IProps> = ({
             : 'flex w-full mt-2 space-x-3 max-w-xs'
         }`}
         onMouseOver={() => setStoredId(res?._id)}
-        // onFocus={() => setStoredId(res?._id)}
         onMouseOut={() => setStoredId(null)}
-        // onBlur={() => setStoredId(null)}
       >
         {res.senderId !== playersObject?.playerOne?.id && (
           <div className=" flex-shrink-0 h-10 w-10 rounded-full bg-gray-300">
