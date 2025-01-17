@@ -149,7 +149,7 @@ const AllPlayers = () => {
           </div>
         </div>
         <div className="h-full overflow-auto">
-          <div className="w-full bg-white px-2">
+          <div className="w-full bg-white py-4 px-2">
             <Link className="w-full mt-3" href="/">
               <span className="cursor-pointer w-fit text-black">{<ArrowLeft />} </span>
             </Link>
