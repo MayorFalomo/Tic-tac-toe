@@ -8,7 +8,7 @@ import { AudioProvider } from './AudioContext';
 const inter = Prompt({ weight: '400', style: 'normal', subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Online Multiplayer and player chat Tictactoe Game',
+  title: 'Online Multiplayer and player live-chat Tictactoe Game',
   description:
     'A multiplayer Tictactoe game with real-time playing and instant chatting while playing',
 };

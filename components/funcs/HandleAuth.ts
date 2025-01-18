@@ -64,8 +64,6 @@ export const handlePlayersStatus = async (userId: string, status?: string) => {
     status: PlayerStatus?.OFFLINE,
   });
     
-    
-    
   } catch (error) {
     console.log(error, 'Error has occurred');
   }

@@ -7,6 +7,7 @@ import { useTheme } from '@/app/ThemeContext';
 import { useAppDispatch } from '@/lib/hooks';
 import { changeNotifBg } from '@/lib/features/TrackerSlice';
 import FadeIn from '@/app/animation/FadeIn';
+import Bouncy from '@/app/animation/Bouncy';
 
 type Props = {};
 
@@ -53,45 +54,51 @@ const GameMenu = (props: Props) => {
                 alt="img"
               />
             </div>
-            <Link className="w-[40%] max-[540px]:w-[70%] mt-[40px]" href="/signup">
-              <Button
-                className={`w-[100%]  cursor-pointer text-[16px] ${
-                  currentTheme === 'light'
-                    ? 'bg-transparent text-[#9F8151] border hover:bg-white'
-                    : 'text-white hover:border hover:border-white'
-                } `}
-              >
-                <span> Play Game</span>
-              </Button>
-            </Link>
-            <Link className="w-[40%]  max-[540px]:w-[70%]" href="/players">
-              <Button
-                className={`w-[100%] flex items-center gap-4 py-3 cursor-pointer text-[16px] ${
-                  currentTheme === 'light'
-                    ? 'bg-transparent text-[#9F8151] border hover:bg-white'
-                    : 'text-white hover:border hover:border-white'
-                } hover:border-white`}
-              >
-                <span>
-                  <EarthIcon />{' '}
-                </span>
-                <span>View Players </span>
-              </Button>
-            </Link>
-            <Link className="w-[40%]  max-[540px]:w-[70%]" href="/settings">
-              <Button
-                className={`w-[100%] flex items-center gap-4 py-3 cursor-pointer text-[16px] ${
-                  currentTheme === 'light'
-                    ? 'bg-transparent text-[#9F8151] border hover:bg-white'
-                    : 'text-white hover:border hover:border-white'
-                } hover:border-white`}
-              >
-                <span>
-                  <Settings />{' '}
-                </span>
-                <span>Settings </span>
-              </Button>
-            </Link>
+            <Bouncy delay={0.2} className="w-[40%] max-[600px]:w-[70%] mt-[40px]">
+              <Link href="/signup">
+                <Button
+                  className={`w-[100%]  cursor-pointer text-[16px] ${
+                    currentTheme === 'light'
+                      ? 'bg-transparent text-[#9F8151] border hover:bg-white'
+                      : 'text-white hover:border hover:border-white'
+                  } `}
+                >
+                  <span> Play Game</span>
+                </Button>
+              </Link>
+            </Bouncy>
+            <Bouncy delay={0.4} className="w-[40%]  max-[600px]:w-[70%]">
+              <Link href="/players">
+                <Button
+                  className={`w-[100%] flex items-center gap-4 py-3 cursor-pointer text-[16px] ${
+                    currentTheme === 'light'
+                      ? 'bg-transparent text-[#9F8151] border hover:bg-white'
+                      : 'text-white hover:border hover:border-white'
+                  } hover:border-white`}
+                >
+                  <span>
+                    <EarthIcon />{' '}
+                  </span>
+                  <span>View Players </span>
+                </Button>
+              </Link>
+            </Bouncy>
+            <Bouncy delay={0.6} className="w-[40%]  max-[600px]:w-[70%]">
+              <Link href="/settings">
+                <Button
+                  className={`w-[100%] flex items-center gap-4 py-3 cursor-pointer text-[16px] ${
+                    currentTheme === 'light'
+                      ? 'bg-transparent text-[#9F8151] border hover:bg-white'
+                      : 'text-white hover:border hover:border-white'
+                  } hover:border-white`}
+                >
+                  <span>
+                    <Settings />{' '}
+                  </span>
+                  <span>Settings </span>
+                </Button>
+              </Link>
+            </Bouncy>
           </div>
         </div>
       </div>

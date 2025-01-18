@@ -52,6 +52,7 @@ export type GameSession = {
   winningCombination: number[] | null,
   goToNextRound?: boolean,
   trackRoundPlayer: string;
+  quitGame: boolean;
   scores: {
     playerOne: number;
     playerTwo: number;

@@ -1,16 +1,11 @@
 import { GameSession, MovesObject } from '@/app/types/types';
-import {
-  setPlayersSessionId,
-  setTrackDisableRound,
-  setTrackWinner,
-} from '@/lib/features/TrackerSlice';
-import { database, db } from '@/firebase-config/firebase';
+import { setTrackDisableRound, setTrackWinner } from '@/lib/features/TrackerSlice';
+import { db } from '@/firebase-config/firebase';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
 import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
-import { get, ref } from '@firebase/database';
 import toast from 'react-hot-toast';
 import DrawLine from '@/app/animation/DrawLine';
 import { AnimatePresence } from 'framer-motion';
@@ -49,66 +44,14 @@ const Possible: React.FC<MappedOver> = ({
 
   const dispatch = useAppDispatch();
 
-  const handleMoves = async () => {
-    try {
-      const movesDoc = await getDoc(doc(db, 'playersMoves', combinedId));
-      if (movesDoc.exists()) {
-        const movesData = movesDoc.data();
-        // console.log(movesData, 'movesData');
-      } else {
-        const moveObject = {
-          moves: [],
-        };
-        await setDoc(doc(db, 'playersMoves', combinedId), moveObject);
-
-        // Create or update user chats for player one
-        const playerOneChatDoc = doc(db, 'playerChats', playersObject?.playerOne?.id);
-        const playerTwoChatDoc = doc(db, 'playerChats', playersObject?.playerTwo?.id);
-
-        // Check if player one chat document exists
-        const playerOneChatDocSnap = await getDoc(playerOneChatDoc);
-        if (!playerOneChatDocSnap.exists()) {
-          await setDoc(playerOneChatDoc, {}); // Create an empty document if it doesn't exist
-        }
-
-        // Update player one chat document
-        await updateDoc(playerOneChatDoc, {
-          [combinedId + '.userInfo']: {
-            uid: playersObject?.playerTwo?.id,
-            username: playersObject?.playerTwo?.name,
-            avatar: playersObject?.playerTwo?.avatar,
-          },
-          [combinedId + '.date']: serverTimestamp(),
-        });
-
-        // Check if player two chat document exists
-        const playerTwoChatDocSnap = await getDoc(playerTwoChatDoc);
-        if (!playerTwoChatDocSnap.exists()) {
-          await setDoc(playerTwoChatDoc, {}); // Create an empty document if it doesn't exist
-        }
-
-        // Update player two chat document
-        await updateDoc(playerTwoChatDoc, {
-          [combinedId + '.userInfo']: {
-            uid: playersObject?.playerOne?.id,
-            username: playersObject?.playerOne?.name,
-            avatar: playersObject?.playerOne?.avatar,
-          },
-          [combinedId + '.date']: serverTimestamp(),
-        });
-      }
-    } catch (error) {
-      console.log(error, 'error');
-    }
-  };
-
   const updateGameState = async (selected: number) => {
     try {
       const gameDoc = await getDoc(doc(db, 'gameSessions', combinedId));
       const movesDocu = await getDoc(doc(db, 'playersMoves', combinedId));
       if (movesDocu.exists()) {
         const movesData = movesDocu.data();
-        // console.log(movesData, 'movesData');
+        //Need to decide what to do here
+        console.log(movesData, 'movesData');
       } else {
         const moveObject = {
           moves: [],
@@ -171,7 +114,6 @@ const Possible: React.FC<MappedOver> = ({
             //Check if the current player has won based on what was just played
             const winning = checkForWinningCombination(currentTurn, updatedMoves);
             const draw = checkForDraw(updatedMoves); //Check if the game is a draw
-            console.log(draw, 'draw');
 
             if (winning) {
               await updateDoc(doc(db, 'playersMoves', combinedId), {
@@ -243,21 +185,23 @@ const Possible: React.FC<MappedOver> = ({
                       position: 'top-right',
                     }
                   );
-                  setUltimateWinner(
-                    determineFinalWinner
+                  const determineFinalWinnerName = determineFinalWinner
+                    ? gameData?.players?.playerOne?.name ===
+                      playersObject?.playerOne?.name
                       ? gameData?.players?.playerOne?.name
                       : gameData?.players?.playerTwo?.name
-                  );
+                    : gameData?.players?.playerTwo?.name ===
+                      playersObject?.playerTwo?.name
+                    ? gameData?.players?.playerOne?.name
+                    : gameData?.players?.playerTwo?.name;
+
+                  setUltimateWinner(determineFinalWinnerName);
                 }, 6000);
                 //So it reflects offline after since most players go off here
                 await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
                   status: 'offline',
                 });
-                // setRoundWinner(
-                //   determineFinalWinner
-                //     ? gameData?.players?.playerOne?.name
-                //     : gameData?.players?.playerTwo?.name
-                // );
+
                 return;
               }
               dispatch(setTrackWinner(determineWinnerName));
@@ -306,10 +250,6 @@ const Possible: React.FC<MappedOver> = ({
               await updateDoc(doc(db, 'gameSessions', combinedId), {
                 currentTurn: nextTurn,
               });
-
-              // await updateDoc(doc(db, 'playersMoves', combinedId), {
-              //   moves: updatedMoves, // Now we can safely use the updated array
-              // });
             }
             //Then Update the currentTurn field in the gameSession document
           }
@@ -375,32 +315,6 @@ const Possible: React.FC<MappedOver> = ({
     }
   }, [movesData]);
 
-  //!Function to get the opponents data using their playerId
-  const getOpponentSessionId = async (playerId: string) => {
-    const playersRef = ref(database, 'activePlayers');
-
-    const snapshot = await get(playersRef);
-    const players = snapshot.val();
-
-    const opponentId = Object.keys(players).find(
-      (id) => id !== playerId && players[id].status === 'inGame'
-    );
-
-    if (opponentId) {
-      const opponentData = players[opponentId];
-      // console.log(opponentData, 'opponentDATA'); //current user Object containing my opponent data like their id, sessionId, currentlyPlaying, status
-
-      dispatch(
-        setPlayersSessionId({
-          playerTwoSessionId: opponentData.sessionId, //Gives me the opponents sessionId
-        })
-      );
-      return opponentData.sessionId; // Return the opponent's session ID
-    }
-
-    return null; // Return null if no opponent found
-  };
-
   //Filter through the movesData by their id and get the corresponding choices of each players and push it to an array
   //Once the array is created, I check if it matches any of the combinations in the possibility array
   const filterMovesData = async (movesData: MovesObject[]) => {
@@ -408,36 +322,11 @@ const Possible: React.FC<MappedOver> = ({
     const currentPlayerChoices = movesData
       .filter((move) => move.playerId === gameData?.currentTurn)
       .map((res) => res.choice);
-    // console.log(currentPlayerChoices, 'To get the exact winning combination');
     await updateDoc(doc(db, 'gameSessions', combinedId), {
       winningCombination: currentPlayerChoices,
     });
     setStoredCurrentPlayerChoices(currentPlayerChoices);
-
-    // console.log(currentPlayerChoices, 'currentPlayerChoices');
   };
-
-  const movesDataStringer = movesData.map((res) => res.choice);
-  // console.log(storedCurrentPlayerChoices, 'CHOICES');
-
-  // console.log(movesDataStringer.includes(possibility[5].join(',')), 'movesData string');
-  // console.log([movesDataStringer].includes(possibility[4]), 'movesDatastringer');
-  //Get the combination that matches the movesData
-  // const matchingCombination = possibility.find(
-  //   (combination) => combination.join(',') === movesData.toString()
-  // );
-  // console.log(
-  //   possibility[2].every((res) => storedCurrentPlayerChoices.includes(res)),
-  //   'matchingCombination'
-  // );
-  // console.log(possibility[2], '4th possibility');
-  // console.log(gameData, 'val');
-  // console.log(possibility[2], 'possibility 2');
-
-  // console.log(
-  //   possibility[7].every((res) => gameData?.winningCombination!.includes(res)),
-  //   'winner combo'
-  // );
 
   return (
     <div>

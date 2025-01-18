@@ -20,6 +20,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/firebase-config/firebase';
 import {
+  changeNotifBg,
   setTrackDisableRound,
   setTrackRounds,
   setTrackSound,
@@ -28,18 +29,23 @@ import { toast, Toaster } from 'react-hot-toast';
 import {
   Bell,
   CircleStop,
-  EllipsisVertical,
   MessagesSquare,
   MoonIcon,
   Music,
+  Settings,
+  StopCircle,
   SunIcon,
 } from 'lucide-react';
-import ChatModal from '@/components/ChatModal';
+// import ChatModal from '@/components/ChatModal';
 import { useWindowSize } from 'react-use';
 import Confetti from 'react-confetti';
 import { useTheme } from '@/app/ThemeContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useAudio } from '@/app/AudioContext';
+import { setAPlayerId } from '@/lib/features/userSlice';
+import Tippy from '@tippyjs/react';
+
+const ChatModal = React.lazy(() => import('@/components/ChatModal'));
 
 const Homepage: React.FC = () => {
   const playersObject = useAppSelector((state: RootState) => state.players.players);
@@ -57,9 +63,10 @@ const Homepage: React.FC = () => {
   const [firstPlayer, setFirstPlayer] = useState('');
   const [roundWinner, setRoundWinner] = useState<string | null>(null);
   const [ultimateWinner, setUltimateWinner] = useState<string | null>(null);
-  const { width, height } = useWindowSize(); //For the Cofetti Animation
 
+  const { width, height } = useWindowSize(); //For the Cofetti Animation
   const router = useRouter();
+  const { play, stop } = useAudio();
   const { currentTheme, setCurrentTheme } = useTheme();
 
   //To get the combinedId
@@ -281,7 +288,13 @@ const Homepage: React.FC = () => {
     }
   }, [gameData?.roundWinner, roundWinner, gameData, gameData?.ultimateWinner]);
 
-  const { play, stop } = useAudio();
+  useEffect(() => {
+    if (track?.trackSound) {
+      play();
+    } else {
+      stop();
+    }
+  }, [track?.trackSound]);
 
   const handleSoundControl = useCallback(async () => {
     dispatch(setTrackSound(!track?.trackSound));
@@ -292,21 +305,36 @@ const Homepage: React.FC = () => {
     localStorage.setItem('theme', theme);
   }, []);
 
+  const handleNotifBgChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    dispatch(changeNotifBg(e.target.value));
+    localStorage.setItem('notifBg', e.target.value);
+  };
+
+  const handleGameQuit = async () => {
+    await updateDoc(doc(db, 'gameSessions', playersObject?.playerOne?.id), {
+      quitGame: true,
+    });
+    await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
+      status: 'online',
+    });
+    dispatch(setAPlayerId(''));
+  };
+
+  //
   useEffect(() => {
-    if (track?.trackSound) {
-      play();
-    } else {
-      stop();
+    if (gameData?.quitGame) {
+      toast(`${playersObject?.playerTwo?.name} has left the game`);
+      dispatch(setTrackDisableRound(true));
     }
-  }, [track?.trackSound]);
+  }, [gameData?.quitGame]);
 
   return (
     <div
       className={`${
         currentTheme === 'light' ? 'bg-royalGreen text-white ' : 'bg-black text-white'
-      } transition-all duration-500 relative flex flex-col gap-[10px] items-center w-full h-[100vh] overflow-x-hidden`}
+      } transition-all duration-500 relative flex flex-col gap-[10px] items-center w-full h-[100vh] max-h-screen overflow-hidden overflow-x-hidden`}
     >
-      <div className="flex items-center justify-between gap-4 p-4 w-full">
+      <div className="flex items-center justify-between gap-4 px-2 pt-2 w-full">
         <h1 className="border w-[150px] text-center text-[18px] px-3 py-3">
           <span className="inline-block">Round: {gameData?.rounds} / 5</span>
         </h1>
@@ -319,24 +347,26 @@ const Homepage: React.FC = () => {
             {' '}
             {playersObject?.playerOne?.id === gameData?.players?.playerTwo?.id &&
             gameData?.unreadMessages?.playerTwo! > 0 ? (
-              <Bell size={30} color="white" />
+              <Tippy content="See notification" placement="bottom">
+                <Bell size={30} color="white" />
+              </Tippy>
             ) : (
-              <MessagesSquare color="white" size={30} />
+              <Tippy content="player chat" placement="bottom">
+                <MessagesSquare color="white" size={30} />
+              </Tippy>
             )}
             {playersObject?.playerOne?.id === gameData?.players?.playerTwo?.id && (
               <span
-                className={`${
-                  track?.notifBg ? `bg-[${track?.notifBg}]` : 'bg-[red]'
-                } z-[4] absolute bottom-1/2 left-[20px] transform -translate-x-1/2 -translate-y-1/2  min-w-[20px] min-h-[20px] place-content-center grid text-[14px] rounded-full`}
+                className={`z-[4] absolute bottom-1/2 left-[20px] transform -translate-x-1/2 -translate-y-1/2  min-w-[20px] min-h-[20px] place-content-center grid text-[14px] rounded-full`}
+                style={{ backgroundColor: track?.notifBg || 'red' }}
               >
                 {gameData?.unreadMessages?.playerTwo ?? 0}
               </span>
             )}
             {playersObject?.playerTwo?.id === gameData?.players?.playerTwo?.id && (
               <span
-                className={`${
-                  track?.notifBg ? `bg-[${track?.notifBg}]` : 'bg-[red]'
-                } z-[4] absolute bottom-1/2 left-[20px] transform -translate-x-1/2 -translate-y-1/2  min-w-[20px] min-h-[20px] place-content-center grid text-[14px] text-center align-middle rounded-full`}
+                className={`z-[4] absolute bottom-1/2 left-[20px] transform -translate-x-1/2 -translate-y-1/2  min-w-[20px] min-h-[20px] place-content-center grid text-[14px] text-center align-middle rounded-full`}
+                style={{ backgroundColor: track?.notifBg || 'red' }}
               >
                 {gameData?.unreadMessages?.playerOne ?? 0}
               </span>
@@ -344,12 +374,13 @@ const Homepage: React.FC = () => {
           </button>
           <Popover>
             <PopoverTrigger>
-              {' '}
-              <EllipsisVertical size={30} color="white" />
+              <Tippy content="Game settings" placement="bottom">
+                <Settings size={30} color="white" />
+              </Tippy>
             </PopoverTrigger>
             <PopoverContent className="">
               <ul className="flex flex-col gap-4 items-start">
-                <li className="w-[90%] flex items-center justify-between gap-4 mx-auto">
+                <li className="py-3 px-3 w-full cursor-pointer hover:bg-gray-100 flex items-center justify-between gap-4 mx-auto">
                   <span>Light mode</span>
                   <span
                     onClick={() =>
@@ -360,22 +391,31 @@ const Homepage: React.FC = () => {
                     {currentTheme === 'light' ? <MoonIcon /> : <SunIcon />}
                   </span>
                 </li>
-                <li className="w-[90%] flex items-center justify-between gap-4 mx-auto">
+                <li className="py-3 px-3 w-full cursor-pointer hover:bg-gray-100 flex items-center justify-between gap-4 mx-auto">
                   <span>Control sound</span>
                   <span onClick={handleSoundControl} className=" cursor-pointer">
                     {track?.trackSound ? <CircleStop /> : <Music />}
                   </span>
                 </li>
-                <li className="w-[90%] flex items-center justify-between gap-4 mx-auto">
+                <li className="py-3 px-3 w-full cursor-pointer hover:bg-gray-100 flex items-center justify-between gap-4 mx-auto">
                   <span>Change Notif bg</span>
-                  <input type={'color'} />
+                  <input onChange={handleNotifBgChange} type={'color'} />
+                </li>
+                <li
+                  onClick={handleGameQuit}
+                  className="py-3 px-3 w-full cursor-pointer hover:bg-gray-100 flex items-center justify-between gap-4 mx-auto"
+                >
+                  <span>Quit Game</span>
+                  <span>
+                    <StopCircle color="red" />{' '}
+                  </span>
                 </li>
               </ul>
             </PopoverContent>
           </Popover>
         </div>
       </div>
-      <div className=" flex justify-center items-center m-auto w-full h-[85%] max-[500px]:h-[100%]">
+      <div className="flex justify-center items-center mx-auto w-full h-[85%] max-[500px]:h-[100%]">
         <div className="flex flex-col w-full gap-[10px] items-center  justify-center">
           <div className="relative">
             <div className="flex items-center justify-between gap-2 w-[100%]">
@@ -391,7 +431,7 @@ const Homepage: React.FC = () => {
                           : gameData?.players?.playerTwo?.avatar ?? null
                       }
                       alt="img"
-                      className="w-[70px] h-[70px] object-cover object-top"
+                      className="w-[80px] h-[80px] object-cover object-top"
                     />
                   )}
                 <div
@@ -464,7 +504,7 @@ const Homepage: React.FC = () => {
                           : gameData?.players?.playerOne?.avatar! ?? null
                       }
                       alt="img"
-                      className="w-[70px] h-[70px] object-cover object-top"
+                      className="w-[80px] h-[80px] object-cover object-top"
                     />
                   )}
               </div>
@@ -582,9 +622,10 @@ const Homepage: React.FC = () => {
       <div className="flex justify-between text-center  w-full">
         <button
           className={`text-white border inline-block text-center text-[18px] px-3 py-2`}
-          onClick={restartGame}
         >
-          Restart Game
+          {gameData?.currentTurn === playersObject?.playerOne?.id
+            ? 'Your Turn'
+            : `${playersObject?.playerTwo?.name} Turn`}
         </button>
         {gameData?.rounds === 5 ? (
           <button
@@ -624,7 +665,6 @@ const Homepage: React.FC = () => {
             playersChat={playerChat}
             gameData={gameData}
             chatUniqueId={getTheChatId}
-            // setChatId={setChatId}
           />
         )}
       </AnimatePresence>

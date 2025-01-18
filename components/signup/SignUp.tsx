@@ -498,6 +498,7 @@ const SignUp: React.FC = () => {
           ultimateWinner: null,
           winningCombination: [],
           goToNextRound: true,
+          quitGame: false,
           players: {
             playerOne: {
               id: playerOneDetails?.id,
@@ -584,14 +585,14 @@ const SignUp: React.FC = () => {
               onSubmit={createPlayer}
               className={`${
                 currentTheme === 'light' ? 'bg-royalGreen text-golden' : 'bg-black'
-              } border border-white/40 rounded-lg py-8 px-8 min-w-[250px] w-[400px] max-[550px]:w-[80%] max-[550px]:px-3 `}
+              } border border-white/40 rounded-lg py-8 px-8 min-w-[250px] w-[400px] max-[550px]:w-[80%] max-[550px]:max-w-[90%] max-[550px]:px-3 `}
             >
               <h1 className="flex flex-nowrap items-start gap-2 text-[22px] max-[550px]:text-[20px] font-bold mb-2 overflow-hidden">
                 <span>Welcome Player</span>
                 <AnimatePresence>
                   {showPlayerName && (
                     <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                      - {playerName}{' '}
+                      - {playerName.slice(0, 12)}{' '}
                     </motion.span>
                   )}
                 </AnimatePresence>

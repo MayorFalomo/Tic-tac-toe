@@ -25,6 +25,7 @@ import { setAPlayerId } from '@/lib/features/userSlice';
 import { setCombinedGameSessionId, setSessionId } from '@/lib/features/TrackerSlice';
 import FadeIn from '@/app/animation/FadeIn';
 import { useTheme } from '@/app/ThemeContext';
+import { motion } from 'framer-motion';
 
 const Login = () => {
   const [playerName, setPlayerName] = useState<string>('');
@@ -210,6 +211,7 @@ const Login = () => {
           trackRoundPlayer: randomControl ? playerOneDetails?.id : opponent?.id,
           endOfRound: false,
           winningCombination: [],
+          quitGame: false,
           players: {
             playerOne: {
               id: playerOneDetails?.id,
@@ -277,11 +279,18 @@ const Login = () => {
                 >
                   Create new profile instead?{' '}
                 </Link>
-                <p
+                <motion.p
+                  initial={{ width: 0 }}
+                  animate={{
+                    width: '100%',
+                    transition: {
+                      duration: 0.7,
+                    },
+                  }}
                   className={`${
                     currentTheme === 'light' ? 'bg-brightGreen' : 'bg-white/30'
                   } h-0.5 w-full`}
-                ></p>
+                ></motion.p>
                 <Link
                   href="/"
                   className={`${

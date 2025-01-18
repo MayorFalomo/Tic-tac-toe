@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 import Image from 'next/image';
 import React, { useState } from 'react';
@@ -8,6 +9,7 @@ import { X } from 'lucide-react';
 import { LoadingSpinner } from './signup/Loader';
 import { AvatarTheme } from '@/app/types/types';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Button } from './ui/button';
 
 type Props = {
   avatarType: AvatarType | null;
@@ -78,6 +80,9 @@ const AvatarComp: React.FC<Props> = ({
     show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
+  console.log(isLoading, 'IsLoading');
+  console.log(isError, 'isError');
+
   return (
     <div
       className={`bg-black text-white fixed h-[450px] min-w-[500px] max-[600px]:min-w-[280px] max-[600px]:w-[90%] max-[400px]:w-[95%] max-w-[700px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 ${
@@ -99,9 +104,19 @@ const AvatarComp: React.FC<Props> = ({
           </motion.span>
         )}
         {isLoading && (
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex justify-center items-center h-full w-full text-white">
+          <div className=" absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex justify-center items-center gap-[40px] h-full w-full text-white">
             <div className="flex justify-center items-center h-full gap-3">
               <LoadingSpinner className="w-[40px] h-[40px]" />
+            </div>
+            <Button onClick={() => setAvatarType(null)}>Close </Button>
+          </div>
+        )}
+        {isError && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex justify-center items-center h-full w-full text-white">
+            <div className="flex justify-center items-center h-full gap-3">
+              <p className=" text-[red]">
+                Sorry something has gone wrong while fetching avatars{' '}
+              </p>
             </div>
           </div>
         )}

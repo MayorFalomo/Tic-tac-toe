@@ -54,18 +54,28 @@ const AllPlayers = () => {
   const { currentTheme } = useTheme();
 
   const staggerContainer = {
-    hidden: { opacity: 1 },
+    hidden: { opacity: 0 },
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.2, //Here's the timing for the staggered effect
+        staggerChildren: 0.4, //Here's the timing for the staggered effect
       },
     },
   };
 
   const childVariants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+    hidden: { opacity: 0, y: 30 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: 'spring',
+        stiffness: 200, // Reduced for more bounce
+        damping: 12, // Reduced for more bounce
+        mass: 1.2, // Added mass for more pronounced bounce
+        velocity: 2,
+      },
+    },
   };
 
   return (
@@ -75,7 +85,7 @@ const AllPlayers = () => {
           currentTheme === 'light' ? 'bg-royalGreen text-white' : 'bg-black text-white'
         } min-h-full grid grid-cols-[300px_auto_300px] max-[950px]:grid-cols-[270px_auto_250px] max-[900px]:grid-cols-[270px_auto_0] max-[600px]:grid-cols-[230px_auto_0] max-[550px]:flex max-[550px]:flex-col-reverse h-screen overflow-hidden w-full text-white`}
       >
-        <div className="h-full w-full border-r border-white/40 p-4 pb-[100px] overflow-auto">
+        <div className="h-full w-full border-r border-white/40 p-4 pb-[50px] overflow-auto">
           <h1
             className={`${
               currentTheme === 'light' ? 'text-golden' : 'text-white'
@@ -84,68 +94,67 @@ const AllPlayers = () => {
             <Link href="/">Tic-Tac-Toe</Link>
           </h1>
           <div>
-            <AnimatePresence>
-              {getPlayers ? (
-                <motion.div
-                  variants={staggerContainer}
-                  initial="hidden"
-                  animate="show"
-                  exit="hidden"
-                  className="flex flex-col gap-4 items-start"
-                >
-                  {getPlayers?.map((res: IPlayers, index: number) => (
-                    <motion.ul
-                      key={index}
-                      onClick={() => setSinglePlayer(res)}
-                      className="w-full cursor-pointer"
-                      variants={childVariants}
-                    >
-                      <li className="flex items-center justify-between w-full">
-                        <div className="flex items-start gap-3 ">
-                          {res.avatar && (
-                            <Image
-                              src={res?.avatar}
-                              width={40}
-                              height={40}
-                              className="w-[40px] h-[40px] object-cover object-top rounded-full border border-white/60"
-                              alt="avatar"
-                            />
-                          )}
-                          <p className="flex flex-col items-start ">
-                            <span className="">{res?.name}</span>
-                            <span className="text-[12px]">
-                              {res?.createdAt && formatDateToDMY(res?.createdAt)}{' '}
-                            </span>
-                          </p>
-                        </div>
-                        <span
-                          className={clsx(
-                            `h-3 w-3 rounded-full`,
-                            res?.status === PlayerStatus.INGAME &&
-                              res?.name &&
-                              'bg-blue-500',
-                            res?.status === PlayerStatus.LOOKING &&
-                              res?.name &&
-                              'bg-white/40',
-                            res?.status === PlayerStatus.ONLINE &&
-                              res?.name &&
-                              'bg-green-500',
-                            res?.status === PlayerStatus.OFFLINE &&
-                              res?.name &&
-                              'bg-red-500',
-                            res?.status === '' || (null && 'bg-transparent')
-                          )}
-                        >
-                          {' '}
-                        </span>
-                      </li>
-                    </motion.ul>
-                  ))}
-                </motion.div>
-              ) : (
-                <LoadingSpinner />
-              )}
-            </AnimatePresence>
+            {getPlayers ? (
+              <motion.div
+                variants={staggerContainer}
+                initial="hidden"
+                animate="show"
+                className="flex flex-col gap-4 items-start"
+              >
+                {getPlayers?.map((res: IPlayers, index: number) => (
+                  <motion.ul
+                    variants={childVariants}
+                    key={index}
+                    // initial="hidden"
+                    // animate="show"
+                    onClick={() => setSinglePlayer(res)}
+                    className="w-full cursor-pointer"
+                  >
+                    <li className="flex items-center justify-between w-full">
+                      <div className="flex items-start gap-3 ">
+                        {res.avatar && (
+                          <Image
+                            src={res?.avatar}
+                            width={40}
+                            height={40}
+                            className="w-[40px] h-[40px] object-cover object-top rounded-full border border-white/60"
+                            alt="avatar"
+                          />
+                        )}
+                        <p className="flex flex-col items-start ">
+                          <span className="">{res?.name}</span>
+                          <span className="text-[12px]">
+                            {res?.createdAt && formatDateToDMY(res?.createdAt)}{' '}
+                          </span>
+                        </p>
+                      </div>
+                      <span
+                        className={clsx(
+                          `h-3 w-3 rounded-full`,
+                          res?.status === PlayerStatus.INGAME &&
+                            res?.name &&
+                            'bg-blue-500',
+                          res?.status === PlayerStatus.LOOKING &&
+                            res?.name &&
+                            'bg-white/40',
+                          res?.status === PlayerStatus.ONLINE &&
+                            res?.name &&
+                            'bg-green-500',
+                          res?.status === PlayerStatus.OFFLINE &&
+                            res?.name &&
+                            'bg-red-500',
+                          res?.status === '' || (null && 'bg-transparent')
+                        )}
+                      >
+                        {' '}
+                      </span>
+                    </li>
+                  </motion.ul>
+                ))}
+              </motion.div>
+            ) : (
+              <LoadingSpinner />
+            )}
           </div>
         </div>
         <div className="h-full overflow-auto">
@@ -200,7 +209,22 @@ const AllPlayers = () => {
             </div>
           )}
         </div>
-        <ul className="max-[900px]:hidden bg-[#0F172A] h-fit w-[95%] mx-auto flex flex-col gap-2 mt-[30px] py-[30px] px-4 text-[16px] rounded-[20px]">
+        <ul className="max-[900px]:hidden bg-[#0F172A] h-fit w-[95%] mx-auto flex flex-col gap-4 mt-[30px] py-[30px] px-4 text-[16px] rounded-[20px]">
+          <p className="relative">
+            Players Statuses
+            <motion.span
+              initial={{ width: 0 }}
+              animate={{
+                width: '120px',
+                transition: {
+                  duration: 0.7,
+                },
+              }}
+              className={`${
+                currentTheme === 'light' ? 'bg-brightGreen' : 'bg-white/30'
+              } absolute left-0 -bottom-1 h-0.5 w-full`}
+            ></motion.span>
+          </p>
           <li className="flex items-center justify-between gap-[30px]">
             <span>Playing</span>
             <span className="bg-blue-500 h-5 w-5 rounded-full"></span>
