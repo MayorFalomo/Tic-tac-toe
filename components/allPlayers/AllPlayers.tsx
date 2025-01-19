@@ -9,7 +9,6 @@ import Link from 'next/link';
 import { LoadingSpinner } from '../signup/Loader';
 import { useTheme } from '@/app/ThemeContext';
 import { AnimatePresence, motion } from 'framer-motion';
-import 'tippy.js/dist/tippy.css';
 import FadeIn from '@/app/animation/FadeIn';
 
 interface IPlayers extends SessionPlayerDetails {
@@ -105,8 +104,6 @@ const AllPlayers = () => {
                   <motion.ul
                     variants={childVariants}
                     key={index}
-                    // initial="hidden"
-                    // animate="show"
                     onClick={() => setSinglePlayer(res)}
                     className="w-full cursor-pointer"
                   >

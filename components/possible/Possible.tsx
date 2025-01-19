@@ -367,7 +367,13 @@ const Possible: React.FC<MappedOver> = ({
       <div className="w-full h-full">
         <AnimatePresence>
           {possibility[0].every((res) => gameData?.winningCombination!.includes(res)) && (
-            <DrawLine width="90%" height="5px" top="60px" left="20px" rotate="0" />
+            <DrawLine
+              width="90%"
+              height="5px"
+              top={isBiggerScreen ? '60px' : '50px'}
+              left="20px"
+              rotate="0"
+            />
           )}
           {possibility[1].every((res) => gameData?.winningCombination!.includes(res)) && (
             <DrawLine
@@ -404,7 +410,7 @@ const Possible: React.FC<MappedOver> = ({
               height="5px"
               top="40px"
               left={isBiggerScreen ? '340px' : '270px'}
-              rotate="-224"
+              rotate="-226"
               transformOrigin="bottom left"
             />
           )}

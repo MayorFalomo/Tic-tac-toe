@@ -9,7 +9,7 @@ Step into a whole world of real-time fun in this Online Multiplayer TicTacToe ga
 
 🦸 Epic Avatars from Your Favorite Franchises: Express yourself with unique avatars! Choose from characters inspired by anime, DC heroes, Marvel icons, and more to represent your style in every match.
 
-⚙️ Customizable Game Settings: Set up your game just the way you like—choose background Theme, Add Sound,  and more for a personalized experience.
+⚙️ Customizable Game Settings: Set up your game just the way you like—Choose background Themes, Add Sound, and more for a personalized experience.
 
 👥 Player Profiles & Statuses: Browse through all players, check their availability, and track their game statuses in real time.
 

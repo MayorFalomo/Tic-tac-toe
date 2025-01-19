@@ -27,7 +27,6 @@ export const possibleSlice = createSlice({
   initialState,
   reducers: {
     getAllPossibileCombinations: (state, action: PayloadAction<number[][]>) => {
-      //   console.log(state, "state in slice");
     },
   },
 });
