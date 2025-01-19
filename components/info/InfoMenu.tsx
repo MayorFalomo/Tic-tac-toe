@@ -2,7 +2,7 @@
 import { useTheme } from '@/app/ThemeContext';
 import React from 'react';
 import Form from './Form';
-import { ArrowLeft, User } from 'lucide-react';
+import { ArrowLeft, BookOpen, User } from 'lucide-react';
 import Link from 'next/link';
 import Bouncy from '@/app/animation/Bouncy';
 import { motion } from 'framer-motion';
@@ -16,7 +16,7 @@ import {
 } from '../ui/dialog';
 import Image from 'next/image';
 import TicTacToe from '@/public/TicTacToe.webp';
-import Celebrate from '@/public/celebrate.png';
+import Celebrate from '@/public/celebrate.webp';
 
 type Props = {};
 
@@ -113,7 +113,10 @@ const InfoMenu = (props: Props) => {
             <Bouncy delay={0.8}>
               <Dialog>
                 <DialogTrigger asChild>
-                  <span>See ReadMe</span>
+                  <span className="flex items-center gap-3 ">
+                    See ReadMe
+                    <BookOpen size={18} />
+                  </span>
                 </DialogTrigger>
                 <DialogContent className="h-[90%] bg-black text-white overflow-auto w-[100%] max-sm:max-w-[425px]">
                   <DialogHeader>

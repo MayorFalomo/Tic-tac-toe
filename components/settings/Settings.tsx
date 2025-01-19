@@ -12,8 +12,6 @@ import { RootState } from '@/lib/store';
 import FadeIn from '@/app/animation/FadeIn';
 import Bouncy from '@/app/animation/Bouncy';
 import { motion } from 'framer-motion';
-import Tippy from '@tippyjs/react';
-import Showtip from '@/app/animation/ShowTip';
 
 const Settings = () => {
   const dispatch = useAppDispatch();
@@ -70,9 +68,7 @@ const Settings = () => {
             className="ml-5 max-[400px]:ml-3 mt-4"
           >
             <Link href="/">
-              <Showtip title="back">
-                <span>{<ArrowLeft />} </span>
-              </Showtip>
+              <span>{<ArrowLeft />} </span>
             </Link>
           </motion.div>
           <Bouncy
