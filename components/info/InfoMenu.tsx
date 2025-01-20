@@ -1,8 +1,8 @@
 'use client';
 import { useTheme } from '@/app/ThemeContext';
-import React from 'react';
+import React, { useState } from 'react';
 import Form from './Form';
-import { ArrowLeft, BookOpen, User } from 'lucide-react';
+import { ArrowLeft, BookOpen, Rocket, User } from 'lucide-react';
 import Link from 'next/link';
 import Bouncy from '@/app/animation/Bouncy';
 import { motion } from 'framer-motion';
@@ -22,6 +22,7 @@ type Props = {};
 
 const InfoMenu = (props: Props) => {
   const { currentTheme } = useTheme();
+  const [showList, setShowList] = useState<boolean>(false);
 
   return (
     <div
@@ -33,22 +34,22 @@ const InfoMenu = (props: Props) => {
     >
       <div className="min-[680px]:grid grid-cols-2 max-[680px]:block items-start w-[60%] max-[1100px]:w-[80%] max-[780px]:w-[90%] border border-white/40 p-3 my-[40px] rounded-[10px]">
         <ul className=" flex flex-col items-start gap-[20px] my-3 list-none ">
-          <Link className="w-full mb-3" href="/">
-            <motion.span
-              initial={{ x: -50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{
-                type: 'spring',
-                stiffness: 200,
-                damping: 12,
-                mass: 1.2,
-                velocity: 2,
-              }}
-              className="cursor-pointer w-fit text-white"
-            >
-              {<ArrowLeft />}{' '}
-            </motion.span>
-          </Link>
+          <motion.li
+            initial={{ x: -50, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{
+              type: 'spring',
+              stiffness: 200,
+              damping: 12,
+              mass: 1.2,
+              velocity: 2,
+            }}
+            onAnimationEnd={() => setShowList(true)}
+          >
+            <Link className="w-full mb-3" href="/">
+              <span className="cursor-pointer w-fit text-white">{<ArrowLeft />} </span>
+            </Link>
+          </motion.li>
 
           <li>
             <Bouncy delay={0.2}>
@@ -98,7 +99,7 @@ const InfoMenu = (props: Props) => {
             <Bouncy delay={0.6}>
               <a
                 target="_blank"
-                href={'https://mayowa-falomo.netlify.app'}
+                href={'https://github.com/Mayorfalomo'}
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 cursor-pointer hover:text-white"
               >
@@ -126,8 +127,8 @@ const InfoMenu = (props: Props) => {
                       TicTacToe game!.
                     </DialogDescription>
                   </DialogHeader>
-                  <div>
-                    <ul className="flex flex-col items-start gap-4 list-none text-[14px]">
+                  <section>
+                    <ul className="flex flex-col items-start gap-4 list-none text-[15px]">
                       <li>
                         <Image src={TicTacToe} alt="img" />
                       </li>
@@ -160,16 +161,35 @@ const InfoMenu = (props: Props) => {
                         their availability, and track their game statuses in real time.
                       </li>
                     </ul>
-                  </div>
+                  </section>
+                  <section className="mt-3">
+                    <ul className="flex flex-col items-start gap-4 list-inside text-[15px]">
+                      <h3 className="text-[18px] font-bold">Current Features </h3>
+                      <li>Real-time player pairing. </li>
+                      <li>Live player to player chat. </li>
+                      <li>Send Reactions in chats. </li>
+                      <li>Get instant notification update. </li>
+                      <li>Light/Dark mode. </li>
+                      <li>Sound Control. </li>
+                      <li>Change notifications background. </li>
+                      <li>Track Players Status. </li>
+                      <li>View each players profile. </li>
+                      <li>Select an Avatar </li>
+                      <li>Sign up</li>
+                      <li>Login with saved profile </li>
+                    </ul>
+                  </section>
                 </DialogContent>
               </Dialog>
             </Bouncy>
           </li>
           <li className="cursor-pointer hover:text-white">
-            <Bouncy delay={0.8}>
+            <Bouncy delay={1}>
               <Dialog>
                 <DialogTrigger asChild>
-                  <span>Planned features</span>
+                  <span className="flex items-center gap-3 ">
+                    Planned features <Rocket size={18} />{' '}
+                  </span>
                 </DialogTrigger>
                 <DialogContent className="h-[90%] bg-black text-white overflow-auto w-[100%] max-sm:max-w-[425px]">
                   <DialogHeader>
@@ -184,10 +204,11 @@ const InfoMenu = (props: Props) => {
                       <li className="list-none">
                         <Image src={Celebrate} alt="img" />
                       </li>
-                      <li>More settings</li>
-                      <li>Chat players before the game</li>
-                      <li>LeaderBoard to show total wins and losses by a player</li>
+                      <li>Add More customizable settings.</li>
+                      <li>Chat players before the game.</li>
+                      <li>LeaderBoard to show total wins and losses by a player.</li>
                       <li>A Timer to record battle time.</li>
+                      <li>Add more Avatars and avatar themes. </li>
                     </ul>
                   </div>
                 </DialogContent>
