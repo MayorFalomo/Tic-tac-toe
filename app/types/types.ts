@@ -10,6 +10,7 @@ export type Combinations = number[][];
 export type SelectedAnswer = {
   answers: Selected[];
 };
+
 export type Selected = {
   player: string;
   choice: number;
@@ -48,7 +49,6 @@ export type GameSession = {
   roundWinner: string | null;
   ultimateWinner?: string | null;
   endOfRound: boolean;
-  // winner: string | null;
   winningCombination: number[] | null,
   goToNextRound?: boolean,
   trackRoundPlayer: string;

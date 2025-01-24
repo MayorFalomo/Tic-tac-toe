@@ -71,6 +71,7 @@ const SignUp: React.FC = () => {
   const dispatch = useAppDispatch();
 
   const router = useRouter();
+  const { currentTheme } = useTheme();
 
   useEffect(() => {
     const randomNumber = Math.random();
@@ -178,7 +179,6 @@ const SignUp: React.FC = () => {
               setLoading(false); //Stop the Loading spinner
               setTimeout(() => {
                 router.push('/');
-                // unsubscribe();
               }, 2000);
             } else {
               console.log('Player is not ready.');
@@ -566,8 +566,6 @@ const SignUp: React.FC = () => {
       });
     }
   };
-
-  const { currentTheme } = useTheme();
 
   return (
     <FadeIn>

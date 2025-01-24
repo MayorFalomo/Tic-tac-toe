@@ -1,6 +1,6 @@
 'use client';
 import { useTheme } from '@/app/ThemeContext';
-import React, { useState } from 'react';
+import React from 'react';
 import Form from './Form';
 import { ArrowLeft, BookOpen, Rocket, User } from 'lucide-react';
 import Link from 'next/link';
@@ -22,7 +22,6 @@ type Props = {};
 
 const InfoMenu = (props: Props) => {
   const { currentTheme } = useTheme();
-  const [showList, setShowList] = useState<boolean>(false);
 
   return (
     <div
@@ -44,7 +43,6 @@ const InfoMenu = (props: Props) => {
               mass: 1.2,
               velocity: 2,
             }}
-            onAnimationEnd={() => setShowList(true)}
           >
             <Link className="w-full mb-3" href="/">
               <span className="cursor-pointer w-fit text-white">{<ArrowLeft />} </span>

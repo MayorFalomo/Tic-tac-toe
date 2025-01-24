@@ -112,7 +112,7 @@ const GameMenu = (props: Props) => {
                   <span>
                     <Info />{' '}
                   </span>
-                  <span>Developers portfolio </span>
+                  <span> Game Info </span>
                 </Button>
               </Link>
             </Bouncy>

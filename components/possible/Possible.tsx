@@ -22,6 +22,7 @@ type MappedOver = {
   combinedId: string;
   setRoundWinner: React.Dispatch<React.SetStateAction<string | null>>;
   setUltimateWinner: React.Dispatch<React.SetStateAction<string | null>>;
+  setTriggerDraw: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const Possible: React.FC<MappedOver> = ({
@@ -31,6 +32,7 @@ const Possible: React.FC<MappedOver> = ({
   movesData,
   combinedId,
   setUltimateWinner,
+  setTriggerDraw,
 }) => {
   const [storedCurrentPlayerChoices, setStoredCurrentPlayerChoices] = useState<number[]>(
     []
@@ -149,6 +151,7 @@ const Possible: React.FC<MappedOver> = ({
               if (gameData?.rounds === 5 && !draw) {
                 const determineFinalWinner =
                   gameData?.scores?.playerOne > gameData?.scores?.playerTwo;
+
                 await updateDoc(doc(db, 'gameSessions', combinedId), {
                   roundWinner: determineWinnerName,
                   endOfRound: true,
@@ -192,8 +195,8 @@ const Possible: React.FC<MappedOver> = ({
                       : gameData?.players?.playerTwo?.name
                     : gameData?.players?.playerTwo?.name ===
                       playersObject?.playerTwo?.name
-                    ? gameData?.players?.playerOne?.name
-                    : gameData?.players?.playerTwo?.name;
+                    ? gameData?.players?.playerTwo?.name
+                    : gameData?.players?.playerOne?.name;
 
                   setUltimateWinner(determineFinalWinnerName);
                 }, 6000);
@@ -201,23 +204,17 @@ const Possible: React.FC<MappedOver> = ({
                 await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
                   status: 'offline',
                 });
-
                 return;
               }
               dispatch(setTrackWinner(determineWinnerName));
               dispatch(setTrackDisableRound(false));
             } else if (draw) {
+              //Update the move on firebase
               await updateDoc(doc(db, 'playersMoves', combinedId), {
                 moves: updatedMoves,
               });
 
-              toast.success('Game is a draw!', {
-                position: 'top-right',
-                style: {
-                  background: '#333',
-                  color: '#fff',
-                },
-              });
+              setTriggerDraw(true);
 
               await updateDoc(doc(db, 'gameSessions', combinedId), {
                 goToNextRound: false,
@@ -226,19 +223,23 @@ const Possible: React.FC<MappedOver> = ({
               dispatch(setTrackDisableRound(false));
 
               if (gameData?.rounds === 5) {
-                const checkForDrawInGame =
-                  gameData?.scores?.playerOne === gameData?.scores?.playerTwo;
+                // const checkForDrawInGame =
+                //   gameData?.scores?.playerOne === gameData?.scores?.playerTwo
+                //     ? true
+                //     : false;
 
-                setTimeout(async () => {
-                  toast.success(`${checkForDrawInGame && 'Game has ended in a draw!'}`, {
-                    style: {
-                      background: '#333', // Dark background
-                      color: '#fff', // White text
-                      width: '250px',
-                    },
-                    position: 'top-right',
-                  });
-                }, 5000);
+                setTriggerDraw(true);
+
+                // setTimeout(async () => {
+                //   toast.success(`${checkForDrawInGame && 'Game has ended in a draw!'}`, {
+                //     style: {
+                //       background: '#333', // Dark background
+                //       color: '#fff', // White text
+                //       width: '250px',
+                //     },
+                //     position: 'top-right',
+                //   });
+                // }, 5000);
                 dispatch(setTrackDisableRound(false));
               }
             } else {
