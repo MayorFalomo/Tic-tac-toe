@@ -318,12 +318,13 @@ const Homepage: React.FC = () => {
 
   //Function to handle when the game is quited
   const handleGameQuit = async () => {
-    await updateDoc(doc(db, 'gameSessions', playersObject?.playerOne?.id), {
+    await updateDoc(doc(db, 'gameSessions', combinedId), {
       quitGame: true,
     });
     await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
       status: 'online',
     });
+
     dispatch(setAPlayerId(''));
     router.push('/');
   };
@@ -335,23 +336,19 @@ const Homepage: React.FC = () => {
       toast(`${playersObject?.playerTwo?.name} has left the game`);
       dispatch(setTrackDisableRound(true));
     }
+  }, [gameData?.quitGame]);
+
+  useEffect(() => {
     if (
-      triggerDraw &&
+      gameData?.draw &&
       gameData?.rounds === 5 &&
       gameData?.scores?.playerOne === gameData?.scores?.playerTwo
     ) {
       toast.success('The Game has ended in a draw!');
-    } else if (triggerDraw) {
+    } else if (gameData?.draw && gameData?.rounds! < 5) {
       toast.success('Game is a draw');
     }
-  }, [
-    gameData?.quitGame,
-    gameData?.rounds,
-    gameData?.scores?.playerOne,
-    gameData?.scores?.playerTwo,
-    playersObject?.playerTwo?.name,
-    triggerDraw,
-  ]);
+  }, [gameData?.draw]);
 
   return (
     <div
@@ -372,7 +369,7 @@ const Homepage: React.FC = () => {
                       src={
                         currentPlayer === gameData?.players?.playerOne?.id
                           ? gameData?.players?.playerOne?.avatar ?? null
-                          : gameData?.players?.playerTwo?.avatar
+                          : gameData?.players?.playerTwo?.avatar ?? null
                       }
                       alt="img"
                       className="w-[50px] h-[50px] min-w-[30px] min-h-[30px] object-cover object-top"
@@ -383,7 +380,7 @@ const Homepage: React.FC = () => {
                 <h1 className="text-white text-[16px] max-[850px]:text-[14px] max-[350px]:text-[12px] px-2 min-w-[100px] max-[340px]:min-w-[80px] border-b border-white/40 ">
                   {currentPlayer === gameData?.players?.playerOne?.id
                     ? gameData?.players?.playerOne?.name.slice(0, 16)
-                    : gameData?.players?.playerTwo?.name.slice(0, 12)}
+                    : gameData?.players?.playerTwo?.name.slice(0, 12) ?? 'HeavenLy'}
                 </h1>
 
                 {
@@ -412,12 +409,12 @@ const Homepage: React.FC = () => {
             </h1>
 
             <div className="flex flex-col border-l border-white/40 gap-2">
-              <h1 className="text-white text-[16px] max-[850px]:text-[14px] max-[350px]:text-[12px] px-2 min-w-[100px] max-[350px]:text-[12px] border-b border-white/40 text-end">
+              <h1 className="text-white text-[16px] max-[850px]:text-[14px] max-[350px]:text-[12px] px-2 min-w-[100px] border-b border-white/40 text-end">
                 {currentPlayer === gameData?.players?.playerOne?.id
                   ? gameData?.players?.playerTwo?.name.slice(0, 16)
-                  : gameData?.players?.playerOne?.name.slice(0, 16)}
+                  : gameData?.players?.playerOne?.name.slice(0, 16) ?? 'Destroyer'}
               </h1>
-              <div className="flex items-start gap-2">
+              <div className="flex items-start border gap-2">
                 <Image
                   src="/SelectO.png"
                   className="m-auto"
@@ -426,7 +423,8 @@ const Homepage: React.FC = () => {
                   alt="img"
                 />
               </div>
-
+            </div>
+            <div className=" ">
               {gameData?.players?.playerOne?.avatar! &&
                 gameData?.players?.playerTwo?.avatar! && (
                   <Image
@@ -434,8 +432,8 @@ const Homepage: React.FC = () => {
                     height={40}
                     src={
                       currentPlayer !== gameData?.players?.playerTwo?.id
-                        ? gameData?.players?.playerTwo?.avatar! ?? null
-                        : gameData?.players?.playerOne?.avatar! ?? null
+                        ? gameData?.players?.playerTwo?.avatar!
+                        : gameData?.players?.playerOne?.avatar!
                     }
                     alt="img"
                     className="w-[50px] h-[50px] min-w-[30px] min-h-[30px] object-cover object-top"

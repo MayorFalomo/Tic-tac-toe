@@ -498,6 +498,7 @@ const SignUp: React.FC = () => {
           ultimateWinner: null,
           winningCombination: [],
           goToNextRound: true,
+          draw: false,
           quitGame: false,
           players: {
             playerOne: {

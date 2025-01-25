@@ -131,9 +131,9 @@ const ChatModal: React.FC<Props> = ({
         x: 300,
         opacity: 0,
       }}
-      className="fixed right-0 top-0 z-40 flex flex-col items-center justify-center w-[40%] max-[1100px]:w-[60%] max-[600px]:w-[90%] max-h-screen h-screen bg-gray-100 text-gray-800"
+      className="fixed right-0 top-0 z-40 flex flex-col items-center justify-center w-[40%] max-[1100px]:w-[60%] max-[600px]:w-[90%] max-h-screen h-[100vh] bg-gray-100 text-gray-800"
     >
-      <div className="flex flex-col gap-4 w-[90%] min-[480px]:h-[100%] max-[480px]:h-[95%] max-[480px]:mb-4 max-h-screen">
+      <div className="flex flex-col gap-4 w-[90%] min-[480px]:h-[100%] max-[480px]:h-[95%] max-[480px]:mb-4 max-h-[100vh">
         <div className="flex items-center justify-between w-full mt-2">
           <div className="rounded-full">
             <div className="flex items-center gap-3">
@@ -195,7 +195,7 @@ const ChatModal: React.FC<Props> = ({
 
           <div className="relative bg-gray-300 p-4">
             <textarea
-              className="flex items-center h-[70px] w-full rounded px-2 pt-2 text-sm placeholder:pt-2 placeholder:pl-2 outline-none border-none "
+              className="flex items-center min-[600px]:h-[70px] max-[600px]:h-[100px] w-full rounded px-2 py-4 pt-2 text-sm placeholder:pt-2 placeholder:pl-2 outline-none border-none "
               placeholder="Type your message and send reactions…"
               onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
                 if (e.key === 'Enter' && !e.shiftKey) {

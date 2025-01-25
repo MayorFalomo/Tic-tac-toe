@@ -211,6 +211,7 @@ const Login = () => {
           trackRoundPlayer: randomControl ? playerOneDetails?.id : opponent?.id,
           endOfRound: false,
           winningCombination: [],
+          draw: false,
           quitGame: false,
           players: {
             playerOne: {

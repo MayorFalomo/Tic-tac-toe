@@ -214,9 +214,8 @@ const Possible: React.FC<MappedOver> = ({
                 moves: updatedMoves,
               });
 
-              setTriggerDraw(true);
-
               await updateDoc(doc(db, 'gameSessions', combinedId), {
+                draw: true,
                 goToNextRound: false,
                 endOfRound: true,
               });
@@ -228,7 +227,7 @@ const Possible: React.FC<MappedOver> = ({
                 //     ? true
                 //     : false;
 
-                setTriggerDraw(true);
+                // setTriggerDraw(true);
 
                 // setTimeout(async () => {
                 //   toast.success(`${checkForDrawInGame && 'Game has ended in a draw!'}`, {

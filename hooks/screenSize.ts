@@ -5,7 +5,9 @@ export const useScreenSize = (width: number) => {
 
   useEffect(() => {
     const handleResize = () => {
-      setIsWideScreen(window.innerWidth > width);
+      if (typeof window !== 'undefined') {
+        setIsWideScreen(window.innerWidth > width);
+      }
     };
 
     window.addEventListener('resize', handleResize);

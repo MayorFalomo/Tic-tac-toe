@@ -53,6 +53,7 @@ export type GameSession = {
   goToNextRound?: boolean,
   trackRoundPlayer: string;
   quitGame: boolean;
+  draw: boolean;
   scores: {
     playerOne: number;
     playerTwo: number;
