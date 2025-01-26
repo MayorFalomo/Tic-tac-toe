@@ -32,6 +32,10 @@ yarn.lock
 # local env files
 .env*.local
 
+# Auto Generated PWA files
+**/public/sw.js
+**/public/workbox-*.js
+
 # vercel
 .vercel
 

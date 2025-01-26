@@ -3,9 +3,9 @@ import { setTrackDisableRound, setTrackWinner } from '@/lib/features/TrackerSlic
 import { db } from '@/firebase-config/firebase';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
-import { doc, getDoc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import Image from 'next/image';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import DrawLine from '@/app/animation/DrawLine';
 import { AnimatePresence } from 'framer-motion';
@@ -32,10 +32,6 @@ const Possible: React.FC<MappedOver> = ({
   combinedId,
   setUltimateWinner,
 }) => {
-  const [storedCurrentPlayerChoices, setStoredCurrentPlayerChoices] = useState<number[]>(
-    []
-  );
-
   const isBiggerScreen = useScreenSize(500);
 
   const possibility = useAppSelector((state) => state.possible.possibility); //State to hold all the possible combinations
@@ -178,25 +174,19 @@ const Possible: React.FC<MappedOver> = ({
                     } is the ultimate winner!`,
                     {
                       style: {
-                        background: '#333', // Dark background
-                        color: '#fff', // White text
+                        background: '#333',
+                        color: '#fff',
                         minWidth: '250px',
                         width: 'auto',
                       },
                       position: 'top-right',
                     }
                   );
-                  const determineFinalWinnerName = determineFinalWinner
-                    ? gameData?.players?.playerOne?.name ===
-                      playersObject?.playerOne?.name
-                      ? gameData?.players?.playerOne?.name
-                      : gameData?.players?.playerTwo?.name
-                    : gameData?.players?.playerTwo?.name ===
-                      playersObject?.playerTwo?.name
-                    ? gameData?.players?.playerTwo?.name
-                    : gameData?.players?.playerOne?.name;
+                  const determineFinalWinnerName = checkForWinningName(
+                    determineFinalWinner
+                  );
 
-                  setUltimateWinner(determineFinalWinnerName);
+                  setUltimateWinner(determineFinalWinnerName!);
                 }, 6000);
                 //So it reflects offline after since most players go off here
                 await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
@@ -307,6 +297,17 @@ const Possible: React.FC<MappedOver> = ({
     }
   };
 
+  const checkForWinningName = (determineFinalWinner: boolean) => {
+    const retrieveWinner = determineFinalWinner
+      ? gameData?.players?.playerOne?.name === playersObject?.playerOne?.name
+        ? gameData?.players?.playerOne?.name
+        : gameData?.players?.playerTwo?.name
+      : gameData?.players?.playerTwo?.name === playersObject?.playerTwo?.name
+      ? gameData?.players?.playerTwo?.name
+      : gameData?.players?.playerOne?.name;
+    return retrieveWinner;
+  };
+
   useEffect(() => {
     if (checkForWinningCombination(gameData?.currentTurn!, movesData)) {
       filterMovesData(movesData);
@@ -323,7 +324,7 @@ const Possible: React.FC<MappedOver> = ({
     await updateDoc(doc(db, 'gameSessions', combinedId), {
       winningCombination: currentPlayerChoices,
     });
-    setStoredCurrentPlayerChoices(currentPlayerChoices);
+    // setStoredCurrentPlayerChoices(currentPlayerChoices);
   };
 
   return (

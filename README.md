@@ -29,8 +29,7 @@ https://realtime-tictactoe.netlify.app/
 
 ## Tech Stack
 
-NextJs 14, Firebase, Tailwind, Shadcn, Redux, Framer Motion, React Query
-
+NextJs 14, Firebase, Tailwind, ShadCn, Redux, Framer Motion, React Query
 
 
 ## Features

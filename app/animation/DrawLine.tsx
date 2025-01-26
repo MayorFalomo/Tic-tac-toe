@@ -37,6 +37,7 @@ const DrawLine = ({
         right: right ?? '',
         transform: `rotate(${rotate}deg)`,
         transformOrigin: transformOrigin ?? 'left',
+        zIndex: 2,
       }}
       animate={{
         opacity: 1,
@@ -49,6 +50,7 @@ const DrawLine = ({
         right: right ?? '',
         transform: `rotate(${rotate}deg)`,
         transition: { duration: 1, ease: 'easeInOut' },
+        zIndex: 2,
       }}
       exit={{
         width: '0',

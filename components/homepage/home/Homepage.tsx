@@ -1,7 +1,7 @@
 'use client';
 import { Chat, GameSession, MovesObject } from '@/app/types/types';
 import Possible from '@/components/possible/Possible';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
@@ -83,7 +83,6 @@ const Homepage: React.FC = () => {
             const messages = doc.data().messages || [];
 
             setPlayerChat(messages); // Update state with the latest messages
-            console.log('Updated messages:', messages);
           }
         });
       });
@@ -124,7 +123,7 @@ const Homepage: React.FC = () => {
     }
   }, [combinedId, playersObject]);
 
-  const handleStartNewRound = useCallback(async () => {
+  const handleStartNewRound = async () => {
     //Update the game sessions
     //First we update the rounds to 2.
     //Then we update the currentTurn to be the next person other than the first player
@@ -163,17 +162,9 @@ const Homepage: React.FC = () => {
     dispatch(setTrackRounds(gameData?.rounds));
     dispatch(setTrackDisableRound(true));
     setMovesData([]);
-  }, [
-    gameData?.firstPlayer,
-    gameData?.players?.playerOne?.id,
-    gameData?.players?.playerTwo?.id,
-    gameData?.rounds,
-    combinedId,
-    playersObject?.playerOne?.id,
-    dispatch,
-  ]);
+  };
 
-  const restartGame = useCallback(async () => {
+  const restartGame = async () => {
     await updateDoc(doc(db, 'gameSessions', combinedId), {
       rounds: 1,
       currentTurn: gameData?.unChangeableFirstPlayer,
@@ -196,7 +187,7 @@ const Homepage: React.FC = () => {
     });
     setRoundWinner(null);
     toast.success('Game is restarted');
-  }, [combinedId, gameData?.unChangeableFirstPlayer, playersObject?.playerOne?.id]);
+  };
 
   //useEffect to make sure it shows on both players interface
   useEffect(() => {

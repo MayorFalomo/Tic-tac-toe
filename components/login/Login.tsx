@@ -49,7 +49,6 @@ const Login = () => {
     try {
       setLoading(true);
       const playerKey = localStorage.getItem('playerKey');
-      console.log(playerKey, 'playerKey');
       if (!playerKey) {
         router.push('/signup');
         return;
@@ -59,7 +58,6 @@ const Login = () => {
         //If the player exists
         if (playerDoc.exists()) {
           const playerData = playerDoc.data();
-          console.log(playerData, 'playerDATA');
 
           //set the player to the local playerOne state using dispatch
           dispatch(givePlayerNames({ playerOne: playerData }));

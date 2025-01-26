@@ -10,7 +10,6 @@ import {
   getDocs,
   updateDoc,
   Timestamp,
-  getDoc,
 } from 'firebase/firestore';
 import { collection } from 'firebase/firestore';
 import { db } from '@/firebase-config/firebase';
@@ -27,7 +26,6 @@ type Props = {
   playersChat: Chat[];
   gameData: GameSession | null;
   chatUniqueId: string | null;
-  //   setChatId: (arg: number) => void;
 };
 
 const ChatModal: React.FC<Props> = ({
@@ -37,7 +35,6 @@ const ChatModal: React.FC<Props> = ({
   playersChat,
   gameData,
   chatUniqueId,
-  //   setChatId,
 }) => {
   const playersObject = useAppSelector((state: RootState) => state.players.players);
   const [textMessage, setTextMessage] = useState<string>('');
@@ -58,7 +55,7 @@ const ChatModal: React.FC<Props> = ({
       if (!chatDoc.empty) {
         const chatId = chatDoc.docs[0].id;
         const chatDocumentRef = doc(db, 'playersChats', chatId);
-        const chatData = chatDoc.docs[0].data();
+        // const chatData = chatDoc.docs[0].data();
 
         // Update the messages array in the document
         await updateDoc(chatDocumentRef, {
@@ -100,8 +97,7 @@ const ChatModal: React.FC<Props> = ({
           // Determine which player is playerOne
           const isPlayerOne =
             playersObject?.playerOne?.id === gameData?.players?.playerOne?.id;
-          // console.log(isPlayerOne, 'isplayerOne');
-
+          //Update the gameSession to trigger the notification for whichever player
           await updateDoc(doc(db, 'gameSessions', combinedId), {
             unreadMessages: {
               playerOne: isPlayerOne ? 0 : gameData?.unreadMessages?.playerOne!,
@@ -126,12 +122,13 @@ const ChatModal: React.FC<Props> = ({
       animate={{
         opacity: 1,
         x: 0,
+        zIndex: 999,
       }}
       exit={{
         x: 300,
         opacity: 0,
       }}
-      className="fixed right-0 top-0 z-40 flex flex-col items-center justify-center w-[40%] max-[1100px]:w-[60%] max-[600px]:w-[90%] max-h-screen h-[100vh] bg-gray-100 text-gray-800"
+      className="fixed right-0 top-0 z-[99999] flex flex-col items-center justify-center w-[40%] max-[1100px]:w-[60%] max-[600px]:w-[90%] max-h-screen h-[100vh] bg-gray-100 text-gray-800"
     >
       <div className="flex flex-col gap-4 w-[90%] min-[480px]:h-[100%] max-[480px]:h-[95%] max-[480px]:mb-4 max-h-[100%]">
         <div className="flex items-center justify-between w-full mt-2">
@@ -167,7 +164,7 @@ const ChatModal: React.FC<Props> = ({
         >
           <div className="flex flex-col flex-grow h-0 p-4 overflow-auto">
             {playersChat?.length > 0 ? (
-              playersChat.map((res: Chat, index: number) => (
+              playersChat.map((res: Chat) => (
                 <div key={res._id}>
                   <ChatField
                     res={res}
@@ -195,7 +192,7 @@ const ChatModal: React.FC<Props> = ({
 
           <div className="relative bg-gray-300 p-4">
             <textarea
-              className="flex items-center min-[600px]:h-[70px] max-[600px]:h-[100px] w-full rounded px-2 py-4 pt-2 text-sm placeholder:pt-2 placeholder:pl-2 outline-none border-none "
+              className="flex items-center min-[600px]:h-[100%] max-[600px]:h-[100px] w-full rounded px-2 py-4 pt-2 text-sm placeholder:pt-2 placeholder:pl-2 outline-none border-none "
               placeholder="Type your message and send reactions…"
               onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
                 if (e.key === 'Enter' && !e.shiftKey) {

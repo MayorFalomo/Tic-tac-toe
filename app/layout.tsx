@@ -5,12 +5,46 @@ import StoreProvider from '@/storeProvider';
 import Providers from './QueryProvider';
 import { ThemeProvider } from './ThemeContext';
 import { AudioProvider } from './AudioContext';
+import Head from 'next/head';
+
 const inter = Prompt({ weight: '400', style: 'normal', subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Online Multiplayer and player live-chat Tictactoe Game',
+  title: 'Online Multiplayer and player chat TicTacToe Game',
   description:
-    'A multiplayer Tictactoe game with real-time playing and instant chatting while playing',
+    'A multiplayer TicTacToe game with real-time playing and instant chatting while playing',
+  keywords: [
+    'TicTacToe',
+    'multiplayer',
+    'game',
+    'online',
+    'gaming',
+    'Real-time chat',
+    'strategy game',
+  ],
+  generator: 'Next.js',
+  manifest: '/manifest.json',
+  themeColor: [{ media: '(prefers-color-scheme: dark)', color: '#fff' }],
+  authors: [
+    {
+      name: 'MayorFalomo',
+      url: 'https://mayowa-falomo.netlify.app',
+    },
+  ],
+  viewport:
+    'minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, viewport-fit=cover',
+  icons: [
+    {
+      rel: 'apple-touch-icon',
+      url:
+        'https://res.cloudinary.com/dsghy4siv/image/upload/v1737194177/Screenshot_417_xajhrr.png',
+    },
+    {
+      rel: 'icon',
+      url:
+        'https://res.cloudinary.com/dsghy4siv/image/upload/v1737194177/Screenshot_417_xajhrr.png',
+    },
+  ],
 };
 
 export default function RootLayout({
@@ -20,6 +54,27 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <Head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#000000" />
+        <meta name="" content="Real-time multiplayer TicTacToe  game" />
+        <meta property="og:title" content="Next.js" />
+        <meta
+          property="og:description"
+          content="A multiplayer TicTacToe game with real-time playing and instant chatting while playing"
+        />
+        <meta property="og:url" content="https://realtime-tictactoe.netlify.app" />
+        <meta property="og:site_name" content="Online Multiplayer TicTacTToe" />
+        <meta
+          property="og:image"
+          content="https://res.cloudinary.com/dsghy4siv/image/upload/v1737194193/Screenshot_415_pob0xs.png"
+        />
+        <meta
+          property="og:image:type"
+          content="https://res.cloudinary.com/dsghy4siv/image/upload/v1737194193/Screenshot_415_pob0xs.png"
+        />
+        <meta property="og:image:alt" content="Online Multiplayer TicTacToe" />
+      </Head>
       <body className={inter.className}>
         <StoreProvider>
           <Providers>

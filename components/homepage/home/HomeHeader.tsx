@@ -215,7 +215,7 @@ const HomeHeader: React.FC<Props> = ({
                 ? gameData?.players?.playerTwo?.name.slice(0, 16)
                 : gameData?.players?.playerOne?.name.slice(0, 16) ?? 'Destroyer'}
             </h1>
-            <div className="flex items-start border gap-2">
+            <div className="flex items-start gap-2">
               <Image
                 src="/SelectO.png"
                 className="m-auto"

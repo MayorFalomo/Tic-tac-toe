@@ -202,6 +202,7 @@ const InfoMenu = (props: Props) => {
                       <li className="list-none">
                         <Image src={Celebrate} alt="img" />
                       </li>
+                      <li>Play With Computer. </li>
                       <li>Add More customizable settings.</li>
                       <li>Chat players before the game.</li>
                       <li>LeaderBoard to show total wins and losses by a player.</li>
