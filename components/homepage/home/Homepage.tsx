@@ -1,9 +1,8 @@
 'use client';
 import { Chat, GameSession, MovesObject } from '@/app/types/types';
 import Possible from '@/components/possible/Possible';
-import Image from 'next/image';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { useAppSelector, useAppDispatch } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
 import { useRouter } from 'next/navigation';
@@ -14,44 +13,19 @@ import {
   query,
   updateDoc,
   where,
-  getDocs,
-  addDoc,
   doc,
 } from 'firebase/firestore';
 import { db } from '@/firebase-config/firebase';
-import {
-  changeNotifBg,
-  setTrackDisableRound,
-  setTrackRounds,
-  setTrackSound,
-} from '@/lib/features/TrackerSlice';
+import { setTrackDisableRound, setTrackRounds } from '@/lib/features/TrackerSlice';
 import { toast, Toaster } from 'react-hot-toast';
-import {
-  Bell,
-  CircleStop,
-  MessageCircle,
-  MessagesSquare,
-  MoonIcon,
-  Music,
-  Settings,
-  StopCircle,
-  SunIcon,
-} from 'lucide-react';
-// import ChatModal from '@/components/ChatModal';
-import { useWindowSize } from 'react-use';
-import Confetti from 'react-confetti';
 import { useTheme } from '@/app/ThemeContext';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useAudio } from '@/app/AudioContext';
-import { setAPlayerId } from '@/lib/features/userSlice';
-import Tippy from '@tippyjs/react';
+import HomeHeader from './HomeHeader';
 
 const ChatModal = React.lazy(() => import('@/components/ChatModal'));
 
 const Homepage: React.FC = () => {
   const playersObject = useAppSelector((state: RootState) => state.players.players);
   const playerId = useAppSelector((state: RootState) => state.user.playerId);
-  const track = useAppSelector((state: RootState) => state.track);
 
   const dispatch = useAppDispatch();
 
@@ -60,16 +34,13 @@ const Homepage: React.FC = () => {
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [playerChat, setPlayerChat] = useState<Chat[]>([]);
   const [getTheChatId, setTheChatId] = useState<any>(null);
-  const [currentPlayer, setCurrentPlayer] = useState('');
-  const [firstPlayer, setFirstPlayer] = useState('');
+  const [currentPlayer, setCurrentPlayer] = useState<string>('');
+  const [firstPlayer, setFirstPlayer] = useState<string>('');
   const [roundWinner, setRoundWinner] = useState<string | null>(null);
   const [ultimateWinner, setUltimateWinner] = useState<string | null>(null);
-  const [triggerDraw, setTriggerDraw] = useState<boolean>(false);
-
-  const { width, height } = useWindowSize(); //For the Cofetti Animation
+  const [triggerQuit, setTriggerQuit] = useState<string | null>(null);
   const router = useRouter();
-  const { play, stop } = useAudio();
-  const { currentTheme, setCurrentTheme } = useTheme();
+  const { currentTheme } = useTheme();
 
   //To get the combinedId
   const combinedId = useMemo(() => {
@@ -176,6 +147,7 @@ const Homepage: React.FC = () => {
       endOfRound: false,
       winningCombination: [],
       ultimateWinner: null,
+      draw: false,
       firstPlayer:
         gameData?.firstPlayer === gameData?.players?.playerOne?.id
           ? gameData?.players?.playerTwo?.id
@@ -214,6 +186,7 @@ const Homepage: React.FC = () => {
       roundWinner: null,
       endOfRound: false,
       ultimateWinner: null,
+      draw: false,
     });
     await updateDoc(doc(db, 'playersMoves', combinedId), {
       moves: [],
@@ -222,58 +195,8 @@ const Homepage: React.FC = () => {
       status: 'inGame',
     });
     setRoundWinner(null);
-    setTriggerDraw(false);
     toast.success('Game is restarted');
   }, [combinedId, gameData?.unChangeableFirstPlayer, playersObject?.playerOne?.id]);
-
-  const handleModal = useCallback(async () => {
-    //!After the modal opens then I need to...
-    //*First I need to check if a player chat already exist between the two players using the combinedId as a check
-    //?If I find it, I load the chats between the two players and if not I create a new chat session for the players using their combinedId
-    //Meanwhile in my chat modal, when a player sends a message it sends an object containing
-    //*Note senderId, message, timestamp, Reaction
-    //Then just the way we did the instant update with local state , we do the same thing here with the chat messages
-    //So whatever messages we send appears instantly then we can sort it by the id so it shows who is in sender and receiver based on the id for each player.
-    setOpenModal(true);
-    await loadChat();
-  }, [openModal]);
-
-  const loadChat = async () => {
-    const chatRef = collection(db, 'playersChats');
-    const q = query(chatRef, where('combinedId', '==', combinedId));
-
-    // Check if the chat session already exists
-    const querySnapshot = await getDocs(q);
-
-    if (!querySnapshot.empty) {
-      const chatId = querySnapshot.docs[0].id;
-
-      setTheChatId(chatId);
-      if (!querySnapshot.empty) {
-        // console.log('Chat session found, loading messages.');
-        const chats: any = [];
-        querySnapshot.forEach((doc) => {
-          chats.push({ id: doc.id, ...doc.data() });
-        });
-        setPlayerChat(chats[0].messages);
-      }
-    } else {
-      await createChatSession(); // Create new chat session if it doesn't exist
-    }
-  };
-
-  const createChatSession = async () => {
-    const chatRef = collection(db, 'playersChats');
-    await addDoc(chatRef, {
-      combinedId,
-      messages: [],
-      unreadMessages: {
-        playerOne: 0,
-        playerTwo: 0,
-      },
-      timestamp: new Date(),
-    });
-  };
 
   //useEffect to make sure it shows on both players interface
   useEffect(() => {
@@ -290,50 +213,17 @@ const Homepage: React.FC = () => {
     }
   }, [gameData?.roundWinner, roundWinner, gameData, gameData?.ultimateWinner]);
 
-  //useEffect to control sound state
-  useEffect(() => {
-    if (track?.trackSound) {
-      play();
-    } else {
-      stop();
-    }
-  }, [track?.trackSound]);
-
-  //Function to update sound state
-  const handleSoundControl = useCallback(async () => {
-    dispatch(setTrackSound(!track?.trackSound));
-  }, [track?.trackSound]);
-
-  //Function to update the theme background
-  const handleThemeChange = useCallback(async (theme: string) => {
-    setCurrentTheme(theme);
-    localStorage.setItem('theme', theme);
-  }, []);
-
-  //Function to handle notification background change
-  const handleNotifBgChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    dispatch(changeNotifBg(e.target.value));
-    localStorage.setItem('notifBg', e.target.value);
-  };
-
-  //Function to handle when the game is quited
-  const handleGameQuit = async () => {
-    await updateDoc(doc(db, 'gameSessions', combinedId), {
-      quitGame: true,
-    });
-    await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
-      status: 'online',
-    });
-
-    dispatch(setAPlayerId(''));
-    router.push('/');
-  };
-
   //useEffect to warn the current player if playerOne has left the game
   //Also to trigger what happens when there's a draw, so it reflects on both players end.
   useEffect(() => {
     if (gameData?.quitGame) {
-      toast(`${playersObject?.playerTwo?.name} has left the game`);
+      toast(
+        `${
+          triggerQuit === playersObject?.playerTwo?.name
+            ? playersObject?.playerOne?.name
+            : playersObject?.playerTwo?.name
+        } has left the game`
+      );
       dispatch(setTrackDisableRound(true));
     }
   }, [gameData?.quitGame]);
@@ -356,225 +246,22 @@ const Homepage: React.FC = () => {
         currentTheme === 'light' ? 'bg-royalGreen text-white ' : 'bg-black text-white'
       } transition-all duration-500 relative flex flex-col gap-[10px] items-center w-full h-[100vh] max-h-screen overflow-hidden`}
     >
-      <div className="flex max-[650px]:flex-col items-center justify-between min-[650px]:gap-4 px-2 max-[650px]:pt-2 w-full">
-        <div className="flex items-center justify-between gap-2 min-[750px]:max-w-[50%] max-[750px]:max-w-[100%] max-[480px]:max-w-[100%] ">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center w-full max-w-[250px] justify-center gap-[10px]">
-              <div className="flex items-start">
-                {gameData?.players?.playerOne?.avatar &&
-                  gameData?.players?.playerTwo?.avatar && (
-                    <Image
-                      width={40}
-                      height={40}
-                      src={
-                        currentPlayer === gameData?.players?.playerOne?.id
-                          ? gameData?.players?.playerOne?.avatar ?? null
-                          : gameData?.players?.playerTwo?.avatar ?? null
-                      }
-                      alt="img"
-                      className="w-[50px] h-[50px] min-w-[30px] min-h-[30px] object-cover object-top"
-                    />
-                  )}
-              </div>
-              <div className="flex flex-col gap-2  border-r border-white/40">
-                <h1 className="text-white text-[16px] max-[850px]:text-[14px] max-[350px]:text-[12px] px-2 min-w-[100px] max-[340px]:min-w-[80px] border-b border-white/40 ">
-                  {currentPlayer === gameData?.players?.playerOne?.id
-                    ? gameData?.players?.playerOne?.name.slice(0, 16)
-                    : gameData?.players?.playerTwo?.name.slice(0, 12) ?? 'HeavenLy'}
-                </h1>
-
-                {
-                  <Image
-                    src="/SelectX.png"
-                    className=" w-[30px] h-[30px] m-auto"
-                    width={30}
-                    height={30}
-                    alt="img"
-                  />
-                }
-              </div>
-            </div>
-            <h1 className="text-white text-center font-bold text-[28px] max-[650px]:text-[24px] ">
-              {currentPlayer === gameData?.players?.playerOne?.id
-                ? gameData?.scores?.playerOne! ?? '0'
-                : gameData?.scores?.playerTwo! ?? '0'}{' '}
-            </h1>
-          </div>
-          <p className="text-white text-[24px]"> : </p>
-          <div className="flex items-center gap-3 h-full">
-            <h1 className="text-white font-bold text-end text-[28px] max-[650px]:text-[24px] ">
-              {currentPlayer === gameData?.players?.playerTwo?.id
-                ? gameData?.scores?.playerOne! ?? 0
-                : gameData?.scores?.playerTwo! ?? 0}{' '}
-            </h1>
-
-            <div className="flex flex-col border-l border-white/40 gap-2">
-              <h1 className="text-white text-[16px] max-[850px]:text-[14px] max-[350px]:text-[12px] px-2 min-w-[100px] border-b border-white/40 text-end">
-                {currentPlayer === gameData?.players?.playerOne?.id
-                  ? gameData?.players?.playerTwo?.name.slice(0, 16)
-                  : gameData?.players?.playerOne?.name.slice(0, 16) ?? 'Destroyer'}
-              </h1>
-              <div className="flex items-start border gap-2">
-                <Image
-                  src="/SelectO.png"
-                  className="m-auto"
-                  width={30}
-                  height={30}
-                  alt="img"
-                />
-              </div>
-            </div>
-            <div className=" ">
-              {gameData?.players?.playerOne?.avatar! &&
-                gameData?.players?.playerTwo?.avatar! && (
-                  <Image
-                    width={40}
-                    height={40}
-                    src={
-                      currentPlayer !== gameData?.players?.playerTwo?.id
-                        ? gameData?.players?.playerTwo?.avatar!
-                        : gameData?.players?.playerOne?.avatar!
-                    }
-                    alt="img"
-                    className="w-[50px] h-[50px] min-w-[30px] min-h-[30px] object-cover object-top"
-                  />
-                )}
-            </div>
-          </div>
-          <AnimatePresence>
-            {ultimateWinner !== null ||
-            (roundWinner !== null && roundWinner!?.length > 1) ? (
-              <motion.div
-                style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  backdropFilter: 'blur(3.6px)',
-                  WebkitBackdropFilter: 'filter(5px',
-                  boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-                }}
-                className="absolute z-20 left-0 right-0 top-[50%] w-full p-3"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <h1
-                  className={`${
-                    ultimateWinner !== null || '' ? 'text-golden' : 'text-white'
-                  } text-[24px] text-center m-auto`}
-                >
-                  {ultimateWinner !== null
-                    ? 'Congrats!' + ' ' + ultimateWinner
-                    : roundWinner !== null || ''
-                    ? roundWinner + ' ' + 'wins'
-                    : null}
-                </h1>
-              </motion.div>
-            ) : (
-              ''
-            )}
-          </AnimatePresence>
-        </div>
-        {ultimateWinner!?.length > 1 && <Confetti width={width} height={height} />}
-        <div className="flex items-center gap-3 max-[650px]:w-[95%] max-[650px]:mt-3 ">
-          <div className="flex items-center justify-between w-full gap-4 p-2 min-[650px]:p-4">
-            <h1 className="border w-fit text-center text-[16px] min-w-[120px] rounded-lg px-3 py-2">
-              <span className="inline-block">Round: {gameData?.rounds} / 5</span>
-            </h1>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={handleModal}
-                className=" relative cursor-pointer outline-none border-none"
-              >
-                {' '}
-                {playersObject?.playerOne?.id === gameData?.players?.playerTwo?.id &&
-                gameData?.unreadMessages?.playerTwo! > 0 ? (
-                  <Tippy className="z-[1]" content="See notification" placement="bottom">
-                    <Bell size={20} color="white" />
-                  </Tippy>
-                ) : (
-                  <Tippy className="z-[1]" content="player chat" placement="bottom">
-                    <MessageCircle color="white" size={20} />
-                  </Tippy>
-                )}
-                {playersObject?.playerOne?.id === gameData?.players?.playerTwo?.id && (
-                  <span
-                    className={`z-[4] absolute bottom-1/2 left-[20px] transform -translate-x-1/2 -translate-y-1/2  min-w-[20px] min-h-[20px] place-content-center grid text-[14px] rounded-full`}
-                    style={{ backgroundColor: track?.notifBg || 'red' }}
-                  >
-                    {gameData?.unreadMessages?.playerTwo ?? 0}
-                  </span>
-                )}
-                {playersObject?.playerTwo?.id === gameData?.players?.playerTwo?.id && (
-                  <span
-                    className={`z-[4] absolute bottom-1/2 left-[20px] transform -translate-x-1/2 -translate-y-1/2  min-w-[20px] min-h-[20px] place-content-center grid text-[14px] text-center align-middle rounded-full`}
-                    style={{ backgroundColor: track?.notifBg || 'red' }}
-                  >
-                    {gameData?.unreadMessages?.playerOne ?? 0}
-                  </span>
-                )}
-              </button>
-              <Popover>
-                <PopoverTrigger>
-                  <Tippy content="Game settings" placement="bottom">
-                    <Settings size={20} color="white" />
-                  </Tippy>
-                </PopoverTrigger>
-                <PopoverContent className="">
-                  <ul className="flex flex-col gap-4 items-start">
-                    <li
-                      onClick={() =>
-                        handleThemeChange(currentTheme === 'dark' ? 'light' : 'dark')
-                      }
-                      className="py-3 px-3 w-full cursor-pointer hover:bg-gray-100 flex items-center justify-between gap-4 mx-auto"
-                    >
-                      <span>Light mode</span>
-                      <span className=" cursor-pointer">
-                        {currentTheme === 'light' ? <MoonIcon /> : <SunIcon />}
-                      </span>
-                    </li>
-                    <li
-                      onClick={handleSoundControl}
-                      className="py-3 px-3 w-full cursor-pointer hover:bg-gray-100 flex items-center justify-between gap-4 mx-auto"
-                    >
-                      <span>Control sound</span>
-                      <span className=" cursor-pointer">
-                        {track?.trackSound ? <CircleStop /> : <Music />}
-                      </span>
-                    </li>
-                    <li
-                      onClick={() => handleNotifBgChange}
-                      className="py-3 px-3 w-full cursor-pointer hover:bg-gray-100 flex items-center justify-between gap-4 mx-auto"
-                    >
-                      <span>Change Notif bg</span>
-                      <input onChange={handleNotifBgChange} type={'color'} />
-                    </li>
-                    <li
-                      onClick={handleGameQuit}
-                      className="py-3 px-3 w-full cursor-pointer hover:bg-gray-100 flex items-center justify-between gap-4 mx-auto"
-                    >
-                      <span>Quit Game</span>
-                      <span>
-                        <StopCircle color="red" />{' '}
-                      </span>
-                    </li>
-                  </ul>
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-        </div>
-      </div>
+      <HomeHeader
+        gameData={gameData}
+        combinedId={combinedId}
+        currentPlayer={currentPlayer}
+        roundWinner={roundWinner}
+        ultimateWinner={ultimateWinner}
+        setTriggerQuit={setTriggerQuit}
+        openModal={openModal}
+        setTheChatId={setTheChatId}
+        setOpenModal={setOpenModal}
+        setPlayerChat={setPlayerChat}
+      />
       <div className="flex justify-center items-center mx-auto w-full h-[85%] max-[500px]:h-[100%]">
         <div className="flex flex-col w-full gap-[10px] items-center  justify-center">
           <div className="relative">
-            <div
-              className="relative items-center justify-content w-[400px] max-[500px]:w-[320px] h-[400px] max-[500px]:h-[350px] grid grid-cols-3 gap-2 m-auto mt-[20px]"
-              style={
-                {
-                  // borderTop: '3px solid #fff',
-                  // borderBottom: '3px solid #fff',
-                }
-              }
-            >
+            <div className="relative items-center justify-content w-[400px] max-[500px]:w-[320px] h-[400px] max-[500px]:h-[350px] grid grid-cols-3 gap-2 m-auto mt-[20px]">
               <span
                 className="absolute right-[-70px] max-[500px]:right-[-70px] max-[500px]: top-[195px] max-[500px]:top-[170px] h-[2px] w-[100%] max-[500px]:w-[340px] rotate-[90deg]"
                 style={{
@@ -588,7 +275,6 @@ const Homepage: React.FC = () => {
                 className="absolute left-[-70px] max-[500px]:left-[-70px] top-[195px] max-[500px]:top-[170px] h-[2px] w-[100%] max-[500px]:w-[340px] rotate-[90deg]"
                 style={{
                   border: '3px solid #fff',
-
                   borderRadius: '10.1429px',
                 }}
               >
@@ -598,7 +284,6 @@ const Homepage: React.FC = () => {
                 className="absolute left-[0px] top-[120px] max-[500px]:top-[100px] h-[2px] w-[100%]"
                 style={{
                   border: '3px solid #fff',
-
                   borderRadius: '10.1429px',
                 }}
               >
@@ -608,7 +293,6 @@ const Homepage: React.FC = () => {
                 className="absolute left-[0px] bottom-[120px] h-[3px] w-[100%]"
                 style={{
                   border: '3px solid #fff',
-
                   borderRadius: '10.1429px',
                 }}
               >
@@ -627,7 +311,6 @@ const Homepage: React.FC = () => {
                     combinedId={combinedId}
                     setRoundWinner={setRoundWinner}
                     setUltimateWinner={setUltimateWinner}
-                    setTriggerDraw={setTriggerDraw}
                   />
                 </div>
               ))}

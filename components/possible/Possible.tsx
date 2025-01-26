@@ -22,7 +22,6 @@ type MappedOver = {
   combinedId: string;
   setRoundWinner: React.Dispatch<React.SetStateAction<string | null>>;
   setUltimateWinner: React.Dispatch<React.SetStateAction<string | null>>;
-  setTriggerDraw: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const Possible: React.FC<MappedOver> = ({
@@ -32,7 +31,6 @@ const Possible: React.FC<MappedOver> = ({
   movesData,
   combinedId,
   setUltimateWinner,
-  setTriggerDraw,
 }) => {
   const [storedCurrentPlayerChoices, setStoredCurrentPlayerChoices] = useState<number[]>(
     []
@@ -370,7 +368,7 @@ const Possible: React.FC<MappedOver> = ({
             <DrawLine
               width="90%"
               height="5px"
-              top={isBiggerScreen ? '60px' : '50px'}
+              top={isBiggerScreen ? '60px' : '45px'}
               left="20px"
               rotate="0"
             />

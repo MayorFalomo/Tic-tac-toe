@@ -133,7 +133,7 @@ const ChatModal: React.FC<Props> = ({
       }}
       className="fixed right-0 top-0 z-40 flex flex-col items-center justify-center w-[40%] max-[1100px]:w-[60%] max-[600px]:w-[90%] max-h-screen h-[100vh] bg-gray-100 text-gray-800"
     >
-      <div className="flex flex-col gap-4 w-[90%] min-[480px]:h-[100%] max-[480px]:h-[95%] max-[480px]:mb-4 max-h-[100vh">
+      <div className="flex flex-col gap-4 w-[90%] min-[480px]:h-[100%] max-[480px]:h-[95%] max-[480px]:mb-4 max-h-[100%]">
         <div className="flex items-center justify-between w-full mt-2">
           <div className="rounded-full">
             <div className="flex items-center gap-3">
