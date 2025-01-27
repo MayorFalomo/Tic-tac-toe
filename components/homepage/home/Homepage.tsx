@@ -244,7 +244,6 @@ const Homepage: React.FC = () => {
         roundWinner={roundWinner}
         ultimateWinner={ultimateWinner}
         setTriggerQuit={setTriggerQuit}
-        openModal={openModal}
         setTheChatId={setTheChatId}
         setOpenModal={setOpenModal}
         setPlayerChat={setPlayerChat}
@@ -331,7 +330,7 @@ const Homepage: React.FC = () => {
         ) : (
           <button
             onClick={() => handleStartNewRound()}
-            disabled={gameData?.goToNextRound}
+            disabled={gameData?.rounds === 1 ? true : gameData?.goToNextRound}
             className={`text-white border inline-block text-center text-[18px] px-2 py-2 ${
               gameData?.goToNextRound
                 ? 'opacity-30 cursor-not-allowed'
@@ -358,7 +357,7 @@ const Homepage: React.FC = () => {
           />
         )}
       </AnimatePresence>
-      <Toaster
+      {/* <Toaster
         position="top-right"
         toastOptions={{
           duration: 4000,
@@ -369,7 +368,7 @@ const Homepage: React.FC = () => {
             height: '70px',
           },
         }}
-      />
+      /> */}
     </div>
   );
 };

@@ -164,7 +164,9 @@ const Possible: React.FC<MappedOver> = ({
                 setTimeout(async () => {
                   await updateDoc(doc(db, 'gameSessions', combinedId), {
                     roundWinner: '',
-                    ultimateWinner: determineWinnerName,
+                    ultimateWinner: determineFinalWinner
+                      ? gameData?.players?.playerOne?.name
+                      : gameData?.players?.playerTwo?.name,
                   });
                   toast.success(
                     `Player ${
@@ -182,12 +184,16 @@ const Possible: React.FC<MappedOver> = ({
                       position: 'top-right',
                     }
                   );
-                  const determineFinalWinnerName = checkForWinningName(
-                    determineFinalWinner
-                  );
+                  // const determineFinalWinnerName = checkForWinningName(
+                  //   determineFinalWinner
+                  // );
 
-                  setUltimateWinner(determineFinalWinnerName!);
-                }, 6000);
+                  setUltimateWinner(
+                    determineFinalWinner
+                      ? gameData?.players?.playerOne?.name
+                      : gameData?.players?.playerTwo?.name
+                  );
+                }, 4000);
                 //So it reflects offline after since most players go off here
                 await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
                   status: 'offline',
@@ -286,6 +292,7 @@ const Possible: React.FC<MappedOver> = ({
     return isWinningCombination;
   };
 
+  //Function to Check for a draw
   const checkForDraw = (moves: MovesObject[]) => {
     const result =
       moves.length === 9 &&
@@ -297,6 +304,7 @@ const Possible: React.FC<MappedOver> = ({
     }
   };
 
+  //Extra check to confirm the winners name
   const checkForWinningName = (determineFinalWinner: boolean) => {
     const retrieveWinner = determineFinalWinner
       ? gameData?.players?.playerOne?.name === playersObject?.playerOne?.name
@@ -418,7 +426,7 @@ const Possible: React.FC<MappedOver> = ({
               width="90%"
               height="5px"
               top="20px"
-              left={isBiggerScreen ? '330px' : '270px'}
+              left={isBiggerScreen ? '340px' : '270px'}
               rotate="90"
             />
           )}

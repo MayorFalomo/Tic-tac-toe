@@ -11,7 +11,7 @@ import {
   StopCircle,
 } from 'lucide-react';
 import Image from 'next/image';
-import React, { useCallback, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import ReactConfetti from 'react-confetti';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Chat, GameSession } from '@/app/types/types';
@@ -41,7 +41,6 @@ type Props = {
   roundWinner: string | null;
   ultimateWinner: string | null;
   setTriggerQuit: (arg: string) => void;
-  openModal: boolean;
   setTheChatId: (arg: any) => void;
   setOpenModal: (arg: boolean) => void;
   setPlayerChat: (arg: Chat[]) => void;
@@ -54,7 +53,6 @@ const HomeHeader: React.FC<Props> = ({
   roundWinner,
   ultimateWinner,
   setTriggerQuit,
-  openModal,
   setTheChatId,
   setOpenModal,
   setPlayerChat,
@@ -77,15 +75,15 @@ const HomeHeader: React.FC<Props> = ({
   }, [track?.trackSound]);
 
   //Function to update the theme background
-  const handleThemeChange = useCallback(async (theme: string) => {
+  const handleThemeChange = async (theme: string) => {
     setCurrentTheme(theme);
     localStorage.setItem('theme', theme);
-  }, []);
+  };
 
   //Function to update sound state
-  const handleSoundControl = useCallback(async () => {
+  const handleSoundControl = async () => {
     dispatch(setTrackSound(!track?.trackSound));
-  }, [track?.trackSound]);
+  };
 
   //Function to handle notification background change
   const handleNotifBgChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,7 +105,7 @@ const HomeHeader: React.FC<Props> = ({
     router.push('/');
   };
 
-  const handleModal = useCallback(async () => {
+  const handleModal = async () => {
     //!After the modal opens then I need to...
     //*First I need to check if a player chat already exist between the two players using the combinedId as a check
     //?If I find it, I load the chats between the two players and if not I create a new chat session for the players using their combinedId
@@ -117,7 +115,7 @@ const HomeHeader: React.FC<Props> = ({
     //So whatever messages we send appears instantly then we can sort it by the id so it shows who is in sender and receiver based on the id for each player.
     setOpenModal(true);
     await loadChat();
-  }, [openModal]);
+  };
 
   const createChatSession = async () => {
     const chatRef = collection(db, 'playersChats');
@@ -173,7 +171,7 @@ const HomeHeader: React.FC<Props> = ({
                         : gameData?.players?.playerTwo?.avatar ?? null
                     }
                     alt="img"
-                    className="w-[50px] h-[50px] min-w-[30px] min-h-[30px] object-cover object-top"
+                    className="border border-white/40 w-[50px] h-[50px] min-w-[30px] min-h-[30px] object-cover object-top"
                   />
                 )}
             </div>
@@ -237,7 +235,7 @@ const HomeHeader: React.FC<Props> = ({
                       : gameData?.players?.playerOne?.avatar!
                   }
                   alt="img"
-                  className="w-[50px] h-[50px] min-w-[30px] min-h-[30px] object-cover object-top"
+                  className="border border-white/40 w-[50px] h-[50px] min-w-[30px] min-h-[30px] object-cover object-top"
                 />
               )}
           </div>
@@ -288,13 +286,9 @@ const HomeHeader: React.FC<Props> = ({
               {' '}
               {playersObject?.playerOne?.id === gameData?.players?.playerTwo?.id &&
               gameData?.unreadMessages?.playerTwo! > 0 ? (
-                <Tippy className="z-[1]" content="See notification" placement="bottom">
-                  <Bell size={20} color="white" />
-                </Tippy>
+                <Bell size={20} color="white" />
               ) : (
-                <Tippy className="z-[1]" content="player chat" placement="bottom">
-                  <MessageCircle color="white" size={20} />
-                </Tippy>
+                <MessageCircle color="white" size={20} />
               )}
               {playersObject?.playerOne?.id === gameData?.players?.playerTwo?.id && (
                 <span
@@ -315,9 +309,7 @@ const HomeHeader: React.FC<Props> = ({
             </button>
             <Popover>
               <PopoverTrigger>
-                <Tippy content="Game settings" placement="bottom">
-                  <Settings size={20} color="white" />
-                </Tippy>
+                <Settings size={20} color="white" />
               </PopoverTrigger>
               <PopoverContent className="">
                 <ul className="flex flex-col gap-4 items-start">
