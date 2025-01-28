@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     'strategy game',
   ],
   generator: 'Next.js',
-  manifest: '/manifest.json',
+  manifest: './manifest.json',
   themeColor: [{ media: '(prefers-color-scheme: dark)', color: '#fff' }],
   authors: [
     {
@@ -55,7 +55,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <Head>
-        <link rel="manifest" href="/manifest.json" />
+        <link rel="manifest" href="./manifest.json" />
         <meta name="theme-color" content="#000000" />
         <meta name="" content="Real-time multiplayer TicTacToe  game" />
         <meta property="og:title" content="Next.js" />
