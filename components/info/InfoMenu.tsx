@@ -181,7 +181,7 @@ const InfoMenu = (props: Props) => {
               </Dialog>
             </Bouncy>
           </li>
-          <li className="cursor-pointer hover:text-white">
+          <li className="cursor-pointer border border-green-500 hover:text-white">
             <Bouncy delay={1}>
               <Dialog>
                 <DialogTrigger asChild>
@@ -189,7 +189,7 @@ const InfoMenu = (props: Props) => {
                     Planned features <Rocket size={18} />{' '}
                   </span>
                 </DialogTrigger>
-                <DialogContent className="h-[90%] bg-black text-white overflow-auto w-[100%] max-sm:max-w-[425px]">
+                <DialogContent className="h-[90%] border border-red-600 bg-black text-white overflow-auto w-[100%] max-sm:max-w-[425px]">
                   <DialogHeader>
                     <DialogTitle>Planned Features </DialogTitle>
                     <DialogDescription className="">
