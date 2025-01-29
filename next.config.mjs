@@ -2,8 +2,8 @@ import withPWA from "next-pwa";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-   reactStrictMode: true,      // Enable React strict mode for improved error handling
-    swcMinify: true,            // Enable SWC minification for improved performance
+   reactStrictMode: true,   
+    // swcMinify: true,          
     compiler: {
         removeConsole: process.env.NODE_ENV !== "development"     // Remove console.log in production
     },
@@ -22,37 +22,37 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'vignette.wikia.nocookie.net',
         port: '',
-        pathname: '/your-account/**',
+        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'static.wikia.nocookie.net',
         port: '',
-        pathname: '/your-account/**',
+        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'avatar.iran.liara.run',
         port: '',
-        pathname: '/your-account/**',
+        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'i.pinimg.com',
         port: '',
-        pathname: '/your-account/**',
+        pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
         port: '',
-        pathname: '/your-account/**',
+        pathname: '/**',
       },
       {
         protocol: 'https',
-        hostname: 'https://ui-avatars.com',
+        hostname: 'ui-avatars.com',
         port: '',
-        pathname: '/your-account/**',
+        pathname: '/**',
       },
     ],
   },
@@ -62,5 +62,5 @@ export default withPWA({
     dest: "public",         // destination directory for the PWA files
     disable: process.env.NODE_ENV === "development",        // disable PWA in the development environment
     register: true,         // register the PWA service worker
-    skipWaiting: true,      // skip waiting for service worker activation
+    skipWaiting: true,      // skip waiting for service worker activation,
 })(nextConfig);

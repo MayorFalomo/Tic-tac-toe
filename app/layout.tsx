@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Prompt } from 'next/font/google';
 import './globals.css';
 import StoreProvider from '@/storeProvider';
@@ -23,8 +23,8 @@ export const metadata: Metadata = {
     'strategy game',
   ],
   generator: 'Next.js',
-  manifest: './manifest.json',
-  themeColor: [{ media: '(prefers-color-scheme: dark)', color: '#fff' }],
+  manifest: '/manifest.json',
+  // themeColor: [{ media: '(prefers-color-scheme: dark)', color: '#000' }],
   authors: [
     {
       name: 'MayorFalomo',
@@ -47,6 +47,16 @@ export const metadata: Metadata = {
   ],
 };
 
+const viewport: Viewport = {
+  colorScheme: 'light',
+  themeColor: '#ffffff',
+  width: 'device-width',
+  initialScale: 1,
+};
+
+// Exporting this way to avoid NextJs 14 type error
+export { viewport };
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -55,7 +65,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <Head>
-        <link rel="manifest" href="./manifest.json" />
+        <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#000000" />
         <meta name="" content="Real-time multiplayer TicTacToe  game" />
         <meta property="og:title" content="Next.js" />
