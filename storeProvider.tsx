@@ -1,14 +1,9 @@
-"use client";
-import { useRef } from "react";
+'use client';
+import { useRef } from 'react';
+import { Provider } from 'react-redux';
+import { AppStore, possibiltyStore } from './lib/store';
 
-import { Provider } from "react-redux";
-import { AppStore, possibiltyStore } from "./lib/store";
-
-export default function StoreProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function StoreProvider({ children }: { children: React.ReactNode }) {
   const storeRef = useRef<AppStore>();
 
   if (!storeRef.current) {
