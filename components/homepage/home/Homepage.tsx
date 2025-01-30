@@ -330,7 +330,13 @@ const Homepage: React.FC = () => {
         ) : (
           <button
             onClick={() => handleStartNewRound()}
-            disabled={gameData?.rounds === 1 ? true : gameData?.goToNextRound}
+            disabled={
+              gameData?.rounds === 1
+                ? true
+                : gameData?.rounds! > 1 && !gameData?.goToNextRound
+                ? false
+                : true
+            }
             className={`text-white border inline-block text-center text-[18px] px-2 py-2 ${
               gameData?.goToNextRound
                 ? 'opacity-30 cursor-not-allowed'
