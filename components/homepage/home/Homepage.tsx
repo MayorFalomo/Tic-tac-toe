@@ -231,6 +231,9 @@ const Homepage: React.FC = () => {
     }
   }, [gameData?.draw]);
 
+  console.log(gameData?.rounds! > 1 && !gameData?.goToNextRound);
+  console.log(gameData?.goToNextRound, !gameData?.goToNextRound);
+
   return (
     <div
       className={`${
@@ -331,11 +334,7 @@ const Homepage: React.FC = () => {
           <button
             onClick={() => handleStartNewRound()}
             disabled={
-              gameData?.rounds === 1
-                ? true
-                : gameData?.rounds! > 1 && !gameData?.goToNextRound
-                ? false
-                : true
+              gameData?.endOfRound && gameData?.goToNextRound === false ? false : true
             }
             className={`text-white border inline-block text-center text-[18px] px-2 py-2 ${
               gameData?.goToNextRound

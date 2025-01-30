@@ -216,6 +216,49 @@ const Possible: React.FC<MappedOver> = ({
               dispatch(setTrackDisableRound(false));
 
               if (gameData?.rounds === 5) {
+                //Check for ultimate Winner
+                if (gameData?.scores?.playerOne !== gameData?.scores?.playerTwo) {
+                  const determineFinalWinner =
+                    gameData?.scores?.playerOne > gameData?.scores?.playerTwo;
+
+                  await updateDoc(doc(db, 'gameSessions', combinedId), {
+                    roundWinner: '',
+                    ultimateWinner: determineFinalWinner
+                      ? gameData?.players?.playerOne?.name
+                      : gameData?.players?.playerTwo?.name,
+                  });
+                  toast.success(
+                    `Player ${
+                      determineFinalWinner
+                        ? gameData?.players?.playerOne?.name
+                        : gameData?.players?.playerTwo?.name
+                    } is the ultimate winner!`,
+                    {
+                      style: {
+                        background: '#333',
+                        color: '#fff',
+                        minWidth: '250px',
+                        width: 'auto',
+                      },
+                      position: 'top-right',
+                    }
+                  );
+                  // const determineFinalWinnerName = checkForWinningName(
+                  //   determineFinalWinner
+                  // );
+
+                  setUltimateWinner(
+                    determineFinalWinner
+                      ? gameData?.players?.playerOne?.name
+                      : gameData?.players?.playerTwo?.name
+                  );
+                  //So it reflects offline after since most players go off here
+                  await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
+                    status: 'offline',
+                  });
+                  dispatch(setTrackDisableRound(false));
+                }
+
                 // const checkForDrawInGame =
                 //   gameData?.scores?.playerOne === gameData?.scores?.playerTwo
                 //     ? true

@@ -58,6 +58,7 @@ const Login = () => {
         //If the player exists
         if (playerDoc.exists()) {
           const playerData = playerDoc.data();
+          console.log(playerData, 'playerData');
 
           //set the player to the local playerOne state using dispatch
           dispatch(givePlayerNames({ playerOne: playerData }));
@@ -68,10 +69,10 @@ const Login = () => {
           console.log(playerId, 'playerId');
 
           //Then it changes the players status to looking instead of online
-          handleUserPresence(playerId, playerData?.name);
+          handleUserPresence(playerData?.id, playerData?.name);
 
           //Since we've handled changing a users status we can now search for other players with a status of looking too
-          searchForOpponent(playerId);
+          searchForOpponent(playerData?.id);
         }
       }
     } catch (error) {
