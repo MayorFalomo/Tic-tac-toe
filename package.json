@@ -8,6 +8,9 @@
     "start": "next start",
     "lint": "next lint"
   },
+  "engines": {
+    "node": "^18.18.0"
+  },
   "proxy": "https://firestore.googleapis.com",
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
