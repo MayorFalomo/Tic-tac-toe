@@ -226,6 +226,7 @@ const Possible: React.FC<MappedOver> = ({
                     ultimateWinner: determineFinalWinner
                       ? gameData?.players?.playerOne?.name
                       : gameData?.players?.playerTwo?.name,
+                    endOfRound: true,
                   });
                   toast.success(
                     `Player ${

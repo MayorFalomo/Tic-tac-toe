@@ -346,11 +346,15 @@ const SignUp: React.FC = () => {
                 currentTheme === 'light' ? 'bg-royalGreen text-golden' : 'bg-black'
               } border border-white/40 rounded-lg py-8 px-8 min-w-[250px] w-[400px] max-[550px]:w-[80%] max-[550px]:max-w-[90%] max-[550px]:px-3 `}
             >
-              <h1 className="flex flex-nowrap items-start gap-2 text-[22px] max-[550px]:text-[20px] font-bold mb-2 overflow-hidden">
+              <h1 className="flex flex-nowrap items-center gap-2 text-[22px] max-[550px]:text-[18px] font-bold mb-2 overflow-hidden">
                 <span>Welcome Player</span>
                 <AnimatePresence>
                   {showPlayerName && (
-                    <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    <motion.span
+                      className="text-[18px] max-[550px]:text-[16px]"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
                       - {playerName.slice(0, 12)}{' '}
                     </motion.span>
                   )}

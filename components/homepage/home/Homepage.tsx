@@ -316,7 +316,7 @@ const Homepage: React.FC = () => {
             ? 'Your Turn'
             : `${playersObject?.playerTwo?.name} Turn`}
         </button>
-        {gameData?.rounds === 5 ? (
+        {gameData?.rounds === 5 && gameData?.goToNextRound === true ? (
           <button
             className={`text-white border-2 inline-block text-center text-[18px] px-3 py-2 ${
               gameData?.goToNextRound
