@@ -117,7 +117,13 @@ const InfoMenu = (props: Props) => {
                     <BookOpen size={18} />
                   </span>
                 </DialogTrigger>
-                <DialogContent className="h-[90%] bg-black text-white overflow-auto w-[100%] max-sm:max-w-[425px]">
+                <DialogContent
+                  className={`${
+                    currentTheme === 'light'
+                      ? 'bg-royalGreen text-golden'
+                      : 'bg-[#000] text-white'
+                  }  h-[90%] overflow-auto w-[100%] max-sm:max-w-[425px]`}
+                >
                   <DialogHeader>
                     <DialogTitle>#Multiplayer Tic-Tac-Toe Game </DialogTitle>
                     <DialogDescription className="my-2">
@@ -189,9 +195,21 @@ const InfoMenu = (props: Props) => {
                     Planned features <Rocket size={18} />{' '}
                   </span>
                 </DialogTrigger>
-                <DialogContent className="h-[90%] bg-black text-white overflow-auto w-[100%] max-sm:max-w-[425px]">
+                <DialogContent
+                  className={`${
+                    currentTheme === 'light'
+                      ? 'bg-royalGreen text-golden'
+                      : 'bg-[#000] text-white'
+                  } h-[90%] overflow-auto w-[100%] max-sm:max-w-[425px]`}
+                >
                   <DialogHeader>
-                    <DialogTitle>Planned Features </DialogTitle>
+                    <DialogTitle
+                      className={`${
+                        currentTheme === 'light' ? 'text-white' : 'bg-[#000] text-white'
+                      }`}
+                    >
+                      Planned Features{' '}
+                    </DialogTitle>
                     <DialogDescription className="">
                       Like to contribute? Feel free to work on any of this planned
                       features.

@@ -231,9 +231,6 @@ const Homepage: React.FC = () => {
     }
   }, [gameData?.draw]);
 
-  console.log(gameData?.rounds! > 1 && !gameData?.goToNextRound);
-  console.log(gameData?.goToNextRound, !gameData?.goToNextRound);
-
   return (
     <div
       className={`${
