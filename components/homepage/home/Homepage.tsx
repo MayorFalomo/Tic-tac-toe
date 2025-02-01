@@ -316,10 +316,10 @@ const Homepage: React.FC = () => {
             ? 'Your Turn'
             : `${playersObject?.playerTwo?.name} Turn`}
         </button>
-        {gameData?.rounds === 5 && gameData?.goToNextRound === true ? (
+        {gameData?.rounds === 5 && gameData?.endOfRound === true ? (
           <button
             className={`text-white border-2 inline-block text-center text-[18px] px-3 py-2 ${
-              gameData?.goToNextRound
+              !gameData?.endOfRound
                 ? 'opacity-50 bg-brightGreen cursor-not-allowed'
                 : ' opacity-100 cursor-pointer'
             }`}
@@ -334,7 +334,7 @@ const Homepage: React.FC = () => {
               gameData?.endOfRound && gameData?.goToNextRound === false ? false : true
             }
             className={`text-white border inline-block text-center text-[18px] px-2 py-2 ${
-              gameData?.goToNextRound
+              !gameData?.endOfRound
                 ? 'opacity-30 cursor-not-allowed'
                 : ' opacity-100 cursor-pointer'
             }`}
