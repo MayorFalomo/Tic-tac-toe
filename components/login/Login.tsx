@@ -20,7 +20,7 @@ import { useAppDispatch } from '@/lib/hooks';
 import { createGameSession, handleUserPresence } from '../funcs/HandleAuth';
 import { push, ref } from '@firebase/database';
 
-import { GameSession, PlayerDetails } from '@/app/types/types';
+import { GameSession, PlayerDetails, PlayerStatus } from '@/app/types/types';
 import { setAPlayerId } from '@/lib/features/userSlice';
 import { setCombinedGameSessionId, setSessionId } from '@/lib/features/TrackerSlice';
 import FadeIn from '@/app/animation/FadeIn';
@@ -28,9 +28,9 @@ import { useTheme } from '@/app/ThemeContext';
 import { motion } from 'framer-motion';
 
 const Login = () => {
-  const [playerName, setPlayerName] = useState<string>('');
+  // const [playerName, setPlayerName] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
-  const [Avatar, setAvatar] = useState<string>('');
+  // const [Avatar, setAvatar] = useState<string>('');
   const [randomControl, setRandomControl] = useState<boolean>(false); //To pick the random player
   const [searchingActive, setSearchingActive] = useState<boolean>(false);
   const dispatch = useAppDispatch();
@@ -62,17 +62,22 @@ const Login = () => {
 
           //set the player to the local playerOne state using dispatch
           dispatch(givePlayerNames({ playerOne: playerData }));
-          setAvatar(playerData?.avatar);
+          // setAvatar(playerData?.avatar);
           //create a separate db instance in the database named activePlayers
           const playerRef = push(ref(database, 'activePlayers')); //Create a new child reference
           const playerId = playerRef.key || ''; // Get the unique key
           console.log(playerId, 'playerId');
 
+          await setDoc(doc(db, 'players', playerData?.id), {
+            status: PlayerStatus?.LOOKING,
+          });
+
           //Then it changes the players status to looking instead of online
           handleUserPresence(playerData?.id, playerData?.name);
+          console.log('got here');
 
           //Since we've handled changing a users status we can now search for other players with a status of looking too
-          searchForOpponent(playerData?.id);
+          searchForOpponent(playerData?.id, playerData?.name, playerData?.avatar);
         }
       }
     } catch (error) {
@@ -80,7 +85,11 @@ const Login = () => {
     }
   };
 
-  const searchForOpponent = async (playerId: string) => {
+  const searchForOpponent = async (
+    playerId: string,
+    playerName: string,
+    playerAvatar: string
+  ) => {
     try {
       const playersRef = collection(db, 'players'); //Create a reference to players collection on firestore
 
@@ -90,6 +99,7 @@ const Login = () => {
       const unsubscribe = onSnapshot(q, async (snapshot) => {
         snapshot.forEach(async (doc: any) => {
           const opponentId = doc.id; //The id of the opponent
+          console.log('opponentId');
 
           // Ensure the opponent is not the same as the current player
           if (opponentId !== playerId) {
@@ -115,7 +125,7 @@ const Login = () => {
               const playerOneDetails = {
                 id: playerId,
                 name: playerName,
-                avatar: Avatar,
+                avatar: playerAvatar,
               };
               //Define the object for playerOne
               const playerTwoDetails = {
@@ -269,7 +279,7 @@ const Login = () => {
                       ? 'Searching for a player'
                       : 'Enter game'}{' '}
                   </span>
-                  <span>{loading && <LoadingSpinner />}</span>
+                  <span className="ml-1">{loading && <LoadingSpinner />}</span>
                 </Button>
               </div>
               <div className=" flex flex-col items-center justify-center gap-3">

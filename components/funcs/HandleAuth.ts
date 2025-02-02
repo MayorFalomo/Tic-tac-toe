@@ -3,10 +3,12 @@ import { database, db,} from "@/firebase-config/firebase";
 import { push, ref, set, } from "@firebase/database";
 import { collection, doc, getDocs, query, setDoc } from "firebase/firestore";
 import { PlayerStatus } from "@/app/types/types";
+import emailjs from '@emailjs/browser';
 
 
 export const handleUserPresence = async (userId: string, playerName: string) => {
   try {
+    console.log(userId, playerName, 'handleAuth')
     const userRef = ref(database, `activePlayers/${userId}`); //We reference the "activePlayers" db we created in the createPlayerfunc and find a player by their userId
 
     //Set the users status to online when they connect
@@ -85,3 +87,19 @@ export const getAllPlayers = async (): Promise<any[]> => {
     throw error; // Rethrow the error for handling in the calling function
   }
 };
+
+export const sendEmail = async (playerName: string) => {
+  if (playerName) {
+    await emailjs
+      .send(
+        `${process.env.NEXT_PUBLIC_SERVICE_ID}`,
+        `${process.env.NEXT_PUBLIC_TEMPLATE_ID}`,
+        {
+          to_name: 'Falomo Mayowa, source: TicTacToe Searching',
+          from_name: playerName,
+          message: `Request For an Opponent from ${playerName}
+          `,
+        }
+      )
+  }
+}

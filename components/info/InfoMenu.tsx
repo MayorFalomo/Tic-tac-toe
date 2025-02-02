@@ -18,9 +18,7 @@ import Image from 'next/image';
 import TicTacToe from '@/public/TicTacToe.webp';
 import Celebrate from '@/public/celebrate.webp';
 
-type Props = {};
-
-const InfoMenu = (props: Props) => {
+const InfoMenu: React.FC = () => {
   const { currentTheme } = useTheme();
 
   return (
@@ -168,7 +166,15 @@ const InfoMenu = (props: Props) => {
                   </section>
                   <section className="mt-3">
                     <ul className="flex flex-col items-start gap-4 list-inside text-[15px]">
-                      <h3 className="text-[18px] font-bold">Current Features </h3>
+                      <h3
+                        className={`text-[18px] font-bold ${
+                          currentTheme === 'light'
+                            ? 'text-white'
+                            : 'bg-[#000] text-brightGreen'
+                        }`}
+                      >
+                        Current Features{' '}
+                      </h3>
                       <li>Real-time player pairing. </li>
                       <li>Live player to player chat. </li>
                       <li>Send Reactions in chats. </li>
@@ -181,6 +187,38 @@ const InfoMenu = (props: Props) => {
                       <li>Select an Avatar </li>
                       <li>Sign up</li>
                       <li>Login with saved profile </li>
+                    </ul>
+                  </section>
+
+                  <section className="mt-3">
+                    <ul className="flex flex-col items-start gap-4 list-inside text-[15px]">
+                      <h3
+                        className={`text-[18px] font-bold ${
+                          currentTheme === 'light'
+                            ? 'text-white'
+                            : 'bg-[#000] text-brightGreen'
+                        }`}
+                      >
+                        Game Instructions{' '}
+                      </h3>
+                      <li>
+                        Sign up as a new player or login to use a preexisting account.{' '}
+                      </li>
+                      <li>Searching and Pairing happens immediately after Sign up. </li>
+                      <li>Indicators on the game menu show current turn.</li>
+                      <li>Settings can be changed before and during the game. </li>
+                      <li>
+                        To add a bit of Fairplay - The very First players turn switches
+                        after every round.{' '}
+                      </li>
+                      <li>
+                        The First Player selection is random, so it can literally be
+                        anybody.{' '}
+                      </li>
+                      <li>
+                        Quitting/refreshing the Game automatically means loss of current
+                        game data{' '}
+                      </li>
                     </ul>
                   </section>
                 </DialogContent>

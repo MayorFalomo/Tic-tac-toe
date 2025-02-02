@@ -1,22 +1,33 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import emailjs from '@emailjs/browser';
+import toast from 'react-hot-toast';
 
 const Form = () => {
   const form = useRef<HTMLFormElement | null>(null);
+  const nameRef = useRef<HTMLInputElement | null>(null);
+  const emailRef = useRef<HTMLInputElement | null>(null);
+  const messageRef = useRef<HTMLTextAreaElement | null>(null);
   const [messageStatus, setMessageStatus] = useState<string | null>(null);
 
-  const sendEmail = (e: React.FormEvent<HTMLFormElement>) => {
-    setMessageStatus('loading');
+  useEffect(() => emailjs.init(`${process.env.NEXT_PUBLIC_EMAIL_API_KEY}`), []);
+
+  const sendEmail = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (form?.current) {
-      emailjs
-        .sendForm(
+    if (nameRef.current && emailRef.current && messageRef.current) {
+      setMessageStatus('loading');
+      await emailjs
+        .send(
           `${process.env.NEXT_PUBLIC_SERVICE_ID}`,
           `${process.env.NEXT_PUBLIC_TEMPLATE_ID}`,
-          form?.current,
           {
-            publicKey: `${process.env.NEXT_PUBLIC_EMAIL_API_KEY}`,
+            to_name: 'Falomo Mayowa, source: TicTacToe Form',
+            from_name: nameRef.current?.value,
+            message: `${messageRef.current?.value}
+            
+            Reply To: ${emailRef.current?.value}
+          `,
+            reply_to: emailRef.current?.value,
           }
         )
         .then(
@@ -35,6 +46,8 @@ const Form = () => {
             console.log('FAILED...', error);
           }
         );
+    } else {
+      toast.error('Please, Complete the form');
     }
   };
 
@@ -53,8 +66,10 @@ const Form = () => {
           <input
             type="text"
             className="peer block min-h-[auto] w-full border-0 bg-transparent px-3 py-[0.8rem] leading-[1.6] text-white placeholder:text-white outline-none transition-all duration-200 ease-linear "
-            id="exampleInput7"
+            id="nameInput"
             placeholder="Name"
+            ref={nameRef}
+            required
           />
         </div>
 
@@ -65,19 +80,21 @@ const Form = () => {
           <input
             type="email"
             className="block min-h-[auto] w-full border-0 bg-transparent px-3 py-[0.8rem] leading-[1.6] text-white placeholder:text-white outline-none transition-all duration-200 ease-linear "
-            id="emailInput8"
+            id="emailInput"
             placeholder="Email"
             required
+            ref={emailRef}
           />
         </div>
 
         <div className="relative mb-6" data-twe-input-wrapper-init>
           <textarea
             className="peer block min-h-[80px] w-full rounded border-0 bg-transparent px-3 py-[0.32rem] leading-[1.6] outline-none transition-all duration-200 ease-linear  text-white placeholder:text-white overflow-y-hidden "
-            id="textarea13"
+            id="message"
             rows={3}
             placeholder="Message"
             required
+            ref={messageRef}
           ></textarea>
         </div>
 

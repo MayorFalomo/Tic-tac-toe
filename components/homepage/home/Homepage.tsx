@@ -51,6 +51,7 @@ const Homepage: React.FC = () => {
       : playerTwoId + playerOneId;
   }, [playersObject]);
 
+  //Single most important UseEffect in the game, It controls the entire game functionality and moves between players
   useEffect(() => {
     if (combinedId) {
       const unsubscribeGame = onSnapshot(doc(db, 'gameSessions', combinedId), (doc) => {

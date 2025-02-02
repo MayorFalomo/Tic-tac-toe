@@ -26,7 +26,7 @@ import {
   query,
 } from 'firebase/firestore';
 import { AvatarTheme, GameSession, PlayerDetails, PlayerStatus } from '@/app/types/types';
-import { createGameSession, handleUserPresence } from '../funcs/HandleAuth';
+import { createGameSession, handleUserPresence, sendEmail } from '../funcs/HandleAuth';
 import {
   Select,
   SelectContent,
@@ -41,6 +41,7 @@ import { AnimeAvatars, SuperHeroes } from '../PictureStore';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useTheme } from '@/app/ThemeContext';
 import FadeIn from '@/app/animation/FadeIn';
+import emailjs from '@emailjs/browser';
 
 interface playerDetails {
   id: string;
@@ -77,6 +78,7 @@ const SignUp: React.FC = () => {
     const randomNumber = Math.random();
     const getBoolean = randomNumber > 0.5 ? true : false;
     setRandomControl(getBoolean);
+    emailjs.init(`${process.env.NEXT_PUBLIC_EMAIL_API_KEY}`);
   }, []);
 
   //Function to create a player
@@ -107,6 +109,8 @@ const SignUp: React.FC = () => {
         createdAt: new Date().toISOString(),
         status: PlayerStatus?.LOOKING,
       });
+
+      await sendEmail(playerNameSelect);
 
       //Then it changes the players status to looking instead of online
       await handleUserPresence(playerId, playerName);
