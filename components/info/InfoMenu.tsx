@@ -202,18 +202,19 @@ const InfoMenu: React.FC = () => {
                         Game Instructions{' '}
                       </h3>
                       <li>
-                        Sign up as a new player or login to use a preexisting account.{' '}
+                        Sign up as a new player or login to use a pre-existing account.{' '}
                       </li>
                       <li>Searching and Pairing happens immediately after Sign up. </li>
                       <li>Indicators on the game menu show current turn.</li>
+                      <li>Tap on the chat Icon to begin chatting with an opponent </li>
                       <li>Settings can be changed before and during the game. </li>
                       <li>
-                        To add a bit of Fairplay - The very First players turn switches
-                        after every round.{' '}
+                        To add a bit of fair play - The very first player to play switches
+                        turns after every round.{' '}
                       </li>
                       <li>
-                        The First Player selection is random, so it can literally be
-                        anybody.{' '}
+                        The First Player to make a move selection is completely random, so
+                        it can literally be anybody.{' '}
                       </li>
                       <li>
                         Quitting/refreshing the Game automatically means loss of current

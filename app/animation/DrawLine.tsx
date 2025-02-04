@@ -11,6 +11,7 @@ type Props = {
   rotate?: string | number;
   style?: string;
   transformOrigin?: string;
+  delay?: number;
 };
 
 const DrawLine = ({
@@ -23,6 +24,7 @@ const DrawLine = ({
   rotate,
   transformOrigin = 'top left',
   style,
+  delay,
 }: Props) => {
   return (
     <motion.span
@@ -49,7 +51,11 @@ const DrawLine = ({
         left: left ?? '',
         right: right ?? '',
         transform: `rotate(${rotate}deg)`,
-        transition: { duration: 1, ease: 'easeInOut' },
+        transition: {
+          duration: 1,
+          ease: 'easeInOut',
+          delay: delay,
+        },
         zIndex: 2,
       }}
       exit={{
