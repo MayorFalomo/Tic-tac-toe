@@ -239,7 +239,7 @@ const InfoMenu: React.FC = () => {
             </Bouncy>
           </li>
           <li className="cursor-pointer hover:text-white">
-            <Bouncy delay={1}>
+            <Bouncy delay={1.2}>
               <Dialog>
                 <DialogTrigger asChild>
                   <span className="flex items-center gap-3 ">Game Instructions </span>
@@ -278,11 +278,11 @@ const InfoMenu: React.FC = () => {
                       <li>
                         Sign up as a new player or login to use a pre-existing account.{' '}
                       </li>
-                      <li>Searching and Pairing happens immediately after Sign up. </li>
                       <li>
                         Best way to test the Game if there isn&apos;t an opponent, is to
                         test on two different browsers on your device.{' '}
                       </li>
+                      <li>Searching and Pairing happens immediately after Sign up. </li>
                       <li>Indicators on the game menu show current turn.</li>
                       <li>Tap on the chat Icon to begin chatting with an opponent </li>
                       <li>Settings can be changed before and during the game. </li>
