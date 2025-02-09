@@ -189,39 +189,6 @@ const InfoMenu: React.FC = () => {
                       <li>Login with saved profile </li>
                     </ul>
                   </section>
-
-                  <section className="mt-3">
-                    <ul className="flex flex-col items-start gap-4 list-inside text-[15px]">
-                      <h3
-                        className={`text-[18px] font-bold ${
-                          currentTheme === 'light'
-                            ? 'text-white'
-                            : 'bg-[#000] text-brightGreen'
-                        }`}
-                      >
-                        Game Instructions{' '}
-                      </h3>
-                      <li>
-                        Sign up as a new player or login to use a pre-existing account.{' '}
-                      </li>
-                      <li>Searching and Pairing happens immediately after Sign up. </li>
-                      <li>Indicators on the game menu show current turn.</li>
-                      <li>Tap on the chat Icon to begin chatting with an opponent </li>
-                      <li>Settings can be changed before and during the game. </li>
-                      <li>
-                        To add a bit of fair play - The very first player to play switches
-                        turns after every round.{' '}
-                      </li>
-                      <li>
-                        The First Player to make a move selection is completely random, so
-                        it can literally be anybody.{' '}
-                      </li>
-                      <li>
-                        Quitting/refreshing the Game automatically means loss of current
-                        game data{' '}
-                      </li>
-                    </ul>
-                  </section>
                 </DialogContent>
               </Dialog>
             </Bouncy>
@@ -265,6 +232,72 @@ const InfoMenu: React.FC = () => {
                       <li>LeaderBoard to show total wins and losses by a player.</li>
                       <li>A Timer to record battle time.</li>
                       <li>Add more Avatars and avatar themes. </li>
+                    </ul>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </Bouncy>
+          </li>
+          <li className="cursor-pointer hover:text-white">
+            <Bouncy delay={1}>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <span className="flex items-center gap-3 ">Game Instructions </span>
+                </DialogTrigger>
+                <DialogContent
+                  className={`${
+                    currentTheme === 'light'
+                      ? 'bg-royalGreen text-golden'
+                      : 'bg-[#000] text-white'
+                  } h-[90%] overflow-auto w-[100%] max-sm:max-w-[425px]`}
+                >
+                  <DialogHeader>
+                    <DialogTitle
+                      className={`${
+                        currentTheme === 'light' ? 'text-white' : 'bg-[#000] text-white'
+                      }`}
+                    >
+                      Game Instructions{' '}
+                    </DialogTitle>
+                    <DialogDescription className="">
+                      Read the following instructions to play/test the Game.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div>
+                    <ul className="flex flex-col items-start gap-4 text-[14px]">
+                      <h3
+                        className={`text-[18px] font-bold ${
+                          currentTheme === 'light'
+                            ? 'text-white'
+                            : 'bg-[#000] text-brightGreen'
+                        }`}
+                      >
+                        Game Instructions{' '}
+                      </h3>
+
+                      <li>
+                        Sign up as a new player or login to use a pre-existing account.{' '}
+                      </li>
+                      <li>Searching and Pairing happens immediately after Sign up. </li>
+                      <li>
+                        Best way to test the Game if there isn&apos;t an opponent, is to
+                        test on two different browsers on your device.{' '}
+                      </li>
+                      <li>Indicators on the game menu show current turn.</li>
+                      <li>Tap on the chat Icon to begin chatting with an opponent </li>
+                      <li>Settings can be changed before and during the game. </li>
+                      <li>
+                        To add a bit of fair play - The very first player to play switches
+                        turns after every round.{' '}
+                      </li>
+                      <li>
+                        The First Player to make a move selection is completely random, so
+                        it can literally be anybody.{' '}
+                      </li>
+                      <li>
+                        Quitting/refreshing the Game automatically means loss of current
+                        game data{' '}
+                      </li>
                     </ul>
                   </div>
                 </DialogContent>
