@@ -126,6 +126,10 @@ const SignUp: React.FC = () => {
 
   const searchForOpponent = async (playerId: string) => {
     try {
+      setTimeout(() => {
+        toast.error('Sorry, No Opponent has been found for you yet');
+      }, 30000);
+
       const playersRef = collection(db, 'players'); //Create a reference to players collection on firestore
 
       const q = query(playersRef, where('status', '==', PlayerStatus?.LOOKING)); //Query our reference for status 'looking'

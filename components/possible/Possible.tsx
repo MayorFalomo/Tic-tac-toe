@@ -141,8 +141,21 @@ const Possible: React.FC<MappedOver> = ({
                 goToNextRound: false, //For the round button
                 endOfRound: true,
               });
-
-              if (gameData?.rounds === 5 && !draw) {
+              if (
+                gameData?.rounds === 5 &&
+                gameData?.scores?.playerOne === gameData?.scores?.playerTwo
+              ) {
+                await updateDoc(doc(db, 'gameSessions', combinedId), {
+                  draw: true,
+                  goToNextRound: false,
+                  endOfRound: true,
+                });
+                dispatch(setTrackDisableRound(false));
+                //So it reflects offline after since most players go off here
+                await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
+                  status: 'offline',
+                });
+              } else if (gameData?.rounds === 5 && !draw) {
                 const determineFinalWinner =
                   gameData?.scores?.playerOne > gameData?.scores?.playerTwo;
 
