@@ -20,7 +20,12 @@ import { useAppDispatch } from '@/lib/hooks';
 import { createGameSession, handleUserPresence } from '../funcs/HandleAuth';
 import { push, ref } from '@firebase/database';
 
-import { GameSession, PlayerDetails, PlayerStatus } from '@/app/types/types';
+import {
+  GameSession,
+  PlayerDetails,
+  PlayerStatus,
+  ProfileStatus,
+} from '@/app/types/types';
 import { setAPlayerId } from '@/lib/features/userSlice';
 import { setCombinedGameSessionId, setSessionId } from '@/lib/features/TrackerSlice';
 import FadeIn from '@/app/animation/FadeIn';
@@ -29,7 +34,7 @@ import { motion } from 'framer-motion';
 
 const Login = () => {
   // const [playerName, setPlayerName] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<string | null>(null);
   // const [Avatar, setAvatar] = useState<string>('');
   const [randomControl, setRandomControl] = useState<boolean>(false); //To pick the random player
   const [searchingActive, setSearchingActive] = useState<boolean>(false);
@@ -47,7 +52,7 @@ const Login = () => {
   const loginPlayer = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      setLoading(true);
+      setLoading(ProfileStatus.SEARCH);
       const playerKey = localStorage.getItem('playerKey');
       if (!playerKey) {
         router.push('/signup');
@@ -68,7 +73,7 @@ const Login = () => {
           const playerId = playerRef.key || ''; // Get the unique key
           console.log(playerId, 'playerId');
 
-          await setDoc(doc(db, 'players', playerData?.id), {
+          await updateDoc(doc(db, 'players', playerData?.id), {
             status: PlayerStatus?.LOOKING,
           });
 
@@ -93,12 +98,18 @@ const Login = () => {
     try {
       const playersRef = collection(db, 'players'); //Create a reference to players collection on firestore
 
-      const q = query(playersRef, where('status', '==', 'looking')); //Query our reference for status 'looking'
+      const q = query(playersRef, where('status', '==', PlayerStatus.LOOKING)); //Query our reference for status 'looking'
+
+      // Set a timeout to stop searching after 30 seconds
+      const timeoutId = setTimeout(() => {
+        setLoading('create');
+      }, 60 * 1000);
 
       //Our Listener for available opponents
       const unsubscribe = onSnapshot(q, async (snapshot) => {
         snapshot.forEach(async (doc: any) => {
           const opponentId = doc.id; //The id of the opponent
+          setLoading(ProfileStatus.FOUND);
           console.log('opponentId');
 
           // Ensure the opponent is not the same as the current player
@@ -108,7 +119,7 @@ const Login = () => {
             //Only Set your opponents status to 'pending'
             await Promise.all([
               // updateDoc(playerRef, { status: 'pending' }),
-              updateDoc(doc.ref, { status: 'pending' }),
+              updateDoc(doc.ref, { status: PlayerStatus.PENDING }),
             ]);
 
             // Confirm both players are ready
@@ -118,7 +129,7 @@ const Login = () => {
               //Only Update the opponents players status to 'inGame'
               await Promise.all([
                 // updateDoc(playerRef, { status: 'inGame' }),
-                updateDoc(doc.ref, { status: 'inGame' }),
+                updateDoc(doc.ref, { status: PlayerStatus.INGAME }),
               ]);
 
               //Define the object for playerOne
@@ -146,7 +157,8 @@ const Login = () => {
 
               dispatch(setAPlayerId(playerId)); //Store the currentPlayersId
               dispatch(setSessionId(getSessionId)); //Store the currentGameSessionId
-              setLoading(false); //Stop the Loading spinner
+              setLoading(null); //Stop the Loading spinner
+              clearTimeout(timeoutId);
               setTimeout(() => {
                 router.push('/');
                 // unsubscribe();
@@ -157,6 +169,9 @@ const Login = () => {
           }
         });
       });
+      return () => {
+        clearTimeout(timeoutId);
+      };
     } catch (error) {
       console.error('Error has occurred:', error);
     }
@@ -182,44 +197,24 @@ const Login = () => {
     try {
       const sessionDoc = await getDoc(doc(db, 'gameSessions', combinedId));
       if (sessionDoc.exists()) {
-        const sessionData = sessionDoc.data();
-        const playerOneDets = {
-          id: playerOneDetails?.id,
-          name: playerOneDetails?.name,
-          avatar: playerOneDetails?.avatar,
-        };
-
-        const playerTwoDets = {
-          id: opponent?.id,
-          name: opponent?.name,
-          avatar: opponent?.avatar,
-        };
-
-        //Set state on redux to store the playersDetails
-        dispatch(
-          givePlayerNames({
-            playerOne: playerOneDets,
-            playerTwo: playerTwoDets,
-          })
-        );
-
-        dispatch(setCombinedGameSessionId(combinedId)); //State to store the combinedId
-        return sessionData;
-      } else {
+        // const sessionData = sessionDoc.data();
         const newGameSession: GameSession = {
           sessionId: combinedId,
           currentTurn: randomControl ? playerOneDetails?.id : opponent?.id,
           firstPlayer: randomControl ? playerOneDetails?.id : opponent?.id,
+          unChangeableFirstPlayer: randomControl ? playerOneDetails?.id : opponent?.id,
           rounds: 1,
           createdAt: new Date().toISOString(),
           scores: {
             playerOne: 0,
             playerTwo: 0,
           },
-          roundWinner: '',
-          trackRoundPlayer: randomControl ? playerOneDetails?.id : opponent?.id,
+          roundWinner: null,
           endOfRound: false,
+          trackRoundPlayer: randomControl ? playerOneDetails?.id : opponent?.id,
+          ultimateWinner: null,
           winningCombination: [],
+          goToNextRound: true,
           draw: false,
           quitGame: false,
           players: {
@@ -231,13 +226,58 @@ const Login = () => {
             playerTwo: {
               id: opponent?.id,
               name: opponent?.name,
-              avatar: opponent?.avatar ?? null,
+              avatar: opponent?.avatar!,
             },
           },
-          gameOver: false,
-          playersGameStatus: {
-            playerOne: 'ready',
-            playerTwo: 'ready',
+          unreadMessages: {
+            playerOne: 0,
+            playerTwo: 0,
+          },
+        };
+        console.log(newGameSession);
+
+        await updateDoc(doc(db, 'gameSessions', combinedId), newGameSession);
+        const moveObject = {
+          moves: [],
+        };
+        await updateDoc(doc(db, 'playersMoves', combinedId), moveObject);
+        dispatch(setCombinedGameSessionId(combinedId));
+        return newGameSession;
+      } else {
+        const newGameSession: GameSession = {
+          sessionId: combinedId,
+          currentTurn: randomControl ? playerOneDetails?.id : opponent?.id,
+          firstPlayer: randomControl ? playerOneDetails?.id : opponent?.id,
+          unChangeableFirstPlayer: randomControl ? playerOneDetails?.id : opponent?.id,
+          rounds: 1,
+          createdAt: new Date().toISOString(),
+          scores: {
+            playerOne: 0,
+            playerTwo: 0,
+          },
+          roundWinner: '',
+          endOfRound: false,
+          trackRoundPlayer: randomControl ? playerOneDetails?.id : opponent?.id,
+          ultimateWinner: null,
+          winningCombination: [],
+          goToNextRound: true,
+          draw: false,
+          quitGame: false,
+          players: {
+            playerOne: {
+              id: playerOneDetails?.id,
+              name: playerOneDetails?.name,
+              avatar: playerOneDetails?.avatar!,
+            },
+            playerTwo: {
+              id: opponent?.id,
+              name: opponent?.name,
+              avatar: opponent?.avatar!,
+            },
+          },
+          unreadMessages: {
+            playerOne: 0,
+            playerTwo: 0,
           },
         };
         await setDoc(doc(db, 'gameSessions', combinedId), newGameSession);
@@ -279,7 +319,7 @@ const Login = () => {
                       ? 'Searching for a player'
                       : 'Enter game'}{' '}
                   </span>
-                  <span className="ml-1">{loading && <LoadingSpinner />}</span>
+                  <span className="ml-2">{loading && <LoadingSpinner />}</span>
                 </Button>
               </div>
               <div className=" flex flex-col items-center justify-center gap-3">

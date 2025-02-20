@@ -47,7 +47,7 @@ const Possible: React.FC<MappedOver> = ({
       if (movesDocu.exists()) {
         const movesData = movesDocu.data();
         //Need to decide what to do here
-        console.log(movesData, 'movesData');
+        // console.log(movesData, 'movesData');
       } else {
         const moveObject = {
           moves: [],

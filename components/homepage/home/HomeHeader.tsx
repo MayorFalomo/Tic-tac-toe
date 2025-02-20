@@ -11,17 +11,21 @@ import {
   StopCircle,
 } from 'lucide-react';
 import Image from 'next/image';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import ReactConfetti from 'react-confetti';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Chat, GameSession } from '@/app/types/types';
+import { Chat, GameSession, PlayerStatus } from '@/app/types/types';
 import { useWindowSize } from 'react-use';
 import { useRouter } from 'next/navigation';
 import { useAudio } from '@/app/AudioContext';
 import { useTheme } from '@/app/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
-import { changeNotifBg, setTrackSound } from '@/lib/features/TrackerSlice';
+import {
+  changeNotifBg,
+  setTrackDisableRound,
+  setTrackSound,
+} from '@/lib/features/TrackerSlice';
 import {
   addDoc,
   collection,
@@ -33,6 +37,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/firebase-config/firebase';
 import { setAPlayerId } from '@/lib/features/userSlice';
+import toast from 'react-hot-toast';
 
 type Props = {
   gameData: GameSession | null;
@@ -40,7 +45,6 @@ type Props = {
   currentPlayer: string;
   roundWinner: string | null;
   ultimateWinner: string | null;
-  setTriggerQuit: (arg: string) => void;
   setTheChatId: (arg: any) => void;
   setOpenModal: (arg: boolean) => void;
   setPlayerChat: (arg: Chat[]) => void;
@@ -52,7 +56,6 @@ const HomeHeader: React.FC<Props> = ({
   currentPlayer,
   roundWinner,
   ultimateWinner,
-  setTriggerQuit,
   setTheChatId,
   setOpenModal,
   setPlayerChat,
@@ -60,6 +63,7 @@ const HomeHeader: React.FC<Props> = ({
   const { width, height } = useWindowSize(); //For the Cofetti Animation
   const { play, stop } = useAudio();
   const { currentTheme, setCurrentTheme } = useTheme();
+  const [triggerQuit, setTriggerQuit] = useState<string | null>(null);
   const playersObject = useAppSelector((state: RootState) => state.players.players);
   const track = useAppSelector((state: RootState) => state.track);
   const dispatch = useAppDispatch();
@@ -91,16 +95,32 @@ const HomeHeader: React.FC<Props> = ({
     localStorage.setItem('notifBg', e.target.value);
   };
 
+  //useEffect to warn the current player if playerOne has left the game
+  useEffect(() => {
+    if (gameData?.quitGame) {
+      triggerQuit !== playersObject?.playerOne?.name
+        ? toast(
+            `${
+              triggerQuit === playersObject?.playerTwo?.name
+                ? playersObject?.playerOne?.name
+                : playersObject?.playerTwo?.name
+            } has left the game`
+          )
+        : '';
+      dispatch(setTrackDisableRound(true));
+    }
+  }, [gameData?.quitGame, triggerQuit]);
+
   //Function to handle when the game is quited
   const handleGameQuit = async (playersName: string) => {
     setTriggerQuit(playersName);
+    toast.success(`You have left the game`);
     await updateDoc(doc(db, 'gameSessions', combinedId), {
       quitGame: true,
     });
     await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
-      status: 'online',
+      status: PlayerStatus.ONLINE,
     });
-
     dispatch(setAPlayerId(''));
     router.push('/');
   };
@@ -264,7 +284,7 @@ const HomeHeader: React.FC<Props> = ({
                   ? 'Congrats!' + ' ' + ultimateWinner
                   : roundWinner !== null || ''
                   ? roundWinner + ' ' + 'wins'
-                  : null}
+                  : ''}
               </h1>
             </motion.div>
           ) : (

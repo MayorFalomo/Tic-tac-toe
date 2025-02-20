@@ -120,4 +120,12 @@ export enum PlayerStatus {
   ACTIVE = 'active',
   ONLINE = 'online',
   OFFLINE = 'offline',
+  PENDING = 'pending',
+}
+
+export enum ProfileStatus {
+  SEARCH = 'search',
+  CREATE = 'create',
+  FOUND = 'found',
+  NONE = 'none',
 }

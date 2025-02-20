@@ -25,7 +25,13 @@ import {
   where,
   query,
 } from 'firebase/firestore';
-import { AvatarTheme, GameSession, PlayerDetails, PlayerStatus } from '@/app/types/types';
+import {
+  AvatarTheme,
+  GameSession,
+  PlayerDetails,
+  PlayerStatus,
+  ProfileStatus,
+} from '@/app/types/types';
 import { createGameSession, handleUserPresence, sendEmail } from '../funcs/HandleAuth';
 import {
   Select,
@@ -64,7 +70,7 @@ const SignUp: React.FC = () => {
   );
   const [avatarType, setAvatarType] = useState<AvatarType | null>(null);
   const [AnimePictures, setAnimePictures] = useState<AvatarTheme[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<string | null>(null);
   const [randomControl, setRandomControl] = useState<boolean>(false); //To pick the random player
   const [searchingActive, setSearchingActive] = useState<boolean>(false);
   const [showPlayerName, setShowPlayerName] = useState<boolean>(false);
@@ -86,7 +92,7 @@ const SignUp: React.FC = () => {
     e.preventDefault();
 
     try {
-      setLoading(true); //SetThe loading spinner to be true
+      setLoading(ProfileStatus.CREATE); //SetThe loading spinner to be true
       const playerNameSelect = playerName ? playerName : 'PlayerOne';
       setShowPlayerName(true);
       //create a separate db instance in the database named activePlayers
@@ -120,19 +126,21 @@ const SignUp: React.FC = () => {
     } catch (error) {
       toast.error('Error while trying to create a player');
       console.log(error, 'An error has occurred while trying to create player');
-      setLoading(false);
+      setLoading(null);
     }
   };
 
   const searchForOpponent = async (playerId: string) => {
     try {
-      setTimeout(() => {
-        toast.error('Sorry, No Opponent has been found for you yet');
-      }, 30000);
-
+      setLoading('search');
       const playersRef = collection(db, 'players'); //Create a reference to players collection on firestore
 
       const q = query(playersRef, where('status', '==', PlayerStatus?.LOOKING)); //Query our reference for status 'looking'
+
+      // Set a timeout to stop searching after 30 seconds
+      const timeoutId = setTimeout(() => {
+        setLoading(ProfileStatus.NONE);
+      }, 60 * 1000); // 30 seconds
 
       //Our Listener for available opponents
       const unsubscribe = onSnapshot(q, async (snapshot) => {
@@ -141,12 +149,13 @@ const SignUp: React.FC = () => {
 
           // Ensure the opponent is not the same as the current player
           if (opponentId !== playerId) {
+            setLoading(ProfileStatus.FOUND);
             setSearchingActive(true); //State to show an opponent has been found
 
             //Only Set your opponents status to 'pending'
             await Promise.all([
               // updateDoc(playerRef, { status: 'pending' }),
-              updateDoc(doc.ref, { status: 'pending' }),
+              updateDoc(doc.ref, { status: PlayerStatus.PENDING }),
             ]);
 
             // Confirm both players are ready
@@ -184,7 +193,8 @@ const SignUp: React.FC = () => {
 
               dispatch(setAPlayerId(playerId)); //Store the currentPlayersId
               dispatch(setSessionId(getSessionId)); //Store the currentGameSessionId
-              setLoading(false); //Stop the Loading spinner
+              setLoading(null); //Stop the Loading spinner
+              clearTimeout(timeoutId);
               setTimeout(() => {
                 router.push('/');
               }, 2000);
@@ -194,6 +204,9 @@ const SignUp: React.FC = () => {
           }
         });
       });
+      return () => {
+        clearTimeout(timeoutId);
+      };
     } catch (error) {
       console.error('Error has occurred:', error);
     }
@@ -420,7 +433,9 @@ const SignUp: React.FC = () => {
                   </SelectContent>
                 </Select>
                 <Button
-                  disabled={loading}
+                  disabled={
+                    loading === 'loading' || loading === 'search' || loading === 'found'
+                  }
                   type="submit"
                   className={`${
                     loading ? 'cursor-not-allowed' : 'cursor-pointer'
@@ -428,7 +443,15 @@ const SignUp: React.FC = () => {
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
-                      {searchingActive ? 'Found a player!' : `Searching for player`}
+                      {loading === ProfileStatus.CREATE
+                        ? 'Creating your profile'
+                        : loading === ProfileStatus.SEARCH
+                        ? `Searching for player`
+                        : loading === ProfileStatus.FOUND
+                        ? 'Found a player!'
+                        : loading === ProfileStatus.NONE
+                        ? 'Sorry, No opponent found'
+                        : ''}
                       <LoadingSpinner
                         style={{
                           marginLeft: '3px',

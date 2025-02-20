@@ -1,5 +1,5 @@
 'use client';
-import { Chat, GameSession, MovesObject } from '@/app/types/types';
+import { Chat, GameSession, MovesObject, PlayerStatus } from '@/app/types/types';
 import Possible from '@/components/possible/Possible';
 import React, { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
@@ -17,7 +17,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/firebase-config/firebase';
 import { setTrackDisableRound, setTrackRounds } from '@/lib/features/TrackerSlice';
-import { toast, Toaster } from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 import { useTheme } from '@/app/ThemeContext';
 import HomeHeader from './HomeHeader';
 
@@ -38,7 +38,6 @@ const Homepage: React.FC = () => {
   const [firstPlayer, setFirstPlayer] = useState<string>('');
   const [roundWinner, setRoundWinner] = useState<string | null>(null);
   const [ultimateWinner, setUltimateWinner] = useState<string | null>(null);
-  const [triggerQuit, setTriggerQuit] = useState<string | null>(null);
   const router = useRouter();
   const { currentTheme } = useTheme();
 
@@ -184,7 +183,7 @@ const Homepage: React.FC = () => {
       moves: [],
     });
     await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
-      status: 'inGame',
+      status: PlayerStatus.INGAME,
     });
     setRoundWinner(null);
     toast.success('Game is restarted');
@@ -204,21 +203,6 @@ const Homepage: React.FC = () => {
       setUltimateWinner(null);
     }
   }, [gameData?.roundWinner, roundWinner, gameData, gameData?.ultimateWinner]);
-
-  //useEffect to warn the current player if playerOne has left the game
-  //Also to trigger what happens when there's a draw, so it reflects on both players end.
-  useEffect(() => {
-    if (gameData?.quitGame) {
-      toast(
-        `${
-          triggerQuit === playersObject?.playerTwo?.name
-            ? playersObject?.playerOne?.name
-            : playersObject?.playerTwo?.name
-        } has left the game`
-      );
-      dispatch(setTrackDisableRound(true));
-    }
-  }, [gameData?.quitGame]);
 
   useEffect(() => {
     if (
@@ -244,7 +228,6 @@ const Homepage: React.FC = () => {
         currentPlayer={currentPlayer}
         roundWinner={roundWinner}
         ultimateWinner={ultimateWinner}
-        setTriggerQuit={setTriggerQuit}
         setTheChatId={setTheChatId}
         setOpenModal={setOpenModal}
         setPlayerChat={setPlayerChat}
