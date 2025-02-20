@@ -8,7 +8,6 @@ import emailjs from '@emailjs/browser';
 
 export const handleUserPresence = async (userId: string, playerName: string) => {
   try {
-    console.log(userId, playerName, 'handleAuth')
     const userRef = ref(database, `activePlayers/${userId}`); //We reference the "activePlayers" db we created in the createPlayerfunc and find a player by their userId
 
     //Set the users status to online when they connect

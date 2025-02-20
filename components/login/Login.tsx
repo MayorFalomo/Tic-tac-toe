@@ -63,7 +63,6 @@ const Login = () => {
         //If the player exists
         if (playerDoc.exists()) {
           const playerData = playerDoc.data();
-          console.log(playerData, 'playerData');
 
           //set the player to the local playerOne state using dispatch
           dispatch(givePlayerNames({ playerOne: playerData }));
@@ -79,7 +78,6 @@ const Login = () => {
 
           //Then it changes the players status to looking instead of online
           handleUserPresence(playerData?.id, playerData?.name);
-          console.log('got here');
 
           //Since we've handled changing a users status we can now search for other players with a status of looking too
           searchForOpponent(playerData?.id, playerData?.name, playerData?.avatar);
@@ -102,7 +100,7 @@ const Login = () => {
 
       // Set a timeout to stop searching after 30 seconds
       const timeoutId = setTimeout(() => {
-        setLoading('create');
+        setLoading(ProfileStatus.NONE);
       }, 60 * 1000);
 
       //Our Listener for available opponents
@@ -110,7 +108,6 @@ const Login = () => {
         snapshot.forEach(async (doc: any) => {
           const opponentId = doc.id; //The id of the opponent
           setLoading(ProfileStatus.FOUND);
-          console.log('opponentId');
 
           // Ensure the opponent is not the same as the current player
           if (opponentId !== playerId) {
@@ -178,8 +175,6 @@ const Login = () => {
   };
 
   const confirmBothPlayersReady = async () => {
-    // Implement your logic to confirm both players are ready
-    // For example, you could use a UI prompt or a timeout
     return new Promise((resolve) => {
       setTimeout(() => resolve(true), 3000); // Simulate a 3-second wait for confirmation
     });
@@ -197,7 +192,6 @@ const Login = () => {
     try {
       const sessionDoc = await getDoc(doc(db, 'gameSessions', combinedId));
       if (sessionDoc.exists()) {
-        // const sessionData = sessionDoc.data();
         const newGameSession: GameSession = {
           sessionId: combinedId,
           currentTurn: randomControl ? playerOneDetails?.id : opponent?.id,
@@ -234,7 +228,6 @@ const Login = () => {
             playerTwo: 0,
           },
         };
-        console.log(newGameSession);
 
         await updateDoc(doc(db, 'gameSessions', combinedId), newGameSession);
         const moveObject = {
@@ -317,6 +310,8 @@ const Login = () => {
                       ? 'Found a player!'
                       : !searchingActive && loading
                       ? 'Searching for a player'
+                      : loading === 'none'
+                      ? 'Sorry, No opponent found'
                       : 'Enter game'}{' '}
                   </span>
                   <span className="ml-2">{loading && <LoadingSpinner />}</span>
