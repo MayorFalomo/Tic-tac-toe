@@ -1,10 +1,10 @@
 'use client';
 import React, { useCallback, useEffect } from 'react';
 import { Checkbox } from '../ui/checkbox';
-import { useAudio } from '@/app/AudioContext';
+import { useAudio } from '@/contexts/AudioContext';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { useTheme } from '@/app/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch } from '@/lib/hooks';
 import { changeNotifBg, setTrackSound } from '@/lib/features/TrackerSlice';
 import { useSelector } from 'react-redux';

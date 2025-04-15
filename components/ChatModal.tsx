@@ -17,7 +17,7 @@ import { useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
 import { Chat, GameSession } from '@/app/types/types';
 import ChatField from './Chat';
-import { useTheme } from '@/app/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 
 type Props = {
   openModal: boolean;

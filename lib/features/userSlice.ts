@@ -1,18 +1,19 @@
-import { User } from "@/app/types/types";
+import { userDetails } from "@/app/types/types";
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState: User = {
-  playerId: "",
-  playerName: "",
-  status: "",
+const initialState: userDetails = {
+  userId: '',
+  name: '',
+  avatar: '',
+  networkState: false,
 };
 
 export const userSlice = createSlice({
   name: "players",
   initialState,
   reducers: {
-    setAPlayerId: (state, action) => {
-      state.playerId = action.payload;
+    setAPlayer: (state, action) => {
+      return { ...state, ...action.payload };
     },
 
     updateUser: (state, action) => {
@@ -21,6 +22,6 @@ export const userSlice = createSlice({
   },
 });
 
-export const { setAPlayerId } = userSlice.actions;
+export const { setAPlayer, updateUser } = userSlice.actions;
 
 export default userSlice.reducer;

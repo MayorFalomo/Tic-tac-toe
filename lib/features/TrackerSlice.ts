@@ -71,7 +71,7 @@ export const trackerSlice = createSlice({
       state.scores = action.payload;
     },
     setCombinedGameSessionId: (state, action) => {
-      state.scores = action.payload;
+      state.combinedGameSessionId = action.payload;
     },
     setTrackSound: (state, action) => { 
       state.trackSound = action.payload;

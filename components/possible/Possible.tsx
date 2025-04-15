@@ -8,8 +8,9 @@ import Image from 'next/image';
 import React, { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import DrawLine from '@/app/animation/DrawLine';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import { useScreenSize } from '@/hooks/screenSize';
+import { scaleAndPopVariants, scaleVariants } from '@/app/animation/constants';
 
 type MappedOver = {
   val: any;
@@ -401,32 +402,40 @@ const Possible: React.FC<MappedOver> = ({
           mixBlendMode: 'hard-light',
         }}
       >
-        {movesData?.some(
-          (res: MovesObject) => res.playerId === firstPlayer && res.choice === index
-        ) ? (
-          <Image
-            src="/SelectX.png"
-            className="flex justify-center w-[70px] max-[500px]:!w-[50px] h-[70px] max-[500px]:h-[50px] items-center mt-3 mx-auto"
-            width={50}
-            height={50}
-            alt="img"
-          />
-        ) : (
-          ''
-        )}
-        {movesData.some(
-          (res: MovesObject) => res.playerId !== firstPlayer && res.choice === index
-        ) ? (
-          <Image
-            src="/SelectO.png"
-            className="flex justify-center w-[70px] max-[500px]:!w-[50px] h-[70px] max-[500px]:h-[50px] items-center mt-3 mx-auto"
-            width={50}
-            height={50}
-            alt="img"
-          />
-        ) : (
-          ''
-        )}
+        <AnimatePresence mode="wait">
+          {movesData?.some(
+            (res: MovesObject) => res.playerId === firstPlayer && res.choice === index
+          ) ? (
+            <motion.img
+              src="/SelectX.png"
+              className="flex justify-center w-[70px] max-[500px]:!w-[50px] h-[70px] max-[500px]:h-[50px] items-center mt-3 mx-auto"
+              width={50}
+              height={50}
+              alt="X"
+              initial="hidden"
+              animate="visible"
+              variants={scaleAndPopVariants}
+            />
+          ) : (
+            ''
+          )}
+          {movesData.some(
+            (res: MovesObject) => res.playerId !== firstPlayer && res.choice === index
+          ) ? (
+            <motion.img
+              src="/SelectO.png"
+              className="flex justify-center w-[70px] max-[500px]:!w-[50px] h-[70px] max-[500px]:h-[50px] items-center mt-3 mx-auto"
+              width={50}
+              height={50}
+              alt="O"
+              initial="hidden"
+              animate="visible"
+              variants={scaleAndPopVariants}
+            />
+          ) : (
+            ''
+          )}
+        </AnimatePresence>
       </div>
       <div className="w-full h-full">
         <AnimatePresence>

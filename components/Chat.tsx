@@ -150,28 +150,28 @@ const ChatField: React.FC<IProps> = ({
           <div
             className={
               res.senderId === playersObject?.playerOne?.id
-                ? 'bg-blue-600 text-white p-3 rounded-l-lg rounded-br-lg'
-                : 'bg-gray-300 p-3 rounded-r-lg rounded-bl-lg'
+                ? 'bg-blue-600 text-white py-3 px-2 rounded-l-lg rounded-br-lg'
+                : 'relative bg-gray-300 py-3 px-2 rounded-r-lg rounded-bl-lg'
             }
           >
             <p className="text-sm">{res?.message ? res?.message : ''}</p>
+            {res.reactions && res.reactions.length > 0 && (
+              <p
+                className={
+                  res?.senderId === playersObject?.playerOne?.id
+                    ? 'absolute right-[40px] bottom-[0px] bg-white rounded-md p-[2px] z-20'
+                    : 'absolute right-[-10px] bottom-[-20px] bg-white z-20 rounded-md p-[2px]'
+                }
+              >
+                {res.reactions.map((reaction) => (
+                  <span key={reaction.userId}>{reaction.reaction}</span>
+                ))}
+              </p>
+            )}
           </div>
           <span className="text-xs text-gray-500 leading-none">
             {formatTime(res?.timeStamp)}
           </span>
-          {res.reactions && res.reactions.length > 0 && (
-            <p
-              className={
-                res?.senderId === playersObject?.playerOne?.id
-                  ? 'absolute right-[40px] bottom-[0px] bg-white rounded-md p-[2px] z-20'
-                  : 'absolute left-[40px] bottom-[0px] bg-white z-20 rounded-md p-[2px]'
-              }
-            >
-              {res.reactions.map((reaction) => (
-                <span key={reaction.userId}>{reaction.reaction}</span>
-              ))}
-            </p>
-          )}
         </div>
         {res.senderId === playersObject?.playerOne?.id && (
           <div className="flex-shrink-0 h-10 w-10 rounded-full bg-gray-300">

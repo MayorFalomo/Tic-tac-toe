@@ -3,11 +3,12 @@ import { Button } from '../ui/button';
 import { EarthIcon, Info, Settings } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useTheme } from '@/app/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch } from '@/lib/hooks';
 import { changeNotifBg } from '@/lib/features/TrackerSlice';
 import FadeIn from '@/app/animation/FadeIn';
 import Bouncy from '@/app/animation/Bouncy';
+import ProfileHeader from '../Profile/ProfileHeader';
 
 type Props = {};
 
@@ -29,7 +30,10 @@ const GameMenu = (props: Props) => {
           currentTheme === 'light' ? 'bg-[#0A4834] text-[#9F8151]' : 'bg-black'
         } `}
       >
-        <div className="h-full flex items-center justify-center ">
+        <div className="w-[90%] mx-auto flex items-center justify-end py-2 text-brightGreen">
+          <ProfileHeader />
+        </div>
+        <div className="h-[80%] flex items-center justify-center ">
           <div className="flex flex-col justify-between items-center gap-[30px] w-full ">
             <div className=" flex items-center gap-[40px] text-white">
               <Image

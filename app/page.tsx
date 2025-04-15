@@ -6,12 +6,13 @@ import { RootState } from '@/lib/store';
 import { Toaster } from 'react-hot-toast';
 
 export default function Home() {
-  const playerId = useAppSelector((state: RootState) => state.user.playerId);
+  const playerId = useAppSelector((state: RootState) => state.user.userId);
 
   return (
     <main className="flex max-h-screen h-screen overflow-y-hidden transition-all duration-500">
       <Toaster />
-      {playerId ? <Homepage /> : <GameMenu />}
+      {<GameMenu />}
+      {/* {playerId ? <Homepage /> : <GameMenu />} */}
     </main>
   );
 }

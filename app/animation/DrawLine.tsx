@@ -52,16 +52,20 @@ const DrawLine = ({
         right: right ?? '',
         transform: `rotate(${rotate}deg)`,
         transition: {
-          duration: 1,
+          duration: 0.7,
           ease: 'easeInOut',
           delay: delay,
+          type: 'spring',
+          stiffness: 100,
+          mass: 0.2,
+          damping: 40,
         },
         zIndex: 2,
       }}
       exit={{
         width: '0',
         transform: `rotate(${rotate}deg)`,
-        transition: { duration: 1 },
+        transition: { duration: 0.7 },
       }}
       style={{
         height: height,

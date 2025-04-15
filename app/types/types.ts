@@ -25,19 +25,20 @@ export type PlayerNames = {
 };
 
 export type PlayerDetails = {
-  id: string
+  id: string;
   name: string;
   avatar?: string;
+  networkState: string;
 }
 
+export type userDetails = {
+  userId: string;
+  name: string;
+  avatar?: string;
+  networkState: boolean;
+}
 
-
-export type User = {
-  playerId: string;
-  status: string;
-  playerName: string;
-  // gameId: string;
-};
+export type User = PlayerDetails;
 
 export type GameSession = {
   sessionId: string;
@@ -54,24 +55,31 @@ export type GameSession = {
   trackRoundPlayer: string;
   quitGame: boolean;
   draw: boolean;
-  scores: {
-    playerOne: number;
-    playerTwo: number;
-  };
+  scores: PlayersNumbers;
   players: {
     playerOne: SessionPlayerDetails;
     playerTwo: SessionPlayerDetails;
   };
   gameOver?: boolean;
-  playersGameStatus?: {
-    playerOne: string;
-    playerTwo: string;
-  }
-  unreadMessages?: {
-    playerOne: number;
-    playerTwo: number;
-  }
+  playersGameStatus?: GamesStatusAsString;
+  unreadMessages?: PlayersNumbers;
+  trackPlayersOnlineStatus?: TrackPlayersBoolean
 };
+
+export type PlayersNumbers = {
+  playerOne: number;
+  playerTwo: number;
+}
+
+export type GamesStatusAsString = {
+  playerOne: string;
+  playerTwo: string;
+}
+
+export type TrackPlayersBoolean = {
+  playerOne: string;
+  playerTwo: string;
+}
 
 export type SessionPlayerDetails = {
   id: string;
@@ -129,3 +137,31 @@ export enum ProfileStatus {
   FOUND = 'found',
   NONE = 'none',
 }
+
+export type ProfileType = {
+  userId: string;
+  name: string;
+  avatar: string;
+  createdAt: string;
+}
+
+export type AvatarChoice = {
+  id: number,
+  avatarStyle: string,
+  avatarValue: string,
+}
+
+export enum AvatarValueType {
+  Anime = 'Anime',
+  SuperHeroes = 'Superheroes',
+  Avatar = 'Avatar',
+  Initials = 'initials'
+}
+
+export enum LoadingState {
+  LOADING = 'loading',
+  SUCCESS = 'success',
+  Failed = 'failed'
+}
+
+export const defaultImg = 'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg'

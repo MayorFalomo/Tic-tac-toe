@@ -17,8 +17,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Chat, GameSession, PlayerStatus } from '@/app/types/types';
 import { useWindowSize } from 'react-use';
 import { useRouter } from 'next/navigation';
-import { useAudio } from '@/app/AudioContext';
-import { useTheme } from '@/app/ThemeContext';
+import { useAudio } from '@/contexts/AudioContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
 import {
@@ -36,8 +36,9 @@ import {
   where,
 } from 'firebase/firestore';
 import { db } from '@/firebase-config/firebase';
-import { setAPlayerId } from '@/lib/features/userSlice';
+import { setAPlayer, updateUser } from '@/lib/features/userSlice';
 import toast from 'react-hot-toast';
+import { givePlayerNames } from '@/lib/features/PlayerSlice';
 
 type Props = {
   gameData: GameSession | null;
@@ -121,8 +122,14 @@ const HomeHeader: React.FC<Props> = ({
     await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
       status: PlayerStatus.ONLINE,
     });
-    dispatch(setAPlayerId(''));
-    router.push('/');
+    dispatch(
+      givePlayerNames({
+        playerOne: {},
+        playersObject: {
+          id: '',
+        },
+      })
+    );
   };
 
   const handleModal = async () => {

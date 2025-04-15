@@ -1,5 +1,5 @@
 'use client';
-import { useTheme } from '@/app/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import React from 'react';
 import Form from './Form';
 import { ArrowLeft, BookOpen, Rocket, User } from 'lucide-react';

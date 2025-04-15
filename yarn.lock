@@ -5601,6 +5601,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"idb@npm:^8.0.2":
+  version: 8.0.2
+  resolution: "idb@npm:8.0.2"
+  checksum: 3523f83bf367610dd52c6151242411c86f727c906b148f3e56a11cabedd861725bf87cbcf0be93c9b1f0fd66d790188312ae4f2940779bd8e34abb936420879e
+  languageName: node
+  linkType: hard
+
 "ignore@npm:^5.2.0, ignore@npm:^5.3.1":
   version: 5.3.2
   resolution: "ignore@npm:5.3.2"
@@ -8742,6 +8749,7 @@ __metadata:
     eslint-config-next: latest
     firebase: ^10.12.5
     framer-motion: ^11.3.19
+    idb: ^8.0.2
     lucide-react: ^0.416.0
     next: 15.1.6
     next-pwa: ^5.6.0

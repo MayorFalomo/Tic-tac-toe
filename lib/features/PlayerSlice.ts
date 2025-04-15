@@ -30,13 +30,13 @@ const initialState: Players = {
       id: "",
       name: "",
       avatar: "",
-     
+     networkState: '',
     },
     playerTwo: {
       id: "",
       name: "",
       avatar: "",
-     
+     networkState: '',
     },
   },
   gameSession: null,

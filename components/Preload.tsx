@@ -1,5 +1,5 @@
 import FadeIn from '@/app/animation/FadeIn';
-import { useTheme } from '@/app/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import DrawLine from '@/app/animation/DrawLine';

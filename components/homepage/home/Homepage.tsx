@@ -18,14 +18,14 @@ import {
 import { db } from '@/firebase-config/firebase';
 import { setTrackDisableRound, setTrackRounds } from '@/lib/features/TrackerSlice';
 import { toast } from 'react-hot-toast';
-import { useTheme } from '@/app/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import HomeHeader from './HomeHeader';
 
 const ChatModal = React.lazy(() => import('@/components/ChatModal'));
 
 const Homepage: React.FC = () => {
   const playersObject = useAppSelector((state: RootState) => state.players.players);
-  const playerId = useAppSelector((state: RootState) => state.user.playerId);
+  const playerId = useAppSelector((state: RootState) => state.user.userId);
 
   const dispatch = useAppDispatch();
 
@@ -49,6 +49,8 @@ const Homepage: React.FC = () => {
       ? playerOneId + playerTwoId
       : playerTwoId + playerOneId;
   }, [playersObject]);
+
+  console.log(combinedId, 'combinedId');
 
   //Single most important UseEffect in the game, It controls the entire game functionality and moves between players
   useEffect(() => {
@@ -94,8 +96,8 @@ const Homepage: React.FC = () => {
   }, [combinedId]);
 
   useEffect(() => {
-    if (!playerId) {
-      router.push('/signup');
+    if (!combinedId) {
+      router.push('/');
     } else {
       toast.success('Welcome to the game');
     }
@@ -343,18 +345,6 @@ const Homepage: React.FC = () => {
           />
         )}
       </AnimatePresence>
-      {/* <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 4000,
-          style: {
-            background: '#313235',
-            color: '#fff',
-            width: '300px',
-            height: '70px',
-          },
-        }}
-      /> */}
     </div>
   );
 };

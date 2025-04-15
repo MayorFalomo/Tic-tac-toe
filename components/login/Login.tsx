@@ -16,7 +16,7 @@ import {
 } from 'firebase/firestore';
 import { database, db } from '@/firebase-config/firebase';
 import { givePlayerNames } from '@/lib/features/PlayerSlice';
-import { useAppDispatch } from '@/lib/hooks';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { createGameSession, handleUserPresence } from '../funcs/HandleAuth';
 import { push, ref } from '@firebase/database';
 
@@ -25,12 +25,17 @@ import {
   PlayerDetails,
   PlayerStatus,
   ProfileStatus,
+  userDetails,
 } from '@/app/types/types';
-import { setAPlayerId } from '@/lib/features/userSlice';
+import { setAPlayer } from '@/lib/features/userSlice';
 import { setCombinedGameSessionId, setSessionId } from '@/lib/features/TrackerSlice';
 import FadeIn from '@/app/animation/FadeIn';
-import { useTheme } from '@/app/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { motion } from 'framer-motion';
+import useOnlineStatus from '@/hooks/useOnlinePresence';
+import { RootState } from '@/lib/store';
+import toast, { Toaster } from 'react-hot-toast';
+import ProfileHeader from '../Profile/ProfileHeader';
 
 const Login = () => {
   // const [playerName, setPlayerName] = useState<string>('');
@@ -39,9 +44,13 @@ const Login = () => {
   const [randomControl, setRandomControl] = useState<boolean>(false); //To pick the random player
   const [searchingActive, setSearchingActive] = useState<boolean>(false);
   const dispatch = useAppDispatch();
+  const currentUser = useAppSelector((state: RootState) => state.user as userDetails);
+
   const { currentTheme } = useTheme();
 
   const router = useRouter();
+
+  const checkNetwork = useOnlineStatus();
 
   useEffect(() => {
     const randomNumber = Math.random();
@@ -53,9 +62,18 @@ const Login = () => {
     e.preventDefault();
     try {
       setLoading(ProfileStatus.SEARCH);
-      const playerKey = localStorage.getItem('playerKey');
+      const playerKey = currentUser?.userId;
+      // const playerKey = localStorage.getItem('playerKey');
       if (!playerKey) {
-        router.push('/signup');
+        toast.error('No previous account, Sign-up first', {
+          position: 'top-right',
+          duration: 5000,
+        });
+
+        setTimeout(() => {
+          router.push('/signup');
+        }, 4000);
+        setLoading(null);
         return;
       } else {
         //Search for the playerkey in the firestore db
@@ -65,7 +83,7 @@ const Login = () => {
           const playerData = playerDoc.data();
 
           //set the player to the local playerOne state using dispatch
-          dispatch(givePlayerNames({ playerOne: playerData }));
+          // dispatch(givePlayerNames({ playerOne: playerData }));
           // setAvatar(playerData?.avatar);
           //create a separate db instance in the database named activePlayers
           const playerRef = push(ref(database, 'activePlayers')); //Create a new child reference
@@ -74,6 +92,8 @@ const Login = () => {
 
           await updateDoc(doc(db, 'players', playerData?.id), {
             status: PlayerStatus?.LOOKING,
+            networkState: checkNetwork ? PlayerStatus.ONLINE : PlayerStatus?.OFFLINE,
+            updatedAt: new Date().toISOString(),
           });
 
           //Then it changes the players status to looking instead of online
@@ -81,6 +101,12 @@ const Login = () => {
 
           //Since we've handled changing a users status we can now search for other players with a status of looking too
           searchForOpponent(playerData?.id, playerData?.name, playerData?.avatar);
+        } else {
+          toast.error('No previous account found, please sign up first', {
+            style: {
+              textAlign: 'center',
+            },
+          });
         }
       }
     } catch (error) {
@@ -94,85 +120,416 @@ const Login = () => {
     playerAvatar: string
   ) => {
     try {
-      const playersRef = collection(db, 'players'); //Create a reference to players collection on firestore
+      const playersRef = collection(db, 'players'); // Create a reference to players collection on Firestore
 
-      const q = query(playersRef, where('status', '==', PlayerStatus.LOOKING)); //Query our reference for status 'looking'
+      const q = query(
+        playersRef,
+        where('status', '==', PlayerStatus.LOOKING),
+        where('networkState', '==', PlayerStatus.ONLINE)
+      ); // Query for players who are looking
 
-      // Set a timeout to stop searching after 30 seconds
+      // Set a timeout to stop searching after 60 seconds
       const timeoutId = setTimeout(() => {
-        setLoading(ProfileStatus.NONE);
-      }, 60 * 1000);
+        setLoading(null);
+        setSearchingActive(false);
+        toast.error('No opponent found');
+        updateDoc(doc(db, 'players', playerId), {
+          status: PlayerStatus.ONLINE,
+          networkState: checkNetwork,
+        });
 
-      //Our Listener for available opponents
+        unsubscribe(); // Unsubscribe from the listener
+        return;
+      }, 60 * 1000); // 60 seconds
+
+      // Our Listener for available opponents
       const unsubscribe = onSnapshot(q, async (snapshot) => {
-        snapshot.forEach(async (doc: any) => {
-          const opponentId = doc.id; //The id of the opponent
-          setLoading(ProfileStatus.FOUND);
+        const currentTime = new Date(); // Get the current time
+        const filteredOpponents: any = [];
+
+        snapshot.forEach((doc) => {
+          const opponentId = doc.id; // The id of the opponent
 
           // Ensure the opponent is not the same as the current player
           if (opponentId !== playerId) {
-            setSearchingActive(true); //State to show an opponent has been found
+            const updatedAt = doc.data()?.updatedAt; // Get the updatedAt field
+            console.log(updatedAt, 'updatedAt');
 
-            //Only Set your opponents status to 'pending'
-            await Promise.all([
-              // updateDoc(playerRef, { status: 'pending' }),
-              updateDoc(doc.ref, { status: PlayerStatus.PENDING }),
-            ]);
+            // Check if updatedAt is defined
+            if (updatedAt) {
+              const opponentUpdatedAt = new Date(updatedAt); // Convert updatedAt to Date object
+              console.log(opponentUpdatedAt, 'oppoenntUpdated');
 
-            // Confirm both players are ready
-            const bothReady = await confirmBothPlayersReady(); //A setTimeOut for 3s, th returns true
+              const timeDifference =
+                (currentTime.getTime() - opponentUpdatedAt.getTime()) / 1000; // Calculate difference in seconds
+              console.log(timeDifference, 'timeDifference');
 
-            if (bothReady) {
-              //Only Update the opponents players status to 'inGame'
-              await Promise.all([
-                // updateDoc(playerRef, { status: 'inGame' }),
-                updateDoc(doc.ref, { status: PlayerStatus.INGAME }),
-              ]);
-
-              //Define the object for playerOne
-              const playerOneDetails = {
-                id: playerId,
-                name: playerName,
-                avatar: playerAvatar,
-              };
-              //Define the object for playerOne
-              const playerTwoDetails = {
-                id: opponentId,
-                name: doc.data().name,
-                avatar: doc.data().avatar,
-              };
-
-              // Create a gameSession on firestore db, It would return  the id of the gameSession on firestore
-              const getSessionId = await createGameSession(
-                playerId,
-                opponentId,
-                randomControl
-              );
-
-              //Pass our players object details to the handleGameSession to create a gameSession on firestore,The function would return the gameSession Data
-              await handleGameSession(playerOneDetails, playerTwoDetails);
-
-              dispatch(setAPlayerId(playerId)); //Store the currentPlayersId
-              dispatch(setSessionId(getSessionId)); //Store the currentGameSessionId
-              setLoading(null); //Stop the Loading spinner
-              clearTimeout(timeoutId);
-              setTimeout(() => {
-                router.push('/');
-                // unsubscribe();
-              }, 2000);
-            } else {
-              console.log('Player is not ready.');
+              // Check if the opponent was updated within the last 3 minutes (180 seconds)
+              if (timeDifference <= 180) {
+                filteredOpponents.push({ id: opponentId, data: doc.data() });
+              }
             }
           }
         });
+
+        // If we have filtered opponents, proceed with the first one
+        if (filteredOpponents.length > 0) {
+          const opponent = filteredOpponents[0]; // Get the first valid opponent
+
+          console.log(opponent, 'opponent');
+
+          setLoading(ProfileStatus.FOUND);
+          setSearchingActive(true); // State to show an opponent has been found
+
+          // Only set your opponent's status to 'pending'
+          await updateDoc(doc(playersRef, opponent.id), { status: PlayerStatus.PENDING });
+
+          // Confirm both players are ready
+          const bothReady = await confirmBothPlayersReady(); // A setTimeout for 3s, this returns true
+
+          if (bothReady) {
+            // Only update the opponent's player status to 'inGame'
+            await updateDoc(doc(playersRef, opponent.id), {
+              status: PlayerStatus.INGAME,
+            });
+
+            // Define the object for playerOne
+            const playerOneDetails = {
+              id: playerId,
+              name: playerName,
+              avatar: playerAvatar,
+              networkState: checkNetwork ? PlayerStatus.ONLINE : PlayerStatus.OFFLINE,
+            };
+
+            // Define the object for playerTwo
+            const playerTwoDetails = {
+              id: opponent.data.id,
+              name: opponent.data.name,
+              avatar: opponent.data.avatar,
+              networkState: opponent.data.networkState,
+            };
+
+            dispatch(
+              givePlayerNames({
+                playerOne: playerOneDetails,
+                playerTwo: playerTwoDetails,
+              })
+            );
+
+            // Proceed with your game logic using playerOneDetails and playerTwoDetails
+            console.log('Both players are ready:', playerOneDetails, playerTwoDetails);
+
+            console.log(playerOneDetails, playerTwoDetails, 'details');
+
+            // Create a gameSession on Firestore DB, It would return the id of the gameSession on Firestore
+            const getSessionId = await createGameSession(
+              playerId,
+              opponent.data.id,
+              randomControl
+            );
+
+            console.log(getSessionId, 'getSessionId');
+            console.log(handleGameSession(playerOneDetails, playerTwoDetails));
+
+            await handleGameSession(playerOneDetails, playerTwoDetails);
+            dispatch(setSessionId(getSessionId)); // Store the current game session ID
+            setLoading(null); // Stop the loading spinner
+            clearTimeout(timeoutId); // Clear the timeout
+            setTimeout(() => {
+              router.push('/battle'); // Redirect after 2 seconds
+            }, 2000);
+          } else {
+            console.log('Player is not ready.');
+          }
+        }
       });
+
+      // snapshot.forEach(async (doc) => {
+      //   const opponentId = doc.id; // The id of the opponent
+
+      //   // Ensure the opponent is not the same as the current player
+      //   if (opponentId !== playerId) {
+      //     const updatedAt = doc.data()?.updatedAt; // Get the updatedAt field
+
+      //     // Check if updatedAt is defined
+      //     if (updatedAt) {
+      //       const opponentUpdatedAt = new Date(updatedAt); // Convert updatedAt to Date object
+      //       console.log(opponentUpdatedAt, 'opponentUpdatedaT');
+
+      //       const timeDifference =
+      //         (currentTime.getTime() - opponentUpdatedAt.getTime()) / 1000; // Calculate difference in seconds
+      //       console.log(timeDifference, 'difference');
+      //       // Check if the opponent was updated within the last 3 minutes (180 seconds)
+      //       if (timeDifference <= 180) {
+      //         setLoading(ProfileStatus.FOUND);
+      //         setSearchingActive(true); // State to show an opponent has been found
+
+      //         // Only set your opponent's status to 'pending'
+      //         await updateDoc(doc.ref, { status: PlayerStatus.PENDING });
+
+      //         // Confirm both players are ready
+      //         const bothReady = await confirmBothPlayersReady(); // A setTimeout for 3s, this returns true
+
+      //         if (bothReady) {
+      //           // Only update the opponent's player status to 'inGame'
+      //           await updateDoc(doc.ref, { status: PlayerStatus.INGAME });
+
+      //           // Define the object for playerOne
+      //           const playerOneDetails = {
+      //             id: playerId,
+      //             name: playerName,
+      //             avatar: playerAvatar,
+      //             networkState: checkNetwork
+      //               ? PlayerStatus.ONLINE
+      //               : PlayerStatus?.OFFLINE,
+      //           };
+
+      //           // Define the object for playerTwo
+      //           const playerTwoDetails = {
+      //             id: opponentId,
+      //             name: doc.data().name,
+      //             avatar: doc.data().avatar,
+      //             networkState: doc.data().networkState,
+      //           };
+
+      //           console.log(playerOneDetails, playerTwoDetails, 'details');
+
+      //           // Create a gameSession on Firestore DB, It would return the id of the gameSession on Firestore
+      //           const getSessionId = await createGameSession(
+      //             playerId,
+      //             opponentId,
+      //             randomControl
+      //           );
+
+      //           console.log(getSessionId, 'getSessionId');
+      //           console.log(handleGameSession(playerOneDetails, playerTwoDetails));
+
+      //           await handleGameSession(playerOneDetails, playerTwoDetails);
+      //           dispatch(setSessionId(getSessionId)); // Store the current game session ID
+      //           setLoading(null); // Stop the loading spinner
+      //           clearTimeout(timeoutId); // Clear the timeout
+      //           setTimeout(() => {
+      //             router.push('/battle'); // Redirect after 2 seconds
+      //           }, 2000);
+      //         } else {
+      //           console.log('Player is not ready.');
+      //         }
+      //       }
+      //     } else {
+      //       console.error(`updatedAt is undefined for opponent: ${opponentId}`);
+      //     }
+      // }
+      //   });
+      // });
+
       return () => {
-        clearTimeout(timeoutId);
+        clearTimeout(timeoutId); // Clear the timeout when the component unmounts
+        unsubscribe(); // Unsubscribe from the listener
       };
     } catch (error) {
       console.error('Error has occurred:', error);
     }
   };
+
+  // const searchForOpponent = async (
+  //   playerId: string,
+  //   playerName: string,
+  //   playerAvatar: string
+  // ) => {
+  //   try {
+  //     const playersRef = collection(db, 'players'); // Create a reference to players collection on Firestore
+
+  //     const q = query(
+  //       playersRef,
+  //       where('status', '==', PlayerStatus.LOOKING),
+  //       where('networkState', '==', PlayerStatus.ONLINE)
+  //     ); // Query for players who are looking
+
+  //     // Set a timeout to stop searching after 60 seconds
+  //     const timeoutId = setTimeout(() => {
+  //       setLoading(null);
+  //       setSearchingActive(false);
+  //       toast.error('No opponent found');
+  //       updateDoc(doc(db, 'players', playerId), {
+  //         status: PlayerStatus?.ONLINE,
+  //         networkState: checkNetwork,
+  //       });
+
+  //       unsubscribe(); // Unsubscribe from the listener
+  //       return;
+  //     }, 60 * 1000); // 60 seconds
+
+  //     // Our Listener for available opponents
+  //     const unsubscribe = onSnapshot(q, async (snapshot) => {
+  //       const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+
+  //       snapshot.forEach(async (doc) => {
+  //         console.log(doc);
+
+  //         const opponentId = doc.id; // The id of the opponent
+
+  //         console.log(opponentId, 'opponentId');
+  //         console.log(doc.data());
+
+  //         // Ensure the opponent is not the same as the current player
+  //         if (opponentId !== playerId) {
+  //           const updatedAt = doc.data()?.updatedAt; // Get the updatedAt field
+
+  //           console.log(updatedAt, 'updatedAt');
+
+  //           const playerCreatedAtDate = new Date(updatedAt).toISOString().split('T')[0];
+
+  //           // Compare dates to check if the opponent was created today
+  //           if (playerCreatedAtDate === currentDate) {
+  //             setLoading(ProfileStatus.FOUND);
+  //             setSearchingActive(true); // State to show an opponent has been found
+
+  //             // Only set your opponent's status to 'pending'
+  //             await updateDoc(doc.ref, { status: PlayerStatus.PENDING });
+
+  //             // Confirm both players are ready
+  //             const bothReady = await confirmBothPlayersReady(); // A setTimeout for 3s, this returns true
+
+  //             if (bothReady) {
+  //               // Only update the opponent's player status to 'inGame'
+  //               await updateDoc(doc.ref, { status: PlayerStatus.INGAME });
+
+  //               // Define the object for playerOne
+  //               const playerOneDetails = {
+  //                 id: playerId,
+  //                 name: playerName,
+  //                 avatar: playerAvatar,
+  //                 networkState: checkNetwork,
+  //               };
+
+  //               // Define the object for playerTwo
+  //               const playerTwoDetails = {
+  //                 id: opponentId,
+  //                 name: doc.data().name,
+  //                 avatar: doc.data().avatar,
+  //                 networkState: doc.data().networkState,
+  //               };
+
+  //               // Create a gameSession on Firestore DB, It would return the id of the gameSession on Firestore
+  //               const getSessionId = await createGameSession(
+  //                 playerId,
+  //                 opponentId,
+  //                 randomControl
+  //               );
+
+  //               // Pass our players object details to the handleGameSession to create a gameSession on Firestore
+  //               await handleGameSession(playerOneDetails, playerTwoDetails);
+
+  //               dispatch(setSessionId(getSessionId)); // Store the current game session ID
+  //               setLoading(null); // Stop the loading spinner
+  //               clearTimeout(timeoutId); // Clear the timeout
+  //               setTimeout(() => {
+  //                 router.push('/battle'); // Redirect after 2 seconds
+  //               }, 2000);
+  //             } else {
+  //               console.log('Player is not ready.');
+  //             }
+  //           }
+  //         }
+  //       });
+  //     });
+
+  //     return () => {
+  //       clearTimeout(timeoutId); // Clear the timeout when the component unmounts
+  //       unsubscribe(); // Unsubscribe from the listener
+  //     };
+  //   } catch (error) {
+  //     console.error('Error has occurred:', error);
+  //   }
+  // };
+
+  // const searchForOpponent = async (
+  //   playerId: string,
+  //   playerName: string,
+  //   playerAvatar: string
+  // ) => {
+  //   try {
+  //     const playersRef = collection(db, 'players'); //Create a reference to players collection on firestore
+
+  //     const q = query(playersRef, where('status', '==', PlayerStatus.LOOKING)); //Query our reference for status 'looking'
+
+  //     // Set a timeout to stop searching after 30 seconds
+  //     const timeoutId = setTimeout(() => {
+  //       setLoading(ProfileStatus.NONE);
+  //     }, 60 * 1000);
+
+  //     //Our Listener for available opponents
+  //     const unsubscribe = onSnapshot(q, async (snapshot) => {
+  //       snapshot.forEach(async (doc: any) => {
+  //         const opponentId = doc.id; //The id of the opponent
+  //         setLoading(ProfileStatus.FOUND);
+
+  //         // Ensure the opponent is not the same as the current player
+  //         if (opponentId !== playerId) {
+  //           setSearchingActive(true); //State to show an opponent has been found
+
+  //           //Only Set your opponents status to 'pending'
+  //           await Promise.all([
+  //             // updateDoc(playerRef, { status: 'pending' }),
+  //             updateDoc(doc.ref, { status: PlayerStatus.PENDING }),
+  //           ]);
+
+  //           // Confirm both players are ready
+  //           const bothReady = await confirmBothPlayersReady(); //A setTimeOut for 3s, th returns true
+
+  //           if (bothReady) {
+  //             //Only Update the opponents players status to 'inGame'
+  //             await Promise.all([
+  //               // updateDoc(playerRef, { status: 'inGame' }),
+  //               updateDoc(doc.ref, { status: PlayerStatus.INGAME }),
+  //             ]);
+
+  //             //Define the object for playerOne
+  //             const playerOneDetails = {
+  //               id: playerId,
+  //               name: playerName,
+  //               avatar: playerAvatar,
+  //               networkState: checkNetwork,
+  //             };
+  //             //Define the object for playerOne
+  //             const playerTwoDetails = {
+  //               id: opponentId,
+  //               name: doc.data().name,
+  //               avatar: doc.data().avatar,
+  //               networkState: doc.data().networkState,
+  //             };
+
+  //             // Create a gameSession on firestore db, It would return  the id of the gameSession on firestore
+  //             const getSessionId = await createGameSession(
+  //               playerId,
+  //               opponentId,
+  //               randomControl
+  //             );
+
+  //             //Pass our players object details to the handleGameSession to create a gameSession on firestore,The function would return the gameSession Data
+  //             await handleGameSession(playerOneDetails, playerTwoDetails);
+
+  //             // dispatch(setAPlayer(playerId)); //Store the currentPlayersId
+  //             dispatch(setSessionId(getSessionId)); //Store the currentGameSessionId
+  //             setLoading(null); //Stop the Loading spinner
+  //             clearTimeout(timeoutId);
+  //             setTimeout(() => {
+  //               router.push('/battle');
+  //               // unsubscribe();
+  //             }, 2000);
+  //           } else {
+  //             console.log('Player is not ready.');
+  //           }
+  //         }
+  //       });
+  //     });
+  //     return () => {
+  //       clearTimeout(timeoutId);
+  //     };
+  //   } catch (error) {
+  //     console.error('Error has occurred:', error);
+  //   }
+  // };
 
   const confirmBothPlayersReady = async () => {
     return new Promise((resolve) => {
@@ -188,6 +545,7 @@ const Login = () => {
       playerOneDetails?.id > opponent?.id
         ? playerOneDetails?.id + opponent?.id
         : opponent?.id + playerOneDetails?.id;
+    console.log(combinedId, 'combinedId');
 
     try {
       const sessionDoc = await getDoc(doc(db, 'gameSessions', combinedId));
@@ -226,6 +584,10 @@ const Login = () => {
           unreadMessages: {
             playerOne: 0,
             playerTwo: 0,
+          },
+          trackPlayersOnlineStatus: {
+            playerOne: playerOneDetails?.networkState,
+            playerTwo: opponent?.networkState,
           },
         };
 
@@ -283,15 +645,19 @@ const Login = () => {
 
   return (
     <FadeIn>
+      <Toaster />
       <div
         className={`${
           currentTheme === 'light'
             ? 'bg-royalGreen text-white'
             : 'bg-black text-brightGreen'
-        } bg-[#000] w-[100vw] h-[100vh] `}
+        } bg-[#000] w-[100vw] h-[100vh] overflow-hidden `}
       >
-        <div className="">
-          <div className="flex justify-center items-center h-screen">
+        <div className="h-full">
+          <div className="w-[95%] mx-auto flex items-center justify-end py-2 text-brightGreen">
+            <ProfileHeader />
+          </div>
+          <div className="flex justify-center items-center h-[80%]">
             <form
               onSubmit={loginPlayer}
               className="border border-white/40 rounded-lg py-8 px-8 min-w-[250px] w-[400px] max-[550px]:w-[95%] max-[550px]:px-3"

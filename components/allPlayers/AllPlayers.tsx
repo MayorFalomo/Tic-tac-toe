@@ -7,7 +7,7 @@ import clsx from 'clsx';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { LoadingSpinner } from '../signup/Loader';
-import { useTheme } from '@/app/ThemeContext';
+import { useTheme } from '@/contexts/ThemeContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import FadeIn from '@/app/animation/FadeIn';
 
@@ -140,7 +140,7 @@ const AllPlayers = () => {
                           res?.status === PlayerStatus.OFFLINE &&
                             res?.name &&
                             'bg-red-500',
-                          res?.status === '' || (null && 'bg-transparent')
+                          res?.status === '' && 'bg-transparent'
                         )}
                       >
                         {' '}
