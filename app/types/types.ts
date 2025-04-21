@@ -23,6 +23,16 @@ export type PlayerNames = {
   playerOne: PlayerDetails;
   playerTwo: PlayerDetails;
 };
+export type fullPlayerType = {
+  id: string;
+  name: string;
+  avatar: string;
+  networkState?: string;
+  status?: string;
+  unreadMessages?: [];
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 export type PlayerDetails = {
   id: string;
@@ -104,6 +114,7 @@ export type Chat = {
   message: string;
   timeStamp: TimeStamp;
   reactions: Reaction[];
+  lastMessage: [];
 }
 
 export type TimeStamp = {

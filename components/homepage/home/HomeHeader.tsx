@@ -119,9 +119,12 @@ const HomeHeader: React.FC<Props> = ({
     await updateDoc(doc(db, 'gameSessions', combinedId), {
       quitGame: true,
     });
-    await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
-      status: PlayerStatus.ONLINE,
-    });
+    // await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
+    //   status: PlayerStatus.ONLINE,
+    // });
+    // await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
+    //   status: PlayerStatus.ONLINE,
+    // });
     dispatch(
       givePlayerNames({
         playerOne: {},

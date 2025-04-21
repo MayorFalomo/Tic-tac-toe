@@ -1,7 +1,7 @@
-import { onDisconnect } from "firebase/database";
+import { onDisconnect, update } from "firebase/database";
 import { database, db,} from "@/firebase-config/firebase";
 import { push, ref, set, } from "@firebase/database";
-import { collection, doc, getDocs, query, setDoc } from "firebase/firestore";
+import { collection, doc, getDocs, query, setDoc, updateDoc } from "firebase/firestore";
 import { PlayerStatus } from "@/app/types/types";
 import emailjs from '@emailjs/browser';
 
@@ -51,12 +51,12 @@ export const handlePlayersStatus = async (userId: string, status?: string) => {
     const userRef = ref(database, `activePlayers/${userId}`); //We reference the "activePlayers" db we created in the createPlayerfunc and find a player by their userId
 
     //Set the users status to online when they connect on firestore db first
-    await set(userRef, {
+    await update(userRef, {
       status: status,
     });
 
     //Change on firestore
-     await setDoc(doc(db, 'players', userId), {
+     await updateDoc(doc(db, 'players', userId), {
         status: status,
       });
   

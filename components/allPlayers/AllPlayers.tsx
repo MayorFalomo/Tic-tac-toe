@@ -1,7 +1,7 @@
 'use client';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { getAllPlayers, handlePlayersStatus } from '../funcs/HandleAuth';
-import { PlayerStatus, SessionPlayerDetails } from '@/app/types/types';
+import { PlayerStatus, SessionPlayerDetails, userDetails } from '@/app/types/types';
 import Image from 'next/image';
 import clsx from 'clsx';
 import { ArrowLeft } from 'lucide-react';
@@ -10,6 +10,24 @@ import { LoadingSpinner } from '../signup/Loader';
 import { useTheme } from '@/contexts/ThemeContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import FadeIn from '@/app/animation/FadeIn';
+import { Button } from '../ui/button';
+import {
+  addDoc,
+  collection,
+  doc,
+  getDocs,
+  query,
+  setDoc,
+  where,
+} from 'firebase/firestore';
+import { db } from '@/firebase-config/firebase';
+import { RootState } from '@/lib/store';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { useRouter } from 'next/navigation';
+import {
+  setCombinedChattingId,
+  setSelectedPlayer,
+} from '@/lib/features/ChatAPlayerSlice';
 
 interface IPlayers extends SessionPlayerDetails {
   status: string;
@@ -20,8 +38,11 @@ const AllPlayers = () => {
   const [getPlayers, seGetPlayers] = useState<IPlayers[]>([]);
   const [singlePlayer, setSinglePlayer] = useState<IPlayers | null>(null);
 
+  const currentUser = useAppSelector((state: RootState) => state.user as userDetails);
+  const dispatch = useAppDispatch();
+
   useEffect(() => {
-    const retrievedKey = localStorage.getItem('playerKey');
+    const retrievedKey = currentUser?.userId;
     if (retrievedKey) {
       //Set a players status to active first on realtime db
       handlePlayersStatus(retrievedKey, PlayerStatus.ONLINE);
@@ -77,6 +98,31 @@ const AllPlayers = () => {
     },
   };
 
+  const combinedChattersId = useMemo(() => {
+    const playerOneId = currentUser?.userId;
+    const playerTwoId = singlePlayer?.id!;
+    if (playerOneId && playerTwoId) {
+      return playerOneId > playerTwoId
+        ? playerOneId + playerTwoId
+        : playerTwoId + playerOneId;
+    }
+  }, [singlePlayer?.id, currentUser?.userId]);
+  const navigate = useRouter();
+
+  const handleChats = async () => {
+    dispatch(setCombinedChattingId(combinedChattersId));
+    dispatch(
+      setSelectedPlayer({
+        name: singlePlayer?.name,
+        avatar: singlePlayer?.avatar,
+        id: singlePlayer?.id,
+        networkState: singlePlayer?.status,
+      })
+    );
+
+    navigate.push('/chats');
+  };
+
   return (
     <FadeIn>
       <div
@@ -106,6 +152,8 @@ const AllPlayers = () => {
                     key={index}
                     onClick={() => setSinglePlayer(res)}
                     className="w-full cursor-pointer"
+                    initial="hidden"
+                    animate="show"
                   >
                     <li className="flex items-center justify-between w-full">
                       <div className="flex items-start gap-3 ">
@@ -155,10 +203,23 @@ const AllPlayers = () => {
           </div>
         </div>
         <div className="h-full overflow-auto">
-          <div className="w-full bg-white py-4 px-2">
-            <Link className="w-full mt-3" href="/">
+          <div className="w-full flex items-center justify-between bg-white py-4 px-2">
+            <Link className="w-fit mt-3" href="/">
               <span className="cursor-pointer w-fit text-black">{<ArrowLeft />} </span>
             </Link>
+            <div>
+              <Button
+                onClick={handleChats}
+                disabled={currentUser?.userId && singlePlayer?.id ? false : true}
+                className={clsx(
+                  currentUser?.userId.length < 1 && 'cursor-not-allowed',
+                  !singlePlayer?.id && 'cursor-not-allowed',
+                  ' cursor-pointer'
+                )}
+              >
+                Message {singlePlayer?.name}{' '}
+              </Button>
+            </div>
           </div>
           {singlePlayer ? (
             <div className="h-full pb-[30px]">

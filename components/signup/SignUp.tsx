@@ -122,6 +122,7 @@ const SignUp: React.FC = () => {
         avatar: Avatar,
         createdAt: new Date().toISOString(),
       });
+
       // Store player data in IndexedDB using the custom hook
 
       //create a players field on firestore using the returned playerId from firestore db
@@ -133,6 +134,7 @@ const SignUp: React.FC = () => {
         status: PlayerStatus?.LOOKING,
         networkState: checkNetwork ? PlayerStatus.ONLINE : PlayerStatus?.OFFLINE,
         updatedAt: new Date().toISOString(),
+        unreadMessages: [],
       });
 
       // await sendEmail(playerNameSelect);
@@ -163,7 +165,7 @@ const SignUp: React.FC = () => {
       // Set a timeout to stop searching after 60 seconds
       const timeoutId = setTimeout(() => {
         setLoading(ProfileStatus.NONE);
-        toast.error('No opponent found');
+        toast.error('No opponent found, I am the cause');
         unsubscribe(); // Unsubscribe from the listener
         return;
       }, 60 * 10 * 1000); // 60 seconds
@@ -242,11 +244,11 @@ const SignUp: React.FC = () => {
         });
 
         // If no valid opponents were found after checking all
-        if (!foundOpponent) {
-          console.log('i am the cause');
-          // Optionally handle the case where no valid opponents are found
-          toast.error('Sorry, no active opponent was found');
-        }
+        // if (!foundOpponent) {
+        //   console.log('i am the cause');
+        //   // Optionally handle the case where no valid opponents are found
+        //   toast.error('Sorry, no active opponent was found');
+        // }
       });
 
       return () => {

@@ -3,6 +3,7 @@ import { possibleSlice } from "./features/PossibilitySlice";
 import { playersSlice } from "./features/PlayerSlice";
 import { trackerSlice } from "./features/TrackerSlice";
 import { userSlice } from "./features/userSlice";
+import { ChatAPlayerSlice } from "./features/ChatAPlayerSlice";
 
 export const possibiltyStore = () => {
   return configureStore({
@@ -12,6 +13,7 @@ export const possibiltyStore = () => {
       players: playersSlice.reducer,
       track: trackerSlice.reducer,
       user: userSlice.reducer,
+      chatUp: ChatAPlayerSlice.reducer,
     },
   });
 };

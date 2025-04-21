@@ -33,7 +33,7 @@ const Homepage: React.FC = () => {
   const [movesData, setMovesData] = useState<MovesObject[]>([]);
   const [openModal, setOpenModal] = useState<boolean>(false);
   const [playerChat, setPlayerChat] = useState<Chat[]>([]);
-  const [getTheChatId, setTheChatId] = useState<any>(null);
+  const [getTheChatId, setTheChatId] = useState<string | null>(null);
   const [currentPlayer, setCurrentPlayer] = useState<string>('');
   const [firstPlayer, setFirstPlayer] = useState<string>('');
   const [roundWinner, setRoundWinner] = useState<string | null>(null);
