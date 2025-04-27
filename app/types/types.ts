@@ -29,9 +29,15 @@ export type fullPlayerType = {
   avatar: string;
   networkState?: string;
   status?: string;
-  unreadMessages?: [];
+  unreadMessages?: Unread[];
   createdAt?: string;
   updatedAt?: string;
+}
+
+export type Unread = {
+  message: string;
+  senderId: string;
+  receiverId?: string;
 }
 
 export type PlayerDetails = {
@@ -39,6 +45,7 @@ export type PlayerDetails = {
   name: string;
   avatar?: string;
   networkState: string;
+  lastMessage?: string;
 }
 
 export type userDetails = {
@@ -108,13 +115,27 @@ export type Scores = {
   score: number;
 };
 
+export type PlayerChatType = {
+  combinedId: string;
+  messages: Chat[];
+  participants: string[];
+  participantsObject: PlayerDetails[];
+  timestamp: TimeStamp;
+  typing: boolean;
+  lastMessage?: string;
+  playerOneUnread?: number;
+ playerTwoUnread?: number;
+  lastMessageTimeStamp?: TimeStamp;
+}
+
 export type Chat = {
   _id: string;
   senderId: string;
   message: string;
   timeStamp: TimeStamp;
   reactions: Reaction[];
-  lastMessage: [];
+  receiverId?: string;
+  // lastMessage: [];
 }
 
 export type TimeStamp = {

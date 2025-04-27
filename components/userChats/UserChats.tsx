@@ -1,10 +1,9 @@
 'use client';
-import { Chat, fullPlayerType } from '@/app/types/types';
+import { Chat, defaultImg, PlayerChatType, PlayerDetails } from '@/app/types/types';
 import { db } from '@/firebase-config/firebase';
-import { useAppSelector } from '@/lib/hooks';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
 import {
-  addDoc,
   arrayUnion,
   collection,
   doc,
@@ -18,33 +17,36 @@ import {
   where,
 } from 'firebase/firestore';
 import React, { useEffect, useMemo, useState } from 'react';
-import ProfileHeader from '../Profile/ProfileHeader';
 import { useTheme } from '@/contexts/ThemeContext';
 import Link from 'next/link';
 import { Button } from '../ui/button';
-import { ArrowLeft, Info } from 'lucide-react';
 import Image from 'next/image';
 import UserChatField from './UserChatField';
 import toast from 'react-hot-toast';
+import { setCombinedChattingId } from '@/lib/features/ChatAPlayerSlice';
+import useTypingIndicator from '@/hooks/useTypingIndicator';
 
 type Props = {
   _id: string;
   message: string;
   senderId: string;
+  receiverId?: string;
 };
 
-const UserChats = (props: Props) => {
+const UserChats = () => {
   const playersChatState = useAppSelector((state: RootState) => state.chatUp);
   const currentUser = useAppSelector((state: RootState) => state.user);
+  const dispatch = useAppDispatch();
 
   const [chatsId, setChatsId] = useState<string | null>(null);
   const [allPlayerChat, setAllPlayerChat] = useState<Chat[]>([]);
   const [textMessage, setTextMessage] = useState<string>('');
-  const [allPlayerContacts, setAllPlayerContacts] = useState<fullPlayerType[]>([]);
-  // const [lastMessage, setLastMessage] = useState([]);
+  const [allPlayerContacts, setAllPlayerContacts] = useState<PlayerDetails[]>([]);
+  const [trackChatters, setTrackChatters] = useState<PlayerChatType>();
+  const [newWay, setNewWay] = useState<PlayerChatType[]>([]);
+  const [scrollToBtm, setScrollToBtm] = useState<boolean>(false);
 
   const { currentTheme } = useTheme();
-
   const combinedChattersId = useMemo(() => {
     const playerOneId = currentUser?.userId;
     const playerTwoId = playersChatState?.selectedPlayer?.id;
@@ -55,10 +57,76 @@ const UserChats = (props: Props) => {
     }
   }, [playersChatState?.selectedPlayer?.id, playersChatState.combinedChattingId]);
 
+  const { isTyping, handleTyping } = useTypingIndicator(combinedChattersId!);
+
   // useEffect(() => {
   //   const playersChatRef = collection(db, 'userChats');
   //   const q = query(playersChatRef, where())
   // }, [])
+
+  // useEffect(() => {
+  //   if (combinedChattersId) {
+  //     const playersRef = collection(db, 'userChats');
+  //     const playersQuery = query(
+  //       playersRef,
+  //       where('participants', 'array-contains', currentUser?.userId)
+  //     );
+
+  //     const unsubscribeChats = onSnapshot(playersQuery, (snapshot) => {
+  //       snapshot.forEach((doc) => {
+  //         if (doc.exists()) {
+  //           console.log('i am running');
+
+  //           const playersArray: PlayerChatType = doc.data() as PlayerChatType;
+  //           console.log(doc.data(), 'doc.data() snapshot');
+
+  //           console.log(playersArray, 'playersArray');
+  //           console.log([playersArray], 'playersArray?.length');
+
+  //           // const playerChat = playerDoc?.data()?.messages || [];
+  //           setNewWay([playersArray]);
+
+  //           // if (playersArray.length > 0) {
+  //           //   const newContactWay = playersArray?.map((res) => res);
+  //           // }
+  //         }
+  //       });
+  //     });
+
+  //     return () => {
+  //       unsubscribeChats(); // Unsubscribe when component unmounts
+  //     };
+  //   }
+  // }, [combinedChattersId, currentUser?.userId]);
+
+  useEffect(() => {
+    if (combinedChattersId) {
+      const playersRef = collection(db, 'userChats');
+      const playersQuery = query(
+        playersRef,
+        where('participants', 'array-contains', currentUser?.userId)
+      );
+
+      const unsubscribeChats = onSnapshot(playersQuery, (snapshot) => {
+        const updatedChats: PlayerChatType[] = [];
+
+        snapshot.forEach((doc) => {
+          if (doc.exists()) {
+            const playersArray: PlayerChatType = doc.data() as PlayerChatType;
+            updatedChats.push(playersArray);
+          }
+        });
+
+        // Update state with all chat documents
+        setNewWay(updatedChats);
+      });
+
+      return () => {
+        unsubscribeChats(); // Unsubscribe when component unmounts
+      };
+    }
+  }, [combinedChattersId, currentUser?.userId]);
+
   useEffect(() => {
     if (combinedChattersId) {
       const chatRef = collection(db, 'userChats');
@@ -67,12 +135,7 @@ const UserChats = (props: Props) => {
       const unsubscribeChats = onSnapshot(q, (snapshot) => {
         snapshot.forEach((doc) => {
           if (doc.exists()) {
-            console.log(doc.data(), 'snap doc data');
-
-            const messages = doc.data().messages || [];
-            console.log(messages, 'snapshot messages');
-
-            setAllPlayerChat(messages); // Update state with the latest messages
+            setTrackChatters(doc.data() as PlayerChatType);
           }
         });
       });
@@ -85,86 +148,96 @@ const UserChats = (props: Props) => {
 
   console.log(allPlayerChat, 'allPlayerChatState');
 
-  const loadContacts = async () => {
-    const dbRef = collection(db, 'userChats');
+  // const loadContacts = async () => {
+  //   const dbRef = collection(db, 'userChats');
 
-    const playerQuery = query(
-      dbRef,
-      where('participants', 'array-contains', currentUser?.userId)
-    );
-    const playerQuerySnap = await getDocs(playerQuery);
+  //   const playerQuery = query(
+  //     dbRef,
+  //     where('participants', 'array-contains', currentUser?.userId)
+  //   );
+  //   const playerQuerySnap = await getDocs(playerQuery);
 
-    if (!playerQuerySnap.empty) {
-      const participantsId: Set<string> = new Set();
-      playerQuerySnap.forEach((doc) => {
-        console.log(doc.data(), 'data');
+  //   if (!playerQuerySnap.empty) {
+  //     const participantsId: Set<string> = new Set();
+  //     playerQuerySnap.forEach((doc) => {
+  //       console.log(doc.data(), 'data');
 
-        doc.data().participants.forEach((participantId: string) => {
-          if (participantId !== currentUser?.userId) {
-            participantsId.add(participantId); // Add to the set
-          }
-        });
-      });
-      const playersData = await fetchPlayersData(Array.from(participantsId));
-      setAllPlayerContacts(playersData);
+  //       doc.data().participants.forEach((participantId: string) => {
+  //         if (participantId !== currentUser?.userId) {
+  //           participantsId.add(participantId); // Add to the set
+  //         }
+  //       });
+  //     });
+  //     const playersData = await fetchPlayersData(Array.from(participantsId));
+  //     setAllPlayerContacts(playersData);
 
-      console.log(playersData, 'playersData');
-    }
-  };
+  //     console.log(playersData, 'playersData');
+  //   }
+  // };
+
+  // console.log(combinedChattersId, 'combined');
 
   const loadChats = async (combinedId: string) => {
-    const playerChatDoc = await getDoc(doc(db, 'userChats', combinedId));
+    const playersRef = collection(db, 'userChats');
+    //First query to get all your chats
+    const playersQuery = query(
+      playersRef,
+      where('participants', 'array-contains', currentUser?.userId)
+    );
 
-    if (playerChatDoc.data()) {
-      console.log(playerChatDoc, 'playerChatDoc');
-      console.log(playerChatDoc?.data(), 'playerChatDocData');
-
-      // const dbRef = collection(db, 'userChats');
-      const playerChat = playerChatDoc.data()?.messages || [];
-      console.log(playerChat, 'player');
-      if (playerChat) {
-        // const chatId = querySnapShot.docs[0].id;
-        // console.log(chatId, 'chatId');
-
-        // setChatsId(chatId);
-        // const chats: any = [];
-
-        // querySnapShot.forEach((doc) => {
-        //   chats.push({ id: doc.id, ...doc.data() });
-        // });
-
-        console.log(playerChat, 'load msg chat');
-
-        setAllPlayerChat(playerChat);
-      }
-    }
-
-    // const q = query(dbRef, where('combinedId', '==', combinedId)); //Get the exact chat between those two people
-
-    // const querySnapShot = await getDocs(q);
-    else {
-      await createChatSession();
-    }
-  };
-
-  const fetchPlayersData = async (participantIds: any) => {
-    const playersRef = collection(db, 'players');
-    const playersQuery = query(playersRef, where('id', 'in', participantIds));
+    //Query to get a selectedChat
+    const queryForCombined = query(playersRef, where('combinedId', '==', combinedId));
 
     const playerDocs = await getDocs(playersQuery);
-    const playersArray = playerDocs.docs.map((doc) => ({
-      id: doc.id,
-      name: doc.data().name || '',
-      avatar: doc.data().avatar || '',
-      networkState: doc.data().networkState || 'offline',
-      status: doc.data().status || '',
-      // Add other required properties with default values if missing
-      ...doc.data(),
-    }));
-    console.log(playersArray, 'playersArraY');
+    const queryForCombinedSnap = await getDocs(queryForCombined);
 
-    return playersArray;
+    //! Check for if a chat does not exist between the players before.
+    if (queryForCombinedSnap.empty) {
+      await createChatSession();
+    } else {
+      const playerDoc = await getDoc(doc(db, 'userChats', combinedId));
+      const playerChat = playerDoc?.data() as PlayerChatType;
+      // console.log(playerChat, 'playerChat');
+      if (playerChat) {
+        setTrackChatters(playerChat);
+      }
+    }
+    const playersArray: PlayerChatType[] = playerDocs.docs.map(
+      (doc) => doc.data() as PlayerChatType
+    );
+    // const playerChat = playerDoc?.data()?.messages || [];
+    console.log(playersArray, 'playersArray');
+
+    if (playersArray.length > 0) {
+      const newContactWay = playersArray?.map((res) => res);
+      setNewWay(newContactWay);
+    } else {
+      console.log('No chat found for this user');
+      setAllPlayerContacts([]);
+      // await createChatSession();
+    }
   };
+
+  console.log(newWay, 'newWay');
+
+  // const fetchPlayersData = async (participantIds: any) => {
+  //   const playersRef = collection(db, 'players');
+  //   const playersQuery = query(playersRef, where('id', 'in', participantIds));
+
+  //   const playerDocs = await getDocs(playersQuery);
+  //   const playersArray = playerDocs.docs.map((doc) => ({
+  //     id: doc.id,
+  //     name: doc.data().name || '',
+  //     avatar: doc.data().avatar || '',
+  //     networkState: doc.data().networkState || 'offline',
+  //     status: doc.data().status || '',
+  //     // Add other required properties with default values if missing
+  //     ...doc.data(),
+  //   }));
+  //   console.log(playersArray, 'playersArraY');
+
+  //   return playersArray;
+  // };
 
   const createChatSession = async () => {
     // const chatRef = collection(db, 'userChats');
@@ -173,7 +246,25 @@ const UserChats = (props: Props) => {
       messages: [],
       timestamp: new Date(),
       participants: [currentUser?.userId, playersChatState?.selectedPlayer?.id],
-      namesOfParticipants: [currentUser?.name, playersChatState?.selectedPlayer?.name],
+      participantsObject: [
+        {
+          id: currentUser?.userId,
+          name: currentUser?.name,
+          avatar: currentUser?.avatar,
+          networkState: currentUser?.networkState,
+        },
+        {
+          id: playersChatState?.selectedPlayer?.id,
+          name: playersChatState?.selectedPlayer?.name,
+          avatar: playersChatState?.selectedPlayer?.avatar,
+          status: playersChatState?.selectedPlayer?.networkState,
+        },
+      ],
+      lastMessage: '',
+      lastMessageTimeStamp: {},
+      playerOneUnread: 0,
+      playerTwoUnread: 0,
+      typing: false,
     };
     if (combinedChattersId) {
       await setDoc(doc(db, 'userChats', combinedChattersId), messageObj);
@@ -191,7 +282,7 @@ const UserChats = (props: Props) => {
 
   useEffect(() => {
     if (currentUser?.userId) {
-      loadContacts();
+      // loadContacts();
       if (combinedChattersId) {
         loadChats(combinedChattersId);
       }
@@ -200,7 +291,7 @@ const UserChats = (props: Props) => {
     }
   }, [currentUser?.userId, combinedChattersId]);
 
-  const sendMessage = async (message: string, senderId: string) => {
+  const sendMessage = async (message: string, selectedPlayerId: string) => {
     if (message.length > 1) {
       // Generate a unique message ID (could be a timestamp or UUID)
       const messageId = new Date().getTime();
@@ -212,93 +303,181 @@ const UserChats = (props: Props) => {
 
       if (!chatDoc.empty) {
         const chatId = chatDoc.docs[0].id;
-        console.log(chatId, 'chatId');
+        // console.log(chatId, 'chatId');
 
         const chatDocumentRef = doc(db, 'userChats', chatId);
-        // const chatData = chatDoc.docs[0].data();
-        console.log(chatDocumentRef, 'doc Ref');
+        const chatData = chatDoc.docs[0].data();
+        console.log(chatData, 'doc Ref');
 
         // Update the messages array in the document
         await updateDoc(chatDocumentRef, {
           messages: arrayUnion({
             _id: messageId,
             senderId: currentUser?.userId,
-            message,
+            receiverId: selectedPlayerId,
+            message: message,
             timeStamp: Timestamp.now(),
             reactions: [],
           }),
         });
 
-        // Fetch the current user's player document to update unreadMessages
+        const playerOneId = currentUser?.userId;
+        const playerTwoId = playersChatState?.selectedPlayer?.id;
+
+        //update the lastMessage field for the selected user in the userChats document
+        await updateDoc(chatDocumentRef, {
+          lastMessage: message, // Update the top-level lastMessage,
+          lastMessageTimeStamp: Timestamp.now(), // Update the top-level lastMessageTimeStamp
+          playerOneUnread:
+            playerOneId + playerTwoId === combinedChattersId
+              ? chatData?.playerOneUnread + 1
+              : 0,
+          playerTwoUnread:
+            playerTwoId + playerOneId === combinedChattersId
+              ? chatData?.playerTwoUnread + 1
+              : 0,
+          typing: false,
+        });
+
+        //! Fetch the current user's player document to update unreadMessages
         const playerDocRef = doc(db, 'players', playersChatState?.selectedPlayer?.id);
         const playerDoc = await getDoc(playerDocRef);
 
         if (playerDoc.exists()) {
-          const unreadMessages = playerDoc.data().unreadMessages || [];
+          const unreadMessages = playerDoc.data()?.unreadMessages || {};
 
-          // Add the new message to the unreadMessages array
+          // Update the unreadMessages in the player's document
           await updateDoc(playerDocRef, {
             unreadMessages: arrayUnion({
-              _id: messageId,
+              id: messageId,
+              message: message,
               senderId: currentUser?.userId,
-              message,
-              // timeStamp: Timestamp.now(),
+              receiverId: selectedPlayerId,
             }),
           });
+
           console.log(unreadMessages, 'unread');
+        } else {
+          console.log('Player document does not exist.');
         }
         setTextMessage('');
+        setScrollToBtm(true);
       } else {
         console.log('No chat session found to send the message.');
       }
     }
   };
 
-  console.log(allPlayerChat, 'playersChat');
+  const getFilteredParticipants = (participantsObject: PlayerDetails[]) => {
+    return participantsObject.filter(
+      (participant) => participant.id !== currentUser?.userId
+    );
+  };
+
+  const getFilteredMessages = (id: string) => {
+    const newArr = newWay?.filter((res) => res?.combinedId !== id);
+    const newStore = newArr?.map((res) => res?.messages);
+    console.log(newStore, 'newStore');
+
+    return newStore;
+  };
+
+  const handleChatSelect = async (chat: PlayerChatType) => {
+    dispatch(setCombinedChattingId(chat?.combinedId));
+
+    const filter = newWay?.filter((item) => item?.combinedId === chat?.combinedId);
+    setTrackChatters(filter[0]);
+
+    const playerOneId = currentUser?.userId;
+    const playerTwoId = playersChatState?.selectedPlayer?.id;
+
+    const chatRef = collection(db, 'userChats');
+    const q = query(chatRef, where('combinedId', '==', combinedChattersId));
+
+    const chatDoc = await getDocs(q);
+
+    if (!chatDoc.empty) {
+      const chatId = chatDoc.docs[0].id;
+
+      const chatDocumentRef = doc(db, 'userChats', chatId);
+
+      if (playerOneId + playerTwoId === combinedChattersId) {
+        await updateDoc(chatDocumentRef, {
+          playerOneUnread: 0,
+        });
+      }
+      if (playerTwoId + playerOneId === combinedChattersId) {
+        await updateDoc(chatDocumentRef, {
+          playerTwoUnread: 0,
+        });
+      }
+    }
+  };
+
+  // console.log(allPlayerChat, 'playersChat');
+  // console.log(trackChatters[0], 'trackAllplayersChat at [0]');
+  console.log(trackChatters, 'trackChatters');
 
   return (
     <div>
       <div
         className={`${
           currentTheme === 'light' ? 'bg-royalGreen text-white' : 'bg-black text-white'
-        }border border-red-500 min-h-full grid grid-cols-[400px_auto] max-[950px]:grid-cols-[270px_auto] max-[900px]:grid-cols-[270px_auto_0] max-[600px]:grid-cols-[230px_auto_0] max-[550px]:flex max-[550px]:flex-col-reverse h-screen overflow-hidden w-full text-white`}
+        } min-h-full grid grid-cols-[400px_auto] max-[950px]:grid-cols-[270px_auto] max-[900px]:grid-cols-[270px_auto_0] max-[600px]:grid-cols-[230px_auto_0] max-[550px]:flex max-[550px]:flex-col-reverse h-screen overflow-hidden w-full text-white`}
       >
         <div className="h-full w-full border-r border-white/40 p-4 pb-[50px] overflow-auto">
-          <h1
-            className={`${
-              currentTheme === 'light' ? 'text-golden' : 'text-white'
-            } pt-1 mb-4 px-3 text-[24px]`}
-          >
-            <Link href="/">Your Chats</Link>
-          </h1>
-
           <div className="flex flex-col gap-4">
-            {allPlayerContacts.map((contact) => (
-              <div key={contact.id} className="flex items-center gap-3 mb-4">
-                <div className="w-[40px] h-[40px] border border-white/50 rounded-full overflow-hidden">
-                  <Image
-                    src={contact?.avatar! ?? ''}
-                    width={40}
-                    height={40}
-                    alt="avatar"
-                  />
+            <h1
+              className={`${
+                currentTheme === 'light' ? 'text-golden' : 'text-white'
+              } pt-1 mb-4 px-3 text-[24px]`}
+            >
+              <Link href="/">Your Chats</Link>
+            </h1>
+            <div className="flex flex-col items-start gap-2 ">
+              {newWay?.length > 0 ? (
+                newWay.map((chat) => {
+                  const filtered = getFilteredParticipants(chat.participantsObject);
+                  return (
+                    <div
+                      className="w-full py-1 border border-b-white/40 border-x-0 border-t-0 "
+                      key={chat?.combinedId}
+                      onClick={() => handleChatSelect(chat)}
+                    >
+                      {filtered?.map((contact) => (
+                        <div
+                          key={contact?.id}
+                          className="flex items-center gap-3 cursor-pointer mb-4"
+                        >
+                          <div className="w-[40px] h-[40px] border border-white/50 rounded-full overflow-hidden">
+                            <Image
+                              src={contact?.avatar ?? defaultImg} // Or src={contact?.avatar ?? ''}
+                              width={40}
+                              height={40}
+                              alt={contact?.name ?? 'User Avatar'} // Better alt text
+                            />
+                          </div>
+                          <div className="flex flex-col leading-5">
+                            <h3>{contact?.name ?? 'Unknown User'}</h3>
+                            <p className="text-[10px] text-white/40">
+                              {chat?.lastMessage || '...'}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })
+              ) : (
+                <div>
+                  <p>You don&apos;t have any chats yet.</p>
                 </div>
-                <div className="flex flex-col leading-5">
-                  <h3>{contact?.name} </h3>
-                  <p>
-                    {contact.unreadMessages?.map((res: Props, index: number) => (
-                      <span className="text-[10px] text-white/40" key={index}>
-                        {res?.senderId === contact?.id ? res?.message : ''}
-                      </span>
-                    ))}{' '}
-                  </p>
-                </div>
-              </div>
-            ))}
+              )}
+            </div>
           </div>
         </div>
-        <div className="border-x border-white/40 w-[70%] h-full overflow-hidden">
-          <div className=" border-b border-white/50 w-full flex items-center gap-3 py-4 px-2">
+        <div className="w-[70%] h-full overflow-hidden border-x border-white/40">
+          <div className="flex items-center gap-3  border-b border-white/50 w-full py-4 px-2">
             <Image
               src={playersChatState?.selectedPlayer?.avatar}
               className="w-[50px] h-[50px] rounded-full object-cover object-top "
@@ -306,32 +485,51 @@ const UserChats = (props: Props) => {
               height={50}
               alt="img"
             />
-            <p>{playersChatState?.selectedPlayer?.name} </p>
+            <div className="flex flex-col gap-1">
+              <p>
+                {trackChatters?.participantsObject[0]?.id === currentUser?.userId
+                  ? trackChatters?.participantsObject[1]?.name
+                  : trackChatters?.participantsObject[0]?.name}{' '}
+              </p>
+              <p className="text-[10px] text-gray-500">
+                {textMessage?.length < 2 && trackChatters?.typing ? (
+                  <span>typing...</span>
+                ) : (
+                  ''
+                )}
+              </p>
+            </div>
           </div>
           <div className="py-6 h-[70%] overflow-auto">
             <div className="flex flex-col h-full overflow-auto">
-              {allPlayerChat?.length > 0 ? (
-                allPlayerChat.map((res: Chat) => (
-                  <div key={res._id}>
-                    <UserChatField
-                      res={res}
-                      combinedId={playersChatState?.combinedChattingId}
-                      playerChats={allPlayerChat}
-                      chatUniqueId={chatsId}
-                    />
+              <div className="flex flex-col gap-3">
+                {trackChatters?.messages!?.length > 0 ? (
+                  trackChatters?.messages?.map((res: Chat, index) => {
+                    return (
+                      <div key={res?._id}>
+                        <UserChatField
+                          res={res}
+                          combinedId={combinedChattersId!}
+                          playerChats={trackChatters?.messages}
+                          chatUniqueId={chatsId}
+                          scrollToBtm={scrollToBtm}
+                          setScrollToBtm={setScrollToBtm}
+                        />
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="h-[100%] flex flex-col items-center justify-center">
+                    <p className="text-white">
+                      Start conversation with {playersChatState?.selectedPlayer?.name}{' '}
+                    </p>{' '}
+                    <p className="text-gray-500">Enter your message below. </p>
+                    <p className="mt-3 text-center">
+                      Click on a message to send reactions 🤪
+                    </p>
                   </div>
-                ))
-              ) : (
-                <div className="h-[100%] flex flex-col items-center justify-center">
-                  <p className="text-white">
-                    Start conversation with {playersChatState?.selectedPlayer?.name}{' '}
-                  </p>{' '}
-                  <p className="text-gray-500">Enter your message below. </p>
-                  <p className="mt-3 text-center">
-                    Click on a message to send reactions 🤪
-                  </p>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
           <div className="relative bg-gray-300 p-4">
@@ -350,6 +548,7 @@ const UserChats = (props: Props) => {
               }}
               onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                 setTextMessage(e.target.value);
+                handleTyping();
               }}
               value={textMessage}
               maxLength={100}
@@ -363,12 +562,6 @@ const UserChats = (props: Props) => {
               Send{' '}
             </Button>
           </div>
-          {/* <div>
-            <textarea
-              placeholder={`Say hello to ${playersChatState?.selectedPlayer?.name} `}
-              className="w-full h-[85px] px-3 py-3 "
-            />
-          </div> */}
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import { Chat, TimeStamp } from '@/app/types/types';
 import { doc, updateDoc } from 'firebase/firestore';
 import Image from 'next/image';
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
@@ -12,16 +12,20 @@ type IProps = {
   combinedId: string;
   playerChats: Chat[];
   chatUniqueId: string | null;
+  scrollToBtm: boolean;
+  setScrollToBtm: (arg: boolean) => void;
 };
 
 const UserChatField: React.FC<IProps> = ({
   res,
-  combinedId,
   chatUniqueId,
   playerChats,
+  scrollToBtm,
+  setScrollToBtm,
 }) => {
   const playersChatState = useAppSelector((state: RootState) => state.chatUp);
   const currentUser = useAppSelector((state: RootState) => state.user);
+  const chatEndRef = useRef<HTMLDivElement>(null);
 
   const formatTime = (timestamp: TimeStamp) => {
     //First run conversions to a formatable date
@@ -97,9 +101,15 @@ const UserChatField: React.FC<IProps> = ({
     }
   };
 
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setScrollToBtm(false);
+  }, [scrollToBtm]);
+
   return (
     <div>
       <div
+        ref={chatEndRef}
         className={`relative ${
           res.senderId === currentUser?.userId
             ? 'flex w-full mt-2 space-x-3 max-w-xs ml-auto justify-end'

@@ -28,6 +28,8 @@ import {
   setCombinedChattingId,
   setSelectedPlayer,
 } from '@/lib/features/ChatAPlayerSlice';
+import useIndexedDB from '@/hooks/useIndexDb';
+import { setAPlayer } from '@/lib/features/userSlice';
 
 interface IPlayers extends SessionPlayerDetails {
   status: string;
@@ -35,11 +37,28 @@ interface IPlayers extends SessionPlayerDetails {
 }
 
 const AllPlayers = () => {
+  const { getData, db } = useIndexedDB();
+
   const [getPlayers, seGetPlayers] = useState<IPlayers[]>([]);
   const [singlePlayer, setSinglePlayer] = useState<IPlayers | null>(null);
 
   const currentUser = useAppSelector((state: RootState) => state.user as userDetails);
   const dispatch = useAppDispatch();
+
+  // Function to fetch player data from IndexedDB
+  const fetchPlayerData = async () => {
+    const data = await getData();
+    if (data) {
+      dispatch(setAPlayer(data));
+    }
+  };
+
+  //UseEffect to get data from db
+  useEffect(() => {
+    if (db) {
+      fetchPlayerData();
+    }
+  }, [db]);
 
   useEffect(() => {
     const retrievedKey = currentUser?.userId;
