@@ -155,8 +155,8 @@ const UserChatField: React.FC<IProps> = ({
           <div
             className={
               res.senderId === currentUser?.userId
-                ? 'bg-blue-600 text-white py-3 px-2 rounded-l-lg rounded-br-lg'
-                : 'relative bg-gray-300 py-3 px-2 rounded-r-lg rounded-bl-lg'
+                ? 'bg-chatBgCurrentUser text-white py-3 px-2 rounded-l-lg rounded-br-lg'
+                : 'relative bg-chatBgOpponent py-3 px-2 rounded-r-lg rounded-bl-lg'
             }
           >
             <p className="text-sm">{res?.message ? res?.message : ''}</p>

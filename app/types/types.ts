@@ -1,3 +1,4 @@
+import { Timestamp } from "firebase/firestore";
 
 export interface AudioContextType {
   playSound: () => void;
@@ -35,9 +36,16 @@ export type fullPlayerType = {
 }
 
 export type Unread = {
+  combinedId: string;
+  id: string;
+  name: string;
+  avatar: string;
   message: string;
-  senderId: string;
-  receiverId?: string;
+  // senderId: string;
+  // receiverId?: string;
+  status?: boolean;
+  type?: string;
+  timeStamp: TimeStamp;
 }
 
 export type PlayerDetails = {
@@ -125,7 +133,7 @@ export type PlayerChatType = {
   lastMessage?: string;
   playerOneUnread?: number;
  playerTwoUnread?: number;
-  lastMessageTimeStamp?: TimeStamp;
+  lastMessageTimeStamp?: Timestamp;
 }
 
 export type Chat = {

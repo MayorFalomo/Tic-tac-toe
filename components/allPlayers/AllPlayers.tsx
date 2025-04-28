@@ -30,6 +30,8 @@ import {
 } from '@/lib/features/ChatAPlayerSlice';
 import useIndexedDB from '@/hooks/useIndexDb';
 import { setAPlayer } from '@/lib/features/userSlice';
+import { formatDateToDMY } from '@/app/utils/date';
+import { childVariants, staggerContainer } from '@/app/animation/constants';
 
 interface IPlayers extends SessionPlayerDetails {
   status: string;
@@ -78,44 +80,7 @@ const AllPlayers = () => {
     }
   }, []);
 
-  function formatDateToDMY(isoDate: string) {
-    const date = new Date(isoDate);
-
-    //I Extract day, month, and year
-    const day = String(date.getDate()).padStart(2, '0'); // Add leading zero if necessary
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
-    const year = date.getFullYear();
-
-    //Then Return the formatted date
-    return `${day}/${month}/${year}`;
-  }
-
   const { currentTheme } = useTheme();
-
-  const staggerContainer = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.4, //Here's the timing for the staggered effect
-      },
-    },
-  };
-
-  const childVariants = {
-    hidden: { opacity: 0, y: 30 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        type: 'spring',
-        stiffness: 200, // Reduced for more bounce
-        damping: 12, // Reduced for more bounce
-        mass: 1.2, // Added mass for more pronounced bounce
-        velocity: 2,
-      },
-    },
-  };
 
   const combinedChattersId = useMemo(() => {
     const playerOneId = currentUser?.userId;
@@ -129,7 +94,7 @@ const AllPlayers = () => {
   const navigate = useRouter();
 
   const handleChats = async () => {
-    dispatch(setCombinedChattingId(combinedChattersId));
+    dispatch(setCombinedChattingId(''));
     dispatch(
       setSelectedPlayer({
         name: singlePlayer?.name,
@@ -286,7 +251,7 @@ const AllPlayers = () => {
             </div>
           )}
         </div>
-        <ul className="max-[900px]:hidden bg-[#0F172A] h-fit w-[95%] mx-auto flex flex-col gap-4 mt-[30px] py-[30px] px-4 text-[16px] rounded-[20px]">
+        <div className="max-[900px]:hidden bg-[#0F172A] h-fit w-[95%] mx-auto flex flex-col gap-4 mt-[30px] py-[30px] px-4 text-[16px] rounded-[20px]">
           <p className="relative">
             Players Statuses
             <motion.span
@@ -302,23 +267,25 @@ const AllPlayers = () => {
               } absolute left-0 -bottom-1 h-0.5 w-full`}
             ></motion.span>
           </p>
-          <li className="flex items-center justify-between gap-[30px]">
-            <span>Playing</span>
-            <span className="bg-blue-500 h-5 w-5 rounded-full"></span>
-          </li>
-          <li className="flex items-center justify-between gap-[30px]">
-            <span>Looking</span>
-            <span className="bg-white/40 h-5 w-5 rounded-full"></span>
-          </li>
-          <li className="flex items-center justify-between gap-[30px]">
-            <span>Online</span>
-            <span className="bg-green-500 h-5 w-5 rounded-full"></span>
-          </li>
-          <li className="flex items-center justify-between gap-[30px]">
-            <span>Offline</span>
-            <span className="bg-red-500 h-5 w-5 rounded-full"></span>
-          </li>
-        </ul>
+          <ul className="w-[95%] mx-auto flex flex-col gap-4 py-[10px]">
+            <li className="flex items-center justify-between gap-[30px]">
+              <span>Playing</span>
+              <span className="bg-blue-500 h-5 w-5 rounded-full"></span>
+            </li>
+            <li className="flex items-center justify-between gap-[30px]">
+              <span>Looking</span>
+              <span className="bg-white/40 h-5 w-5 rounded-full"></span>
+            </li>
+            <li className="flex items-center justify-between gap-[30px]">
+              <span>Online</span>
+              <span className="bg-green-500 h-5 w-5 rounded-full"></span>
+            </li>
+            <li className="flex items-center justify-between gap-[30px]">
+              <span>Offline</span>
+              <span className="bg-red-500 h-5 w-5 rounded-full"></span>
+            </li>
+          </ul>
+        </div>
       </div>
     </FadeIn>
   );

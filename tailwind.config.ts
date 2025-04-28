@@ -22,6 +22,7 @@ const config = {
         sans: ["Inter", "sans-serif"],
       },
       colors: {
+      
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -57,7 +58,9 @@ const config = {
         },
         brightGreen: '#2CBF93',
         royalGreen: '#0A4834',
-        golden: '#9F8151'
+        golden: '#9F8151',
+        chatBgCurrentUser: '#0E2782',
+        chatBgOpponent: '#1E1F3C'
       },
       borderRadius: {
         lg: "var(--radius)",

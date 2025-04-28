@@ -25,7 +25,8 @@ import UserChatField from './UserChatField';
 import toast from 'react-hot-toast';
 import { setCombinedChattingId } from '@/lib/features/ChatAPlayerSlice';
 import useTypingIndicator from '@/hooks/useTypingIndicator';
-
+import { motion } from 'framer-motion';
+import { formatDateToDMY, formatTimestamp } from '@/app/utils/date';
 type Props = {
   _id: string;
   message: string;
@@ -45,19 +46,33 @@ const UserChats = () => {
   const [trackChatters, setTrackChatters] = useState<PlayerChatType>();
   const [newWay, setNewWay] = useState<PlayerChatType[]>([]);
   const [scrollToBtm, setScrollToBtm] = useState<boolean>(false);
+  const [getOpponentId, setGetOpponentId] = useState<string | null>(null);
 
   const { currentTheme } = useTheme();
+
   const combinedChattersId = useMemo(() => {
-    const playerOneId = currentUser?.userId;
-    const playerTwoId = playersChatState?.selectedPlayer?.id;
-    if (playerOneId && playerTwoId) {
-      return playerOneId > playerTwoId
-        ? playerOneId + playerTwoId
-        : playerTwoId + playerOneId;
+    if (!playersChatState?.combinedChattingId) {
+      // console.log('new computed CombinedId');
+      const playerOneId = currentUser?.userId;
+      const playerTwoId = playersChatState?.selectedPlayer?.id;
+      if (playerOneId && playerTwoId) {
+        return playerOneId > playerTwoId
+          ? playerOneId + playerTwoId
+          : playerTwoId + playerOneId;
+      }
+    } else {
+      console.log('Already computed combinedId');
+      return playersChatState?.combinedChattingId;
     }
   }, [playersChatState?.selectedPlayer?.id, playersChatState.combinedChattingId]);
 
-  const { isTyping, handleTyping } = useTypingIndicator(combinedChattersId!);
+  // const gotten = useMemo(() => {
+  //   const playerOneId = currentUser?.userId;
+  //   const playerTwoId = playersChatState?.selectedPlayer?.id ?? getOpponentId;
+  //   playerOneId + playerTwoId === combinedChattersId
+  // }, [currentUser?.userId, playersChatState?.selectedPlayer?.id]);
+
+  const { handleTyping } = useTypingIndicator(combinedChattersId!);
 
   // useEffect(() => {
   //   const playersChatRef = collection(db, 'userChats');
@@ -99,6 +114,7 @@ const UserChats = () => {
   //   }
   // }, [combinedChattersId, currentUser?.userId]);
 
+  //useEffect to listen for new players
   useEffect(() => {
     if (combinedChattersId) {
       const playersRef = collection(db, 'userChats');
@@ -146,7 +162,7 @@ const UserChats = () => {
     }
   }, [combinedChattersId]);
 
-  console.log(allPlayerChat, 'allPlayerChatState');
+  // console.log(allPlayerChat, 'allPlayerChatState');
 
   // const loadContacts = async () => {
   //   const dbRef = collection(db, 'userChats');
@@ -191,22 +207,30 @@ const UserChats = () => {
     const playerDocs = await getDocs(playersQuery);
     const queryForCombinedSnap = await getDocs(queryForCombined);
 
+    // console.log(queryForCombinedSnap, 'queryCombinedSnap');
+
     //! Check for if a chat does not exist between the players before.
-    if (queryForCombinedSnap.empty) {
-      await createChatSession();
-    } else {
+    if (!queryForCombinedSnap.empty) {
       const playerDoc = await getDoc(doc(db, 'userChats', combinedId));
       const playerChat = playerDoc?.data() as PlayerChatType;
-      // console.log(playerChat, 'playerChat');
+      // console.log(playerChat, 'playerChat first');
+
       if (playerChat) {
         setTrackChatters(playerChat);
+        setGetOpponentId(
+          currentUser?.userId === playerChat?.participantsObject[0]?.id
+            ? playerChat?.participantsObject[1]?.id
+            : playerChat?.participantsObject[0]?.id
+        );
       }
+    } else {
+      await createChatSession();
     }
     const playersArray: PlayerChatType[] = playerDocs.docs.map(
       (doc) => doc.data() as PlayerChatType
     );
     // const playerChat = playerDoc?.data()?.messages || [];
-    console.log(playersArray, 'playersArray');
+    // console.log(playersArray, 'playersArray for contacts');
 
     if (playersArray.length > 0) {
       const newContactWay = playersArray?.map((res) => res);
@@ -218,7 +242,7 @@ const UserChats = () => {
     }
   };
 
-  console.log(newWay, 'newWay');
+  // console.log(newWay, 'newWay');
 
   // const fetchPlayersData = async (participantIds: any) => {
   //   const playersRef = collection(db, 'players');
@@ -240,7 +264,6 @@ const UserChats = () => {
   // };
 
   const createChatSession = async () => {
-    // const chatRef = collection(db, 'userChats');
     const messageObj = {
       combinedId: combinedChattersId,
       messages: [],
@@ -257,11 +280,11 @@ const UserChats = () => {
           id: playersChatState?.selectedPlayer?.id,
           name: playersChatState?.selectedPlayer?.name,
           avatar: playersChatState?.selectedPlayer?.avatar,
-          status: playersChatState?.selectedPlayer?.networkState,
+          status: playersChatState?.selectedPlayer?.networkState ?? false,
         },
       ],
       lastMessage: '',
-      lastMessageTimeStamp: {},
+      lastMessageTimeStamp: '',
       playerOneUnread: 0,
       playerTwoUnread: 0,
       typing: false,
@@ -282,7 +305,6 @@ const UserChats = () => {
 
   useEffect(() => {
     if (currentUser?.userId) {
-      // loadContacts();
       if (combinedChattersId) {
         loadChats(combinedChattersId);
       }
@@ -292,6 +314,8 @@ const UserChats = () => {
   }, [currentUser?.userId, combinedChattersId]);
 
   const sendMessage = async (message: string, selectedPlayerId: string) => {
+    // console.log(selectedPlayerId, 'This should show');
+
     if (message.length > 1) {
       // Generate a unique message ID (could be a timestamp or UUID)
       const messageId = new Date().getTime();
@@ -307,7 +331,7 @@ const UserChats = () => {
 
         const chatDocumentRef = doc(db, 'userChats', chatId);
         const chatData = chatDoc.docs[0].data();
-        console.log(chatData, 'doc Ref');
+        // console.log(chatData, 'doc Ref');
 
         // Update the messages array in the document
         await updateDoc(chatDocumentRef, {
@@ -322,7 +346,7 @@ const UserChats = () => {
         });
 
         const playerOneId = currentUser?.userId;
-        const playerTwoId = playersChatState?.selectedPlayer?.id;
+        const playerTwoId = selectedPlayerId;
 
         //update the lastMessage field for the selected user in the userChats document
         await updateDoc(chatDocumentRef, {
@@ -340,7 +364,7 @@ const UserChats = () => {
         });
 
         //! Fetch the current user's player document to update unreadMessages
-        const playerDocRef = doc(db, 'players', playersChatState?.selectedPlayer?.id);
+        const playerDocRef = doc(db, 'players', selectedPlayerId);
         const playerDoc = await getDoc(playerDocRef);
 
         if (playerDoc.exists()) {
@@ -349,14 +373,19 @@ const UserChats = () => {
           // Update the unreadMessages in the player's document
           await updateDoc(playerDocRef, {
             unreadMessages: arrayUnion({
+              combinedId: combinedChattersId,
               id: messageId,
-              message: message,
-              senderId: currentUser?.userId,
-              receiverId: selectedPlayerId,
+              message: `${currentUser?.name} sent you a message`,
+              timeStamp: Timestamp.now(),
+              name: currentUser?.name,
+              avatar: currentUser?.avatar,
+              type: 'message',
+              // senderId: currentUser?.userId,
+              // receiverId: selectedPlayerId,
             }),
           });
 
-          console.log(unreadMessages, 'unread');
+          // console.log(unreadMessages, 'unread');
         } else {
           console.log('Player document does not exist.');
         }
@@ -374,14 +403,7 @@ const UserChats = () => {
     );
   };
 
-  const getFilteredMessages = (id: string) => {
-    const newArr = newWay?.filter((res) => res?.combinedId !== id);
-    const newStore = newArr?.map((res) => res?.messages);
-    console.log(newStore, 'newStore');
-
-    return newStore;
-  };
-
+  //Function to load the chat messages for the selected chat
   const handleChatSelect = async (chat: PlayerChatType) => {
     dispatch(setCombinedChattingId(chat?.combinedId));
 
@@ -389,9 +411,10 @@ const UserChats = () => {
     setTrackChatters(filter[0]);
 
     const playerOneId = currentUser?.userId;
-    const playerTwoId = playersChatState?.selectedPlayer?.id;
+    const playerTwoId = playersChatState?.selectedPlayer?.id ?? getOpponentId;
 
     const chatRef = collection(db, 'userChats');
+
     const q = query(chatRef, where('combinedId', '==', combinedChattersId));
 
     const chatDoc = await getDocs(q);
@@ -412,18 +435,40 @@ const UserChats = () => {
         });
       }
     }
+    const playerDocRef = doc(db, 'players', currentUser?.userId);
+    const playerDoc = await getDoc(playerDocRef);
+
+    if (playerDoc.exists()) {
+      const unreadMessages = playerDoc.data()?.unreadMessages || {};
+
+      //Find the specific message in the unreadMessages array and remove it
+      const updatedUnreadMessages = unreadMessages.filter(
+        (message: any) =>
+          message.receiverId !== currentUser?.userId &&
+          message.senderId !== playersChatState?.selectedPlayer?.id
+      );
+      // console.log(unreadMessages, 'unread');
+      // console.log(updatedUnreadMessages, 'updatedUnread');
+
+      // Update the unreadMessages in the player's document
+      await updateDoc(playerDocRef, {
+        unreadMessages: updatedUnreadMessages,
+      });
+    }
   };
 
   // console.log(allPlayerChat, 'playersChat');
   // console.log(trackChatters[0], 'trackAllplayersChat at [0]');
-  console.log(trackChatters, 'trackChatters');
+  // console.log(trackChatters, 'trackChatters');
+
+  console.log(newWay, 'newWay');
 
   return (
     <div>
       <div
         className={`${
           currentTheme === 'light' ? 'bg-royalGreen text-white' : 'bg-black text-white'
-        } min-h-full grid grid-cols-[400px_auto] max-[950px]:grid-cols-[270px_auto] max-[900px]:grid-cols-[270px_auto_0] max-[600px]:grid-cols-[230px_auto_0] max-[550px]:flex max-[550px]:flex-col-reverse h-screen overflow-hidden w-full text-white`}
+        } min-h-full grid grid-cols-[400px_auto] max-[950px]:grid-cols-[300px_auto] max-[750px]:grid-cols-[280px_auto_0] max-[550px]:grid-cols-[250px_auto_0] h-screen overflow-hidden w-full text-white`}
       >
         <div className="h-full w-full border-r border-white/40 p-4 pb-[50px] overflow-auto">
           <div className="flex flex-col gap-4">
@@ -454,14 +499,53 @@ const UserChats = () => {
                               src={contact?.avatar ?? defaultImg} // Or src={contact?.avatar ?? ''}
                               width={40}
                               height={40}
+                              className="w-full h-full object-cover object-top"
                               alt={contact?.name ?? 'User Avatar'} // Better alt text
                             />
                           </div>
-                          <div className="flex flex-col leading-5">
-                            <h3>{contact?.name ?? 'Unknown User'}</h3>
-                            <p className="text-[10px] text-white/40">
+                          <div className="flex flex-col leading-5 w-full">
+                            <div className="flex items-center justify-between gap-2 w-full">
+                              <h3>{contact?.name ?? 'Unknown User'}</h3>
+                              <p className="text-[12px] text-white/40">
+                                {chat?.lastMessageTimeStamp
+                                  ? formatTimestamp(chat?.lastMessageTimeStamp!)
+                                  : ''}{' '}
+                              </p>
+                            </div>
+                            <div className="flex items-center justify-between w-full">
+                              {chat?.combinedId === combinedChattersId &&
+                              textMessage?.length < 1 &&
+                              trackChatters?.typing ? (
+                                <motion.span className="text-[10px]">
+                                  typing...
+                                </motion.span>
+                              ) : (
+                                <motion.span className="text-[10px] text-white">
+                                  {chat?.lastMessage || '...'}
+                                </motion.span>
+                              )}
+                              <motion.span className="text-[10px]">
+                                {chat?.combinedId === combinedChattersId &&
+                                currentUser?.userId + chat?.participantsObject[0]?.id ===
+                                  combinedChattersId
+                                  ? chat?.playerOneUnread
+                                  : chat?.participantsObject[1]?.id +
+                                      currentUser?.userId ===
+                                    combinedChattersId
+                                  ? chat?.playerTwoUnread
+                                  : ''}
+                              </motion.span>
+                            </div>
+                            {/* <motion.p className="text-[10px] text-white/40">
                               {chat?.lastMessage || '...'}
-                            </p>
+                            </motion.p>
+                            {chat?.combinedId === combinedChattersId &&
+                            textMessage?.length < 2 &&
+                            trackChatters?.typing ? (
+                              <motion.span className="text-[10px]">typing...</motion.span>
+                            ) : (
+                              ''
+                            )} */}
                           </div>
                         </div>
                       ))}
@@ -476,22 +560,24 @@ const UserChats = () => {
             </div>
           </div>
         </div>
-        <div className="w-[70%] h-full overflow-hidden border-x border-white/40">
+        <div className="w-[70%] max-[750px]:w-[90%] max-[600px]:w-[95%] h-full overflow-hidden border-x border-white/40">
           <div className="flex items-center gap-3  border-b border-white/50 w-full py-4 px-2">
-            <Image
-              src={playersChatState?.selectedPlayer?.avatar}
-              className="w-[50px] h-[50px] rounded-full object-cover object-top "
-              width={50}
-              height={50}
-              alt="img"
-            />
-            <div className="flex flex-col gap-1">
+            {playersChatState?.selectedPlayer?.avatar && (
+              <Image
+                src={playersChatState?.selectedPlayer?.avatar}
+                className="w-[50px] h-[50px] rounded-full object-cover object-top border border-white/50 "
+                width={50}
+                height={50}
+                alt="img"
+              />
+            )}
+            <div className="flex flex-col gap-[1px]">
               <p>
                 {trackChatters?.participantsObject[0]?.id === currentUser?.userId
                   ? trackChatters?.participantsObject[1]?.name
                   : trackChatters?.participantsObject[0]?.name}{' '}
               </p>
-              <p className="text-[10px] text-gray-500">
+              <p className="text-[12px] text-white">
                 {textMessage?.length < 2 && trackChatters?.typing ? (
                   <span>typing...</span>
                 ) : (
@@ -502,7 +588,7 @@ const UserChats = () => {
           </div>
           <div className="py-6 h-[70%] overflow-auto">
             <div className="flex flex-col h-full overflow-auto">
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col h-full gap-3">
                 {trackChatters?.messages!?.length > 0 ? (
                   trackChatters?.messages?.map((res: Chat, index) => {
                     return (
@@ -542,7 +628,9 @@ const UserChats = () => {
                   e.preventDefault();
                   sendMessage(
                     e.currentTarget.value,
-                    playersChatState?.selectedPlayer?.id
+                    playersChatState?.selectedPlayer?.id.length < 1
+                      ? getOpponentId!
+                      : playersChatState?.selectedPlayer?.id
                   );
                 }
               }}
@@ -555,7 +643,12 @@ const UserChats = () => {
             />
             <Button
               onClick={() =>
-                sendMessage(textMessage, playersChatState?.selectedPlayer?.id)
+                sendMessage(
+                  textMessage,
+                  playersChatState?.selectedPlayer?.id.length < 1
+                    ? getOpponentId!
+                    : playersChatState?.selectedPlayer?.id
+                )
               }
               className="absolute top-[20px] right-[30px]"
             >

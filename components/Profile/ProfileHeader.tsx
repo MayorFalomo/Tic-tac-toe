@@ -1,16 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Bell, ChevronDown, Edit, LogOut } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useIndexedDB from '@/hooks/useIndexDb';
-import { defaultImg, ProfileType, Unread } from '@/app/types/types';
+import { defaultImg, Unread } from '@/app/types/types';
 import clsx from 'clsx';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { setAPlayer } from '@/lib/features/userSlice';
 import { RootState } from '@/lib/store';
 import toast from 'react-hot-toast';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { db as database } from '@/firebase-config/firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+  query,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
+import NotificationsList from './NotificationList';
 type Props = {};
 
 const EditName = React.lazy(() => import('./EditPlayerNameModal'));
@@ -37,6 +46,27 @@ const ProfileHeader = () => {
     }
   };
 
+  //useEffect to track notifications
+  useEffect(() => {
+    if (playerData?.userId) {
+      const playersRef = collection(database, 'players');
+      const playersQuery = query(playersRef, where('id', '==', playerData?.userId));
+      const unsubscribeNotifs = onSnapshot(playersQuery, (snapshot) => {
+        snapshot.forEach((doc) => {
+          if (doc.exists()) {
+            const playerData = (doc.data().unreadMessages as Unread[]) || [];
+            console.log(playerData, 'playerData');
+
+            setUserNotifs(playerData);
+          }
+        });
+      });
+      return () => {
+        unsubscribeNotifs();
+      };
+    }
+  }, [playerData?.userId]);
+
   const getNotifications = async (userId: string) => {
     const currentUserRef = collection(database, 'players');
     // Query for notifications where the playerId matches the current player's ID
@@ -49,7 +79,7 @@ const ProfileHeader = () => {
     }
   };
 
-  // Use effect to fetch player data when db is initialized
+  // UseEffect to fetch player data when db is initialized
   useEffect(() => {
     if (db) {
       fetchPlayerData();
@@ -66,42 +96,82 @@ const ProfileHeader = () => {
     }
   };
 
+  const [isOpen, setIsOpen] = useState(false);
+  const notificationRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const toggleNotifications = () => {
+    setIsOpen(!isOpen);
+  };
+
+  const markAllNotifAsRead = async () => {
+    try {
+      const playerDocRef = doc(database, 'players', playerData?.userId);
+      const playerDoc = await getDoc(playerDocRef);
+
+      if (playerDoc.exists()) {
+        await updateDoc(playerDocRef, {
+          unreadMessages: [],
+        });
+      }
+    } catch (error) {
+      console.error('Error marking notifications as read:', error);
+    }
+  };
+
   return (
     <div className="flex items-center gap-6 text-white ">
-      <Popover>
-        <PopoverTrigger asChild>
-          <p
-            onClick={() => setOpenNotifModal(!openNotifModal)}
-            className=" relative cursor-pointer"
-          >
-            <Bell />{' '}
-            <span className="bg-red-500 absolute top-[-10px] left-[20%] w-[15px] h-[15px] px-2 py-2 text-[12px] place-items-center flex justify-center items-center rounded-full">
-              0
-            </span>
-          </p>
-        </PopoverTrigger>
-        <PopoverContent className="w-80">
-          <div className="grid gap-3">
-            <div className="space-y-1">
-              <h4 className="font-medium leading-none">Notifications</h4>
-              <p className="flex justify-between items-center w-full text-sm text-muted-foreground">
-                <span>See all your notifications.</span>
-                <span className=" text-black">{userNotifs?.length}.</span>
-              </p>
-              <div className="flex flex-col items-start space-y-2 gap-2 border-b border-black list-none text-[12px]">
-                {userNotifs?.length > 0 ? (
-                  <ul>
-                    <li>Come bruhh let&apos;s play </li>
-                    <li>Come bruhh let&apos;s play </li>
-                  </ul>
-                ) : (
-                  <li>You have no new notifications </li>
-                )}
+      <div className="relative">
+        {
+          <div className="relative" ref={notificationRef}>
+            {/* Bell Icon with Badge */}
+            <button
+              className="relative p-2 rounded-full text-white hover:bg-gray-100 hover:text-black transition-all duration-300 ease-in-out"
+              onClick={toggleNotifications}
+              aria-label="Notifications"
+            >
+              <Bell className="w-6 h-6" />
+              {
+                <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {userNotifs.length > 9 ? '9+' : userNotifs.length}
+                </span>
+              }
+              {/* <span className="bg-red-500 absolute top-[-10px] left-[20%] w-[15px] h-[15px] px-2 py-2 text-[12px] place-items-center flex justify-center items-center rounded-full"></span> */}
+            </button>
+
+            {/* Notification Panel with Tooltip Design */}
+            {isOpen && (
+              <div className="absolute right-0 mt-2 w-80 z-50 transform-gpu transition-all duration-200 ease-in-out origin-top-right">
+                {/* Triangle Pointer */}
+                <div className="absolute -top-2 right-4 w-4 h-4 transform rotate-45 bg-white border-t border-l border-gray-200"></div>
+
+                {/* Notification Content */}
+                <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                  <NotificationsList
+                    notifications={userNotifs}
+                    onMarkAllAsRead={markAllNotifAsRead}
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
-        </PopoverContent>
-      </Popover>
+        }
+      </div>
 
       <motion.div
         className="w-[280px] group relative border border-white/40 px-4 py-1 flex items-center justify-between rounded-[10px] gap-2 cursor-pointer"

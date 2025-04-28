@@ -22,3 +22,28 @@ export const scaleAndPopVariants = {
     
   }
 };
+
+ export const staggerContainer = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.4, //Here's the timing for the staggered effect
+      },
+    },
+  };
+
+  export const childVariants = {
+    hidden: { opacity: 0, y: 30 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        type: 'spring',
+        stiffness: 200, // Reduced for more bounce
+        damping: 12, // Reduced for more bounce
+        mass: 1.2, // Added mass for more pronounced bounce
+        velocity: 2,
+      },
+    },
+  };
