@@ -2,9 +2,7 @@
 import React from 'react';
 import Settings from '@/components/settings/Settings';
 
-type Props = {};
-
-const page = (props: Props) => {
+const page: React.FC = () => {
   return (
     <div>
       <Settings />

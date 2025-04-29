@@ -1,4 +1,4 @@
-import Tippy from '@tippyjs/react';
+// import Tippy from '@tippyjs/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Bell,
@@ -14,9 +14,9 @@ import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import ReactConfetti from 'react-confetti';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Chat, GameSession, PlayerStatus } from '@/app/types/types';
+import { Chat, GameSession } from '@/app/types/types';
 import { useWindowSize } from 'react-use';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 import { useAudio } from '@/contexts/AudioContext';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
@@ -36,7 +36,7 @@ import {
   where,
 } from 'firebase/firestore';
 import { db } from '@/firebase-config/firebase';
-import { setAPlayer, updateUser } from '@/lib/features/userSlice';
+// import { setAPlayer, updateUser } from '@/lib/features/userSlice';
 import toast from 'react-hot-toast';
 import { givePlayerNames } from '@/lib/features/PlayerSlice';
 
@@ -68,7 +68,7 @@ const HomeHeader: React.FC<Props> = ({
   const playersObject = useAppSelector((state: RootState) => state.players.players);
   const track = useAppSelector((state: RootState) => state.track);
   const dispatch = useAppDispatch();
-  const router = useRouter();
+  // const router = useRouter();
 
   //useEffect to control sound state
   useEffect(() => {
