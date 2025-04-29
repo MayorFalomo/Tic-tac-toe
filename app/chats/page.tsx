@@ -1,9 +1,7 @@
 import UserChats from '@/components/userChats/UserChats';
 import React from 'react';
 
-type Props = {};
-
-const page = (props: Props) => {
+const page: React.FC = () => {
   return (
     <div>
       <UserChats />

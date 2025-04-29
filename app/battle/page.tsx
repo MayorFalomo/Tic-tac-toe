@@ -2,9 +2,8 @@ import Homepage from '@/components/homepage/home/Homepage';
 import React from 'react';
 import { Toaster } from 'react-hot-toast';
 
-type Props = {};
-
-const page = (props: Props) => {
+const page: React.FC = () => {
+  
   return (
     <div>
       <Toaster />
