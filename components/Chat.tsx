@@ -2,14 +2,13 @@ import { Chat, GameSession, TimeStamp } from '@/app/types/types';
 import { useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
 import Image from 'next/image';
-import React, { useState } from 'react';
+import React from 'react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/firebase-config/firebase';
 
 type IProps = {
   res: Chat;
-  combinedId: string;
   playerChats: Chat[];
   storedId: string | null;
   chatUniqueId: string | null;
@@ -19,7 +18,6 @@ type IProps = {
 
 const ChatField: React.FC<IProps> = ({
   res,
-  combinedId,
   playerChats,
   storedId,
   setStoredId,

@@ -26,13 +26,13 @@ import toast from 'react-hot-toast';
 import { setCombinedChattingId } from '@/lib/features/ChatAPlayerSlice';
 import useTypingIndicator from '@/hooks/useTypingIndicator';
 import { motion } from 'framer-motion';
-import { formatDateToDMY, formatTimestamp } from '@/app/utils/date';
-type Props = {
-  _id: string;
-  message: string;
-  senderId: string;
-  receiverId?: string;
-};
+import { formatTimestamp } from '@/app/utils/date';
+// type Props = {
+//   _id: string;
+//   message: string;
+//   senderId: string;
+//   receiverId?: string;
+// };
 
 const UserChats = () => {
   const playersChatState = useAppSelector((state: RootState) => state.chatUp);
@@ -40,7 +40,7 @@ const UserChats = () => {
   const dispatch = useAppDispatch();
 
   const [chatsId, setChatsId] = useState<string | null>(null);
-  const [allPlayerChat, setAllPlayerChat] = useState<Chat[]>([]);
+  // const [allPlayerChat, setAllPlayerChat] = useState<Chat[]>([]);
   const [textMessage, setTextMessage] = useState<string>('');
   const [allPlayerContacts, setAllPlayerContacts] = useState<PlayerDetails[]>([]);
   const [trackChatters, setTrackChatters] = useState<PlayerChatType>();
@@ -211,6 +211,8 @@ const UserChats = () => {
 
     //! Check for if a chat does not exist between the players before.
     if (!queryForCombinedSnap.empty) {
+      const playerDocID = queryForCombinedSnap.docs[0]?.id;
+      setChatsId(playerDocID);
       const playerDoc = await getDoc(doc(db, 'userChats', combinedId));
       const playerChat = playerDoc?.data() as PlayerChatType;
       // console.log(playerChat, 'playerChat first');

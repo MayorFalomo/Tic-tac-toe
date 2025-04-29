@@ -4,13 +4,12 @@ import { db } from '@/firebase-config/firebase';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import Image from 'next/image';
 import React, { useEffect } from 'react';
 import toast from 'react-hot-toast';
 import DrawLine from '@/app/animation/DrawLine';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useScreenSize } from '@/hooks/screenSize';
-import { scaleAndPopVariants, scaleVariants } from '@/app/animation/constants';
+import { scaleAndPopVariants } from '@/app/animation/constants';
 
 type MappedOver = {
   val: any;

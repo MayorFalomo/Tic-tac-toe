@@ -264,17 +264,16 @@ const InfoMenu: React.FC = () => {
                     </DialogDescription>
                   </DialogHeader>
                   <div>
+                    <h3
+                      className={`text-[18px] font-bold ${
+                        currentTheme === 'light'
+                          ? 'text-white'
+                          : 'bg-[#000] text-brightGreen'
+                      }`}
+                    >
+                      Game Instructions{' '}
+                    </h3>
                     <ul className="flex flex-col items-start gap-4 text-[14px]">
-                      <h3
-                        className={`text-[18px] font-bold ${
-                          currentTheme === 'light'
-                            ? 'text-white'
-                            : 'bg-[#000] text-brightGreen'
-                        }`}
-                      >
-                        Game Instructions{' '}
-                      </h3>
-
                       <li>
                         Sign up as a new player or login to use a pre-existing account.{' '}
                       </li>

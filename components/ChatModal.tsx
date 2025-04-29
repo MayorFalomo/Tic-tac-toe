@@ -168,7 +168,6 @@ const ChatModal: React.FC<Props> = ({
                 <div key={res._id}>
                   <ChatField
                     res={res}
-                    combinedId={combinedId}
                     playerChats={playersChat}
                     storedId={storedId}
                     setStoredId={setStoredId}

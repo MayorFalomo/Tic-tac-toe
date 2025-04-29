@@ -90,7 +90,7 @@ const UserChatField: React.FC<IProps> = ({
         });
 
         // Update Firebase
-        const chatRef = doc(db, 'playersChats', chatUniqueId!);
+        const chatRef = doc(db, 'userChats', chatUniqueId!);
         await updateDoc(chatRef, {
           messages: updatedMessages,
         });
