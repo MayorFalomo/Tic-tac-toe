@@ -8,19 +8,19 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { LoadingSpinner } from '../signup/Loader';
 import { useTheme } from '@/contexts/ThemeContext';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import FadeIn from '@/app/animation/FadeIn';
 import { Button } from '../ui/button';
-import {
-  addDoc,
-  collection,
-  doc,
-  getDocs,
-  query,
-  setDoc,
-  where,
-} from 'firebase/firestore';
-import { db } from '@/firebase-config/firebase';
+// import {
+//   addDoc,
+//   collection,
+//   doc,
+//   getDocs,
+//   query,
+//   setDoc,
+//   where,
+// } from 'firebase/firestore';
+// import { db } from '@/firebase-config/firebase';
 import { RootState } from '@/lib/store';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { useRouter } from 'next/navigation';
