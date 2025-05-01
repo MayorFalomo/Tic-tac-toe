@@ -1,14 +1,9 @@
 import InfoMenu from '@/components/info/InfoMenu';
-import React from 'react';
 
-type Props = {};
-
-const page = (props: Props) => {
+export default function Page() {
   return (
     <div>
       <InfoMenu />
     </div>
   );
-};
-
-export default page;
+}

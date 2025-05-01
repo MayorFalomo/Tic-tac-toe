@@ -53,6 +53,10 @@ const UserChats = () => {
   const [newWay, setNewWay] = useState<PlayerChatType[]>([]);
   const [scrollToBtm, setScrollToBtm] = useState<boolean>(false);
   const [getOpponentId, setGetOpponentId] = useState<string | null>(null);
+  const [getSelectedChatCombinedId, setGetSelectedChatCombinedId] = useState<
+    string | null
+  >(null);
+  const [getSelectedChat, setGetSelectedChat] = useState<PlayerDetails[]>([]);
 
   const { currentTheme } = useTheme();
 
@@ -78,7 +82,9 @@ const UserChats = () => {
   //   playerOneId + playerTwoId === combinedChattersId
   // }, [currentUser?.userId, playersChatState?.selectedPlayer?.id]);
 
-  const { handleTyping } = useTypingIndicator(combinedChattersId!);
+  const { handleTyping } = useTypingIndicator(
+    getSelectedChatCombinedId ?? combinedChattersId!
+  );
 
   // useEffect(() => {
   //   const playersChatRef = collection(db, 'userChats');
@@ -147,12 +153,15 @@ const UserChats = () => {
         unsubscribeChats(); // Unsubscribe when component unmounts
       };
     }
-  }, [combinedChattersId, currentUser?.userId]);
+  }, [combinedChattersId, currentUser?.userId, getSelectedChatCombinedId]);
 
   useEffect(() => {
     if (combinedChattersId) {
       const chatRef = collection(db, 'userChats');
-      const q = query(chatRef, where('combinedId', '==', combinedChattersId));
+      const q = query(
+        chatRef,
+        where('combinedId', '==', getSelectedChatCombinedId ?? combinedChattersId)
+      );
 
       const unsubscribeChats = onSnapshot(q, (snapshot) => {
         snapshot.forEach((doc) => {
@@ -166,7 +175,7 @@ const UserChats = () => {
         unsubscribeChats(); // Unsubscribe when component unmounts
       };
     }
-  }, [combinedChattersId]);
+  }, [combinedChattersId, getSelectedChatCombinedId]);
 
   // console.log(allPlayerChat, 'allPlayerChatState');
 
@@ -302,13 +311,6 @@ const UserChats = () => {
     } else {
       console.error('combinedChattersId is undefined');
     }
-    // await addDoc(chatRef, {
-    //   combinedId: combinedChattersId,
-    //   messages: [],
-    //   timestamp: new Date(),
-    //   participants: [currentUser?.userId, playersChatState?.selectedPlayer?.id],
-    //   namesOfParticipants: [currentUser?.name, playersChatState?.selectedPlayer?.name],
-    // });
   };
 
   useEffect(() => {
@@ -322,14 +324,22 @@ const UserChats = () => {
   }, [currentUser?.userId, combinedChattersId]);
 
   const sendMessage = async (message: string, selectedPlayerId: string) => {
-    // console.log(selectedPlayerId, 'This should show');
-
     if (message.length > 1) {
       // Generate a unique message ID (could be a timestamp or UUID)
       const messageId = new Date().getTime();
 
       const chatRef = collection(db, 'userChats');
-      const q = query(chatRef, where('combinedId', '==', combinedChattersId));
+
+      const q = query(
+        chatRef,
+        where(
+          'combinedId',
+          '==',
+          getSelectedChatCombinedId!?.length > 0
+            ? getSelectedChatCombinedId
+            : combinedChattersId
+        )
+      );
 
       const chatDoc = await getDocs(q);
 
@@ -346,7 +356,7 @@ const UserChats = () => {
           messages: arrayUnion({
             _id: messageId,
             senderId: currentUser?.userId,
-            receiverId: selectedPlayerId,
+            receiverId: getSelectedChat[0]?.id ?? selectedPlayerId,
             message: message,
             timeStamp: Timestamp.now(),
             reactions: [],
@@ -354,34 +364,38 @@ const UserChats = () => {
         });
 
         const playerOneId = currentUser?.userId;
-        const playerTwoId = selectedPlayerId;
+        const playerTwoId = getSelectedChat[0]?.id ?? selectedPlayerId;
 
         //update the lastMessage field for the selected user in the userChats document
         await updateDoc(chatDocumentRef, {
           lastMessage: message, // Update the top-level lastMessage,
           lastMessageTimeStamp: Timestamp.now(), // Update the top-level lastMessageTimeStamp
           playerOneUnread:
-            playerOneId + playerTwoId === combinedChattersId
+            playerOneId + playerTwoId === getSelectedChatCombinedId || combinedChattersId
               ? chatData?.playerOneUnread + 1
               : 0,
           playerTwoUnread:
-            playerTwoId + playerOneId === combinedChattersId
+            playerTwoId + playerOneId === getSelectedChatCombinedId || combinedChattersId
               ? chatData?.playerTwoUnread + 1
               : 0,
           typing: false,
         });
 
         //! Fetch the current user's player document to update unreadMessages
-        const playerDocRef = doc(db, 'players', selectedPlayerId);
+        const playerDocRef = doc(
+          db,
+          'players',
+          getSelectedChat[0]?.id ?? selectedPlayerId
+        );
         const playerDoc = await getDoc(playerDocRef);
 
         if (playerDoc.exists()) {
-          const unreadMessages = playerDoc.data()?.unreadMessages || {};
+          // const unreadMessages = playerDoc.data()?.unreadMessages || {};
 
           // Update the unreadMessages in the player's document
           await updateDoc(playerDocRef, {
             unreadMessages: arrayUnion({
-              combinedId: combinedChattersId,
+              combinedId: getSelectedChatCombinedId ?? combinedChattersId,
               id: messageId,
               message: `${currentUser?.name} sent you a message`,
               timeStamp: Timestamp.now(),
@@ -415,6 +429,12 @@ const UserChats = () => {
   const handleChatSelect = async (chat: PlayerChatType) => {
     // dispatch(setCombinedChattingId(chat?.combinedId));
 
+    setGetSelectedChatCombinedId(chat?.combinedId); //Get the selectedChat combinedId
+    const getSelectedChat = chat?.participantsObject.filter(
+      (res) => res.id !== currentUser?.userId
+    );
+
+    setGetSelectedChat(getSelectedChat);
     const filter = newWay?.filter((item) => item?.combinedId === chat?.combinedId);
     setTrackChatters(filter[0]);
 
@@ -471,7 +491,7 @@ const UserChats = () => {
   // console.log(trackChatters[0], 'trackAllplayersChat at [0]');
   // console.log(trackChatters, 'trackChatters');
 
-  console.log(newWay, 'newWay');
+  // console.log(newWay, 'newWay');
 
   return (
     <div>
@@ -487,7 +507,7 @@ const UserChats = () => {
                 currentTheme === 'light' ? 'text-golden' : 'text-white'
               } pt-1 mb-4 px-3 text-[24px]`}
             >
-              <Link href="/">Your Chats</Link>
+              <Link href="/players">Your Chats</Link>
             </h1>
             <div className="flex flex-col items-start gap-2 ">
               {newWay?.length > 0 ? (
@@ -534,12 +554,23 @@ const UserChats = () => {
                                   {chat?.lastMessage || '...'}
                                 </motion.span>
                               )}
-                              <motion.p className="text-[10px]">
+                              <motion.p>
                                 {chat?.participants
                                   ?.filter((res) => res !== currentUser?.userId)
                                   ?.map((res) => {
                                     return (
-                                      <span key={res}>
+                                      <span
+                                        key={res}
+                                        className={`${
+                                          res === currentUser?.userId
+                                            ? chat?.playerOneUnread === 0
+                                              ? ''
+                                              : 'bg-blue-500 rounded-full w-[20px] h-[20px]'
+                                            : chat?.playerTwoUnread === 0
+                                            ? ''
+                                            : 'bg-red-500 rounded-full w-[20px] h-[20px]'
+                                        }  place-content-center flex justify-center items-center p-0.5 text-[10px]`}
+                                      >
                                         {res === currentUser?.userId
                                           ? chat?.playerOneUnread === 0
                                             ? ''
@@ -550,27 +581,8 @@ const UserChats = () => {
                                       </span>
                                     );
                                   })}
-                                {/* {chat?.combinedId === combinedChattersId &&
-                                currentUser?.userId + chat?.participantsObject[0]?.id ===
-                                  combinedChattersId
-                                  ? chat?.playerOneUnread
-                                  : chat?.participantsObject[1]?.id +
-                                      currentUser?.userId ===
-                                    combinedChattersId
-                                  ? chat?.playerTwoUnread
-                                  : ''} */}
                               </motion.p>
                             </div>
-                            {/* <motion.p className="text-[10px] text-white/40">
-                              {chat?.lastMessage || '...'}
-                            </motion.p>
-                            {chat?.combinedId === combinedChattersId &&
-                            textMessage?.length < 2 &&
-                            trackChatters?.typing ? (
-                              <motion.span className="text-[10px]">typing...</motion.span>
-                            ) : (
-                              ''
-                            )} */}
                           </div>
                         </div>
                       ))}

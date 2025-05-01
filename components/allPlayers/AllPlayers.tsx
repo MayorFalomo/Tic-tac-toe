@@ -1,7 +1,12 @@
 'use client';
 import React, { useEffect, useMemo, useState } from 'react';
 import { getAllPlayers, handlePlayersStatus } from '../funcs/HandleAuth';
-import { PlayerStatus, SessionPlayerDetails, userDetails } from '@/app/types/types';
+import {
+  LoadingState,
+  PlayerStatus,
+  SessionPlayerDetails,
+  userDetails,
+} from '@/app/types/types';
 import Image from 'next/image';
 import clsx from 'clsx';
 import { ArrowLeft } from 'lucide-react';
@@ -44,6 +49,7 @@ const AllPlayers = () => {
 
   const [getPlayers, seGetPlayers] = useState<IPlayers[]>([]);
   const [singlePlayer, setSinglePlayer] = useState<IPlayers | null>(null);
+  const [loading, setLoading] = useState<string>(LoadingState.LOADING);
 
   const currentUser = useAppSelector((state: RootState) => state.user as userDetails);
   const dispatch = useAppDispatch();
@@ -53,11 +59,13 @@ const AllPlayers = () => {
     const data = await getData();
     if (data) {
       dispatch(setAPlayer(data));
+      setLoading(LoadingState.SUCCESS);
     }
   };
 
   //UseEffect to get data from db
   useEffect(() => {
+    setLoading(LoadingState.LOADING);
     if (db) {
       fetchPlayerData();
     }
@@ -124,7 +132,7 @@ const AllPlayers = () => {
             <Link href="/">Tic-Tac-Toe</Link>
           </h1>
           <div>
-            {getPlayers.length > 0 ? (
+            {loading === LoadingState?.SUCCESS ? (
               <motion.div
                 variants={staggerContainer}
                 initial="hidden"

@@ -1,13 +1,9 @@
-'use client';
-import React from 'react';
 import Settings from '@/components/settings/Settings';
 
-const page: React.FC = () => {
+export default function Page() {
   return (
     <div>
       <Settings />
     </div>
   );
-};
-
-export default page;
+}

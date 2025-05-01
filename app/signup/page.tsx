@@ -1,14 +1,9 @@
-import SignUp from "@/components/signup/SignUp";
-import React from "react";
+import SignUp from '@/components/signup/SignUp';
 
-type Props = {};
-
-const Signup = (props: Props) => {
+export default function Page() {
   return (
     <div>
       <SignUp />
     </div>
   );
-};
-
-export default Signup;
+}
