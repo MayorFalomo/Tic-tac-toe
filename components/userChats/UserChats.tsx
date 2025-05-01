@@ -7,7 +7,7 @@ import {
   Unread,
 } from '@/app/types/types';
 import { db } from '@/firebase-config/firebase';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
 import {
   arrayUnion,
@@ -29,21 +29,14 @@ import { Button } from '../ui/button';
 import Image from 'next/image';
 import UserChatField from './UserChatField';
 import toast from 'react-hot-toast';
-import { setCombinedChattingId } from '@/lib/features/ChatAPlayerSlice';
+// import { setCombinedChattingId } from '@/lib/features/ChatAPlayerSlice';
 import useTypingIndicator from '@/hooks/useTypingIndicator';
 import { motion } from 'framer-motion';
 import { formatTimestamp } from '@/app/utils/date';
-// type Props = {
-//   _id: string;
-//   message: string;
-//   senderId: string;
-//   receiverId?: string;
-// };
 
 const UserChats = () => {
   const playersChatState = useAppSelector((state: RootState) => state.chatUp);
   const currentUser = useAppSelector((state: RootState) => state.user);
-  const dispatch = useAppDispatch();
 
   const [chatsId, setChatsId] = useState<string | null>(null);
   // const [allPlayerChat, setAllPlayerChat] = useState<Chat[]>([]);
@@ -76,55 +69,9 @@ const UserChats = () => {
     }
   }, [playersChatState?.selectedPlayer?.id, playersChatState.combinedChattingId]);
 
-  // const gotten = useMemo(() => {
-  //   const playerOneId = currentUser?.userId;
-  //   const playerTwoId = playersChatState?.selectedPlayer?.id ?? getOpponentId;
-  //   playerOneId + playerTwoId === combinedChattersId
-  // }, [currentUser?.userId, playersChatState?.selectedPlayer?.id]);
-
   const { handleTyping } = useTypingIndicator(
     getSelectedChatCombinedId ?? combinedChattersId!
   );
-
-  // useEffect(() => {
-  //   const playersChatRef = collection(db, 'userChats');
-  //   const q = query(playersChatRef, where())
-  // }, [])
-
-  // useEffect(() => {
-  //   if (combinedChattersId) {
-  //     const playersRef = collection(db, 'userChats');
-  //     const playersQuery = query(
-  //       playersRef,
-  //       where('participants', 'array-contains', currentUser?.userId)
-  //     );
-
-  //     const unsubscribeChats = onSnapshot(playersQuery, (snapshot) => {
-  //       snapshot.forEach((doc) => {
-  //         if (doc.exists()) {
-  //           console.log('i am running');
-
-  //           const playersArray: PlayerChatType = doc.data() as PlayerChatType;
-  //           console.log(doc.data(), 'doc.data() snapshot');
-
-  //           console.log(playersArray, 'playersArray');
-  //           console.log([playersArray], 'playersArray?.length');
-
-  //           // const playerChat = playerDoc?.data()?.messages || [];
-  //           setNewWay([playersArray]);
-
-  //           // if (playersArray.length > 0) {
-  //           //   const newContactWay = playersArray?.map((res) => res);
-  //           // }
-  //         }
-  //       });
-  //     });
-
-  //     return () => {
-  //       unsubscribeChats(); // Unsubscribe when component unmounts
-  //     };
-  //   }
-  // }, [combinedChattersId, currentUser?.userId]);
 
   //useEffect to listen for new players
   useEffect(() => {
@@ -177,37 +124,6 @@ const UserChats = () => {
     }
   }, [combinedChattersId, getSelectedChatCombinedId]);
 
-  // console.log(allPlayerChat, 'allPlayerChatState');
-
-  // const loadContacts = async () => {
-  //   const dbRef = collection(db, 'userChats');
-
-  //   const playerQuery = query(
-  //     dbRef,
-  //     where('participants', 'array-contains', currentUser?.userId)
-  //   );
-  //   const playerQuerySnap = await getDocs(playerQuery);
-
-  //   if (!playerQuerySnap.empty) {
-  //     const participantsId: Set<string> = new Set();
-  //     playerQuerySnap.forEach((doc) => {
-  //       console.log(doc.data(), 'data');
-
-  //       doc.data().participants.forEach((participantId: string) => {
-  //         if (participantId !== currentUser?.userId) {
-  //           participantsId.add(participantId); // Add to the set
-  //         }
-  //       });
-  //     });
-  //     const playersData = await fetchPlayersData(Array.from(participantsId));
-  //     setAllPlayerContacts(playersData);
-
-  //     console.log(playersData, 'playersData');
-  //   }
-  // };
-
-  // console.log(combinedChattersId, 'combined');
-
   const loadChats = async (combinedId: string) => {
     const playersRef = collection(db, 'userChats');
     //First query to get all your chats
@@ -258,27 +174,6 @@ const UserChats = () => {
       // await createChatSession();
     }
   };
-
-  // console.log(newWay, 'newWay');
-
-  // const fetchPlayersData = async (participantIds: any) => {
-  //   const playersRef = collection(db, 'players');
-  //   const playersQuery = query(playersRef, where('id', 'in', participantIds));
-
-  //   const playerDocs = await getDocs(playersQuery);
-  //   const playersArray = playerDocs.docs.map((doc) => ({
-  //     id: doc.id,
-  //     name: doc.data().name || '',
-  //     avatar: doc.data().avatar || '',
-  //     networkState: doc.data().networkState || 'offline',
-  //     status: doc.data().status || '',
-  //     // Add other required properties with default values if missing
-  //     ...doc.data(),
-  //   }));
-  //   console.log(playersArray, 'playersArraY');
-
-  //   return playersArray;
-  // };
 
   const createChatSession = async () => {
     const messageObj = {
@@ -477,8 +372,6 @@ const UserChats = () => {
         (message: Unread) => message.name !== currentUser?.name
         // message.id !== playersChatState?.selectedPlayer?.id
       );
-      // console.log(unreadMessages, 'unread');
-      // console.log(updatedUnreadMessages, 'updatedUnread');
 
       // Update the unreadMessages in the player's document
       await updateDoc(playerDocRef, {
@@ -486,12 +379,6 @@ const UserChats = () => {
       });
     }
   };
-
-  // console.log(allPlayerChat, 'playersChat');
-  // console.log(trackChatters[0], 'trackAllplayersChat at [0]');
-  // console.log(trackChatters, 'trackChatters');
-
-  // console.log(newWay, 'newWay');
 
   return (
     <div>
@@ -551,7 +438,7 @@ const UserChats = () => {
                                 </motion.span>
                               ) : (
                                 <motion.span className="text-[10px] text-white">
-                                  {chat?.lastMessage || '...'}
+                                  {chat?.lastMessage!.slice(0, 25) || '...'}
                                 </motion.span>
                               )}
                               <motion.p>
