@@ -442,7 +442,7 @@ const UserChats = () => {
     const oppID = filter[0]?.participants?.filter((res) => res !== currentUser?.userId);
 
     const playerOneId = currentUser?.userId;
-    const playerTwoId = oppID ?? getOpponentId;
+    const playerTwoId = oppID[0] ?? getOpponentId;
 
     const chatRef = collection(db, 'userChats');
 
@@ -455,12 +455,12 @@ const UserChats = () => {
 
       const chatDocumentRef = doc(db, 'userChats', chatId);
 
-      if (playerOneId + playerTwoId === combinedChattersId) {
+      if (playerOneId + playerTwoId === getSelectedChatCombinedId || combinedChattersId) {
         await updateDoc(chatDocumentRef, {
           playerOneUnread: 0,
         });
       }
-      if (playerTwoId + playerOneId === combinedChattersId) {
+      if (playerTwoId + playerOneId === getSelectedChatCombinedId || combinedChattersId) {
         await updateDoc(chatDocumentRef, {
           playerTwoUnread: 0,
         });
@@ -478,7 +478,7 @@ const UserChats = () => {
         // message.id !== playersChatState?.selectedPlayer?.id
       );
       // console.log(unreadMessages, 'unread');
-      console.log(updatedUnreadMessages, 'updatedUnread');
+      // console.log(updatedUnreadMessages, 'updatedUnread');
 
       // Update the unreadMessages in the player's document
       await updateDoc(playerDocRef, {
