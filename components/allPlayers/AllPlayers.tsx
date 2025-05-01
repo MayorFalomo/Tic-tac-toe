@@ -32,6 +32,7 @@ import useIndexedDB from '@/hooks/useIndexDb';
 import { setAPlayer } from '@/lib/features/userSlice';
 import { formatDateToDMY } from '@/app/utils/date';
 import { childVariants, staggerContainer } from '@/app/animation/constants';
+import { Skeleton } from '../ui/skeleton';
 
 interface IPlayers extends SessionPlayerDetails {
   status: string;
@@ -123,7 +124,7 @@ const AllPlayers = () => {
             <Link href="/">Tic-Tac-Toe</Link>
           </h1>
           <div>
-            {getPlayers ? (
+            {getPlayers.length > 0 ? (
               <motion.div
                 variants={staggerContainer}
                 initial="hidden"
@@ -182,7 +183,13 @@ const AllPlayers = () => {
                 ))}
               </motion.div>
             ) : (
-              <LoadingSpinner />
+              <div className="flex flex-col items-center space-x-4">
+                <div className="space-y-2">
+                  {Array.from({ length: 6 }).map((_, index) => (
+                    <Skeleton key={index} className="h-4 w-full bg-white" />
+                  ))}
+                </div>
+              </div>
             )}
           </div>
         </div>

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Button } from '../ui/button';
-import { EarthIcon, Info, Settings } from 'lucide-react';
+import { EarthIcon, Gamepad2, Info, Settings } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -61,13 +61,16 @@ const GameMenu = (props: Props) => {
             <Bouncy delay={0.2} className="w-[40%] max-[600px]:w-[70%] mt-[40px]">
               <Link href="/signup">
                 <Button
-                  className={`w-[100%]  cursor-pointer text-[16px] ${
+                  className={`w-[100%] flex items-center gap-4 cursor-pointer text-[16px] ${
                     currentTheme === 'light'
                       ? 'bg-transparent text-[#9F8151] border hover:bg-white'
                       : 'text-white hover:border hover:border-white'
                   } `}
                 >
-                  <span> Play Game</span>
+                  <span>
+                    <Gamepad2 />{' '}
+                  </span>
+                  <span>Play Game</span>
                 </Button>
               </Link>
             </Bouncy>

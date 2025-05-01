@@ -20,7 +20,6 @@ import {
   where,
 } from 'firebase/firestore';
 import NotificationsList from './NotificationList';
-type Props = {};
 
 const EditName = React.lazy(() => import('./EditPlayerNameModal'));
 const EditProfilePicture = React.lazy(() => import('./EditProfilePicture'));

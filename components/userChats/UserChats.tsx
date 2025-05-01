@@ -1,5 +1,11 @@
 'use client';
-import { Chat, defaultImg, PlayerChatType, PlayerDetails } from '@/app/types/types';
+import {
+  Chat,
+  defaultImg,
+  PlayerChatType,
+  PlayerDetails,
+  Unread,
+} from '@/app/types/types';
 import { db } from '@/firebase-config/firebase';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
@@ -223,7 +229,7 @@ const UserChats = () => {
           currentUser?.userId === playerChat?.participantsObject[0]?.id
             ? playerChat?.participantsObject[1]?.id
             : playerChat?.participantsObject[0]?.id
-        );
+        ); //Gets me the id of the opponent for later use
       }
     } else {
       await createChatSession();
@@ -407,13 +413,16 @@ const UserChats = () => {
 
   //Function to load the chat messages for the selected chat
   const handleChatSelect = async (chat: PlayerChatType) => {
-    dispatch(setCombinedChattingId(chat?.combinedId));
+    // dispatch(setCombinedChattingId(chat?.combinedId));
 
     const filter = newWay?.filter((item) => item?.combinedId === chat?.combinedId);
     setTrackChatters(filter[0]);
 
+    //Find the id of the selected player
+    const oppID = filter[0]?.participants?.filter((res) => res !== currentUser?.userId);
+
     const playerOneId = currentUser?.userId;
-    const playerTwoId = playersChatState?.selectedPlayer?.id ?? getOpponentId;
+    const playerTwoId = oppID ?? getOpponentId;
 
     const chatRef = collection(db, 'userChats');
 
@@ -437,20 +446,19 @@ const UserChats = () => {
         });
       }
     }
-    const playerDocRef = doc(db, 'players', currentUser?.userId);
+    const playerDocRef = doc(db, 'players', playerOneId);
     const playerDoc = await getDoc(playerDocRef);
 
     if (playerDoc.exists()) {
-      const unreadMessages = playerDoc.data()?.unreadMessages || {};
+      const unreadMessages: Unread[] = playerDoc.data()?.unreadMessages || {};
 
       //Find the specific message in the unreadMessages array and remove it
       const updatedUnreadMessages = unreadMessages.filter(
-        (message: any) =>
-          message.receiverId !== currentUser?.userId &&
-          message.senderId !== playersChatState?.selectedPlayer?.id
+        (message: Unread) => message.name !== currentUser?.name
+        // message.id !== playersChatState?.selectedPlayer?.id
       );
       // console.log(unreadMessages, 'unread');
-      // console.log(updatedUnreadMessages, 'updatedUnread');
+      console.log(updatedUnreadMessages, 'updatedUnread');
 
       // Update the unreadMessages in the player's document
       await updateDoc(playerDocRef, {
@@ -526,8 +534,23 @@ const UserChats = () => {
                                   {chat?.lastMessage || '...'}
                                 </motion.span>
                               )}
-                              <motion.span className="text-[10px]">
-                                {chat?.combinedId === combinedChattersId &&
+                              <motion.p className="text-[10px]">
+                                {chat?.participants
+                                  ?.filter((res) => res !== currentUser?.userId)
+                                  ?.map((res) => {
+                                    return (
+                                      <span key={res}>
+                                        {res === currentUser?.userId
+                                          ? chat?.playerOneUnread === 0
+                                            ? ''
+                                            : chat?.playerOneUnread
+                                          : chat?.playerTwoUnread === 0
+                                          ? ''
+                                          : chat?.playerTwoUnread}{' '}
+                                      </span>
+                                    );
+                                  })}
+                                {/* {chat?.combinedId === combinedChattersId &&
                                 currentUser?.userId + chat?.participantsObject[0]?.id ===
                                   combinedChattersId
                                   ? chat?.playerOneUnread
@@ -535,8 +558,8 @@ const UserChats = () => {
                                       currentUser?.userId ===
                                     combinedChattersId
                                   ? chat?.playerTwoUnread
-                                  : ''}
-                              </motion.span>
+                                  : ''} */}
+                              </motion.p>
                             </div>
                             {/* <motion.p className="text-[10px] text-white/40">
                               {chat?.lastMessage || '...'}
