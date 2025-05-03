@@ -20,6 +20,8 @@ import {
   where,
 } from 'firebase/firestore';
 import NotificationsList from './NotificationList';
+import { playGameStyle } from '@/app/animation/constants';
+import useOnClickOutside from '@/hooks/useOnclickOutside';
 
 const EditName = React.lazy(() => import('./EditPlayerNameModal'));
 const EditProfilePicture = React.lazy(() => import('./EditProfilePicture'));
@@ -35,6 +37,9 @@ const ProfileHeader = () => {
   const [logout, setLogout] = useState<boolean>(false);
   const [openNotifModal, setOpenNotifModal] = useState<boolean>(false);
   const [userNotifs, setUserNotifs] = useState<Unread[]>([]);
+  const [showArrow, setShowArrow] = useState<boolean>(false);
+
+  const ref = useRef<HTMLDivElement>(null);
 
   // Function to fetch player data from IndexedDB
   const fetchPlayerData = async () => {
@@ -133,8 +138,18 @@ const ProfileHeader = () => {
     }
   };
 
+  useOnClickOutside({
+    ref: ref,
+    handler: () => {
+      setOpenNotifModal(false);
+      setLogout(false);
+      setEditPlayer(false);
+      setChangeAvatar(false);
+    },
+  });
+
   return (
-    <div className="flex items-center gap-6 text-white ">
+    <div ref={ref} className={`flex items-center gap-6 text-white`}>
       <div className="relative">
         {
           <div className="relative" ref={notificationRef}>
@@ -155,9 +170,9 @@ const ProfileHeader = () => {
 
             {/* Notification Panel with Tooltip Design */}
             {isOpen && (
-              <div className="absolute right-0 mt-2 w-80 z-50 transform-gpu transition-all duration-200 ease-in-out origin-top-right">
+              <div className="absolute min-[680px]:right-0 max-[680px]:left-0 mt-2 w-80 max-[580px]:w-[280px] max-[320px]:w-[220px] z-50 transform-gpu transition-all duration-200 ease-in-out origin-top-right">
                 {/* Triangle Pointer */}
-                <div className="absolute -top-2 right-4 w-4 h-4 transform rotate-45 bg-white border-t border-l border-gray-200"></div>
+                <div className="absolute -top-2 min-[680px]:right-4 max-[680px]:left-4 w-4 h-4 transform rotate-45 bg-white border-t border-l border-gray-200"></div>
 
                 {/* Notification Content */}
                 <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
@@ -171,12 +186,14 @@ const ProfileHeader = () => {
           </div>
         }
       </div>
-
       <motion.div
-        className="w-[280px] group relative border border-white/40 px-4 py-1 flex items-center justify-between rounded-[10px] gap-2 cursor-pointer"
+        className="w-[280px] max-[580px]:w-[240px] group relative border border-[#1D1D38] px-4 py-1 flex items-center justify-between rounded-[10px] gap-2 cursor-pointer"
         whileHover="hover"
         initial="rest"
         animate="rest"
+        onClick={() => setOpenNotifModal(!openNotifModal)}
+        onMouseOver={() => setShowArrow(true)}
+        onMouseLeave={() => setShowArrow(false)}
       >
         <p className="flex items-center gap-1">
           <span className=" text-white">Welcome!</span>
@@ -192,16 +209,23 @@ const ProfileHeader = () => {
         </p>
 
         {/* Arrow Icon */}
-        <motion.span
-          className="text-white"
-          variants={{
-            rest: { display: 'none', opacity: 0, y: 5 },
-            hover: { display: 'flex', opacity: 1, y: 0 },
-          }}
-          transition={{ duration: 0.3 }}
-        >
-          <ChevronDown />
-        </motion.span>
+        <AnimatePresence>
+          {showArrow && (
+            <motion.span
+              className="text-white"
+              variants={{
+                initial: { opacity: 0, pointerEvents: 'none' },
+                active: { opacity: 1, pointerEvents: 'auto' },
+                // rest: { display: 'none', opacity: 0, y: 5 },
+                // hover: { display: 'flex', opacity: 1, y: 0 },
+              }}
+              animate={showArrow ? 'active' : 'initial'}
+              transition={{ duration: 0.3 }}
+            >
+              <ChevronDown />
+            </motion.span>
+          )}
+        </AnimatePresence>
 
         <motion.img
           src={playerData?.avatar !== '' ? playerData?.avatar : defaultImg}
@@ -217,119 +241,125 @@ const ProfileHeader = () => {
         />
 
         {/* Dropdown menu */}
-        <motion.div
-          className={clsx(
-            logout && 'bottom-[-200px]',
-            `absolute bottom-[-150px] left-0 mt-2 w-full overflow-hidden bg-white text-black rounded-[10px] shadow-lg z-10`
+        <AnimatePresence>
+          {openNotifModal && (
+            <motion.div
+              className={clsx(
+                logout && 'bottom-[-200px]',
+                `absolute bottom-[-150px] left-0 mt-2 w-full overflow-hidden ${playGameStyle} text-black rounded-[10px] shadow-lg z-10`
+              )}
+              variants={{
+                initial: { height: 0, opacity: 0, pointerEvents: 'none' },
+                hover: { height: 'auto', opacity: 1, pointerEvents: 'auto' },
+                active: { height: 'auto', opacity: 1, pointerEvents: 'auto' },
+              }}
+              animate={openNotifModal ? 'active' : 'initial'}
+              transition={{
+                duration: 0.4,
+                ease: 'easeInOut',
+                delay: 0.1,
+              }}
+            >
+              <ul className="py-2 list-none">
+                <li
+                  className={clsx(
+                    playerData === null && 'opacity-50',
+                    'py-2 px-2 hover:underline'
+                  )}
+                >
+                  <button
+                    onClick={() => {
+                      setEditPlayer(true);
+                      setLogout(false);
+                    }}
+                    className={clsx(
+                      playerData.name === '' && 'cursor-not-allowed opacity-30',
+                      `flex items-center justify-between w-full`
+                    )}
+                    disabled={playerData.name === ''}
+                  >
+                    <span className="ml-2">Edit player name</span>
+                    <span>
+                      {' '}
+                      <Edit size={14} />
+                    </span>
+                  </button>
+                </li>
+                <li
+                  className={clsx(
+                    playerData === null && 'opacity-50',
+                    'py-2 px-2 hover:underline'
+                  )}
+                >
+                  <button
+                    disabled={playerData.name === ''}
+                    className={clsx(
+                      playerData.name === '' && 'cursor-not-allowed opacity-30',
+                      `flex items-center justify-between w-full`
+                    )}
+                    onClick={() => {
+                      setChangeAvatar(true);
+                      setLogout(false);
+                    }}
+                  >
+                    <span className="ml-2">Change your Avatar</span>
+                    <span>
+                      {' '}
+                      <Edit size={14} />
+                    </span>
+                  </button>
+                </li>
+                <li
+                  onClick={() => setLogout(!logout)}
+                  className={clsx(
+                    playerData === null && 'opacity-50',
+                    'py-2 px-2 hover:underline'
+                  )}
+                >
+                  <button
+                    disabled={playerData.name === ''}
+                    className={clsx(
+                      playerData.name === '' && 'cursor-not-allowed opacity-30',
+                      `flex items-center justify-between w-full`
+                    )}
+                    onClick={() => {
+                      setLogout(true);
+                    }}
+                  >
+                    <span className="ml-2">Logout</span>
+                    <span>
+                      {' '}
+                      <LogOut size={14} />
+                    </span>
+                  </button>
+                </li>
+              </ul>
+              <AnimatePresence>
+                {logout && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex items-center justify-between gap-2 px-2 mb-3 mt-2"
+                  >
+                    <button
+                      onClick={() => setLogout(false)}
+                      className="bg-black text-white px-2 py-[7px] text-sm rounded-md"
+                    >
+                      No thanks
+                    </button>
+                    <button
+                      onClick={handleLogOut}
+                      className="bg-red-600 text-white px-2 py-[7px] text-sm rounded-md"
+                    >
+                      Yes, Logout.
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
           )}
-          variants={{
-            rest: { height: 0, opacity: 0, pointerEvents: 'none' },
-            hover: { height: 'auto', opacity: 1, pointerEvents: 'auto' },
-          }}
-          transition={{
-            duration: 0.4,
-            ease: 'easeInOut',
-            delay: 0.1,
-          }}
-        >
-          <ul className="py-2 list-none">
-            <li
-              className={clsx(
-                playerData === null && 'opacity-50',
-                'py-2 hover:bg-gray-100 px-2 hover:underline'
-              )}
-            >
-              <button
-                onClick={() => {
-                  setEditPlayer(true);
-                  setLogout(false);
-                }}
-                className={clsx(
-                  playerData.name === '' && 'cursor-not-allowed opacity-30',
-                  `flex items-center justify-between w-full`
-                )}
-                disabled={playerData.name === ''}
-              >
-                <span className="ml-2">Edit player name</span>
-                <span>
-                  {' '}
-                  <Edit size={14} />
-                </span>
-              </button>
-            </li>
-            <li
-              className={clsx(
-                playerData === null && 'opacity-50',
-                'py-2 hover:bg-gray-100 px-2 hover:underline'
-              )}
-            >
-              <button
-                disabled={playerData.name === ''}
-                className={clsx(
-                  playerData.name === '' && 'cursor-not-allowed opacity-30',
-                  `flex items-center justify-between w-full`
-                )}
-                onClick={() => {
-                  setChangeAvatar(true);
-                  setLogout(false);
-                }}
-              >
-                <span className="ml-2">Change your Avatar</span>
-                <span>
-                  {' '}
-                  <Edit size={14} />
-                </span>
-              </button>
-            </li>
-            <li
-              onClick={() => setLogout(!logout)}
-              className={clsx(
-                playerData === null && 'opacity-50',
-                'py-2 hover:bg-gray-100 px-2 hover:underline'
-              )}
-            >
-              <button
-                disabled={playerData.name === ''}
-                className={clsx(
-                  playerData.name === '' && 'cursor-not-allowed opacity-30',
-                  `flex items-center justify-between w-full`
-                )}
-                onClick={() => {
-                  setLogout(true);
-                }}
-              >
-                <span className="ml-2">Logout</span>
-                <span>
-                  {' '}
-                  <LogOut size={14} />
-                </span>
-              </button>
-            </li>
-          </ul>
-          <AnimatePresence>
-            {logout && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex items-center justify-between gap-2 px-2 mb-3 mt-2"
-              >
-                <button
-                  onClick={() => setLogout(false)}
-                  className="bg-black text-white px-2 py-[7px] text-sm rounded-md"
-                >
-                  No thanks
-                </button>
-                <button
-                  onClick={handleLogOut}
-                  className="bg-red-600 text-white px-2 py-[7px] text-sm rounded-md"
-                >
-                  Yes, Logout.
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+        </AnimatePresence>
         <AnimatePresence>
           {editPlayer && (
             <EditName

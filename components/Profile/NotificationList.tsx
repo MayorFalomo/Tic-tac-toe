@@ -2,6 +2,7 @@ import React from 'react';
 import { Check } from 'lucide-react';
 import { Unread } from '@/app/types/types';
 import NotificationItem from './NotificationItem';
+import Link from 'next/link';
 // import NotificationItem from './NotificationItem';
 // import { Notification } from '../../types/notification';
 
@@ -15,8 +16,6 @@ const NotificationsList: React.FC<NotificationsListProps> = ({
   onMarkAllAsRead,
 }) => {
   const hasUnread = notifications.some((notification) => 5);
-
-  console.log(notifications, 'notifications');
 
   return (
     <div className="max-h-96 overflow-y-auto">
@@ -50,12 +49,12 @@ const NotificationsList: React.FC<NotificationsListProps> = ({
 
       {/* Footer */}
       <div className="px-4 py-2 bg-gray-50 border-t border-gray-100">
-        <a
-          href="#"
+        <Link
+          href="/chats"
           className="text-xs text-blue-500 hover:text-blue-600 block text-center"
         >
           View all notifications
-        </a>
+        </Link>
       </div>
     </div>
   );

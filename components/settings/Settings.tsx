@@ -12,8 +12,9 @@ import { RootState } from '@/lib/store';
 import FadeIn from '@/app/animation/FadeIn';
 import Bouncy from '@/app/animation/Bouncy';
 import { motion } from 'framer-motion';
+import { settingsBtnStyle } from '@/app/animation/constants';
 
-const Settings = () => {
+const Settings: React.FC = () => {
   const dispatch = useAppDispatch();
   const track = useSelector((state: RootState) => state?.track);
   const { play, stop } = useAudio();
@@ -52,7 +53,7 @@ const Settings = () => {
           className={`${
             currentTheme === 'light'
               ? 'bg-white text-golden'
-              : 'bg-brightGreen text-white'
+              : `${settingsBtnStyle} text-white`
           } h-[50%] w-[50%] min-w-[400px] max-[500px]:min-w-[200px] max-[500px]:w-[90%] rounded-md mx-auto`}
         >
           <motion.div

@@ -191,6 +191,15 @@ export type AvatarChoice = {
   avatarValue: string,
 }
 
+export interface GlobalChatType {
+  id: string;
+  senderId: string;
+  message: string;
+  name: string;
+  avatar: string;
+  timeStamp: string;
+}
+
 export enum AvatarValueType {
   Anime = 'Anime',
   SuperHeroes = 'Superheroes',

@@ -53,6 +53,7 @@ import useOnlineStatus from '@/hooks/useOnlinePresence';
 import useIndexedDB from '@/hooks/useIndexDb';
 import ProfileHeader from '../Profile/ProfileHeader';
 import { RootState } from '@/lib/store';
+import { playGameStyle } from '@/app/animation/constants';
 export interface AvatarType {
   avatarType: string;
   avatarUrl: string;
@@ -573,13 +574,15 @@ const SignUp: React.FC = () => {
                     }
                   }}
                 >
-                  <SelectTrigger className="w-[100%] bg-transparent rounded-none border-b-white text-white/60 border-b border outline-none border-x-0 border-t-0 text-[16px] focus:ring-offset-0 focus:ring-0">
+                  <SelectTrigger
+                    className={`w-[100%] bg-transparent rounded-none border-b-white text-white/60 border-b border outline-none border-x-0 border-t-0 text-[16px] focus:ring-offset-0 focus:ring-0`}
+                  >
                     <SelectValue
                       className=" placeholder:text-white"
                       placeholder="Select your Avatar"
                     />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className={`${playGameStyle}`}>
                     <SelectGroup>
                       <SelectLabel>Select your Avatar </SelectLabel>
                       <SelectItem value="Anime">Anime style</SelectItem>
@@ -596,7 +599,7 @@ const SignUp: React.FC = () => {
                   type="submit"
                   className={`${
                     loading ? 'cursor-not-allowed' : 'cursor-pointer'
-                  } text-[16px] bg-[#2CBF93] hover:bg-white hover:text-black transition-all duration-500 text-white my-3`}
+                  } text-[16px] ${playGameStyle} hover:bg-white transition-all duration-500 text-white my-3`}
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">

@@ -9,6 +9,12 @@ import { changeNotifBg } from '@/lib/features/TrackerSlice';
 import FadeIn from '@/app/animation/FadeIn';
 import Bouncy from '@/app/animation/Bouncy';
 import ProfileHeader from '../Profile/ProfileHeader';
+import {
+  gameInfoStyle,
+  playGameStyle,
+  settingsBtnStyle,
+  viewPlayersStyle,
+} from '@/app/animation/constants';
 
 type Props = {};
 
@@ -26,10 +32,11 @@ const GameMenu = (props: Props) => {
   return (
     <FadeIn>
       <div
-        className={`h-screen w-screen ${
+        className={`relative h-screen w-screen ${
           currentTheme === 'light' ? 'bg-[#0A4834] text-[#9F8151]' : 'bg-black'
         } `}
       >
+        {/* <div className="absolute rounded-full w-[30%] h-[30%] -inset-4 bg-gradient-to-r from-amber-500/20 to-yellow-500/20 blur-xl"></div> */}
         <div className="w-[90%] mx-auto flex items-center justify-end py-2 text-brightGreen">
           <ProfileHeader />
         </div>
@@ -64,7 +71,7 @@ const GameMenu = (props: Props) => {
                   className={`w-[100%] flex items-center gap-4 cursor-pointer text-[16px] ${
                     currentTheme === 'light'
                       ? 'bg-transparent text-[#9F8151] border hover:bg-white'
-                      : 'text-white hover:border hover:border-white'
+                      : `${playGameStyle} pulse-animation`
                   } `}
                 >
                   <span>
@@ -80,7 +87,7 @@ const GameMenu = (props: Props) => {
                   className={`w-[100%] flex items-center gap-4 py-3 cursor-pointer text-[16px] ${
                     currentTheme === 'light'
                       ? 'bg-transparent text-[#9F8151] border hover:bg-white'
-                      : 'text-white hover:border hover:border-white'
+                      : gameInfoStyle
                   } hover:border-white`}
                 >
                   <span>
@@ -90,13 +97,30 @@ const GameMenu = (props: Props) => {
                 </Button>
               </Link>
             </Bouncy>
+
+            <Bouncy delay={0.6} className="w-[40%] max-[600px]:w-[70%]">
+              <Link href="/global-chat">
+                <Button
+                  className={`w-[100%] flex items-center gap-4 py-3 cursor-pointer text-[16px] ${
+                    currentTheme === 'light'
+                      ? 'bg-transparent text-[#9F8151] border hover:bg-white'
+                      : gameInfoStyle
+                  } hover:border-white`}
+                >
+                  <span>
+                    <EarthIcon />{' '}
+                  </span>
+                  <span>Global Chat </span>
+                </Button>
+              </Link>
+            </Bouncy>
             <Bouncy delay={0.6} className="w-[40%]  max-[600px]:w-[70%]">
               <Link href="/settings">
                 <Button
                   className={`w-[100%] flex items-center gap-4 py-3 cursor-pointer text-[16px] ${
                     currentTheme === 'light'
                       ? 'bg-transparent text-[#9F8151] border hover:bg-white'
-                      : 'text-white hover:border hover:border-white'
+                      : settingsBtnStyle
                   } hover:border-white`}
                 >
                   <span>
@@ -113,7 +137,7 @@ const GameMenu = (props: Props) => {
                   className={`w-[100%] flex items-center gap-4 py-3 cursor-pointer text-[16px] ${
                     currentTheme === 'light'
                       ? 'bg-transparent text-[#9F8151] border hover:bg-white'
-                      : 'text-white hover:border hover:border-white'
+                      : viewPlayersStyle
                   } hover:border-white`}
                 >
                   <span>

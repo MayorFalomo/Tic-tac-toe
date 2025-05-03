@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '../ui/button';
 import { Edit } from 'lucide-react';
 import { Input } from '../ui/input';
-import { FadeVariants, scaleVariants } from '@/app/animation/constants';
+import { FadeVariants, playGameStyle, scaleVariants } from '@/app/animation/constants';
 import useIndexedDB from '@/hooks/useIndexDb';
 import { LoadingState } from '@/app/types/types';
 
@@ -41,10 +41,10 @@ const EditPlayerNameModal: React.FC<Props> = ({ handleClose, playerName }) => {
       animate="visible"
       exit="exit"
       variants={scaleVariants}
-      className="absolute bg-white w-[300px] left-[-20px] bottom-[-185px] rounded-md z-10 px-3 py-4"
+      className={`absolute ${playGameStyle} w-[300px] left-[-20px] bottom-[-185px] rounded-md z-10 px-3 py-4`}
     >
       <form onSubmit={handleNameUpdate}>
-        <p className="flex items-center gap-2 text-gray-500">
+        <p className="flex items-center gap-2">
           <span>Edit your player name</span>
           <span>
             <Edit size={16} />{' '}
@@ -60,7 +60,10 @@ const EditPlayerNameModal: React.FC<Props> = ({ handleClose, playerName }) => {
           <Button type="button" className="bg-red-500 p-0 px-3" onClick={handleClose}>
             Close
           </Button>
-          <Button type="submit" className="bg-black text-white rounded-md px-2 py-1 mb-2">
+          <Button
+            type="submit"
+            className="bg-transparent border border-white text-white rounded-md px-2 py-1 mb-2"
+          >
             Edit name
           </Button>
         </div>

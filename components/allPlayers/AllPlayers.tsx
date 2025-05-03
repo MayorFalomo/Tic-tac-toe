@@ -11,21 +11,11 @@ import Image from 'next/image';
 import clsx from 'clsx';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
-import { LoadingSpinner } from '../signup/Loader';
 import { useTheme } from '@/contexts/ThemeContext';
 import { motion } from 'framer-motion';
 import FadeIn from '@/app/animation/FadeIn';
 import { Button } from '../ui/button';
-// import {
-//   addDoc,
-//   collection,
-//   doc,
-//   getDocs,
-//   query,
-//   setDoc,
-//   where,
-// } from 'firebase/firestore';
-// import { db } from '@/firebase-config/firebase';
+import { db as database } from '@/firebase-config/firebase';
 import { RootState } from '@/lib/store';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { useRouter } from 'next/navigation';
@@ -36,8 +26,13 @@ import {
 import useIndexedDB from '@/hooks/useIndexDb';
 import { setAPlayer } from '@/lib/features/userSlice';
 import { formatDateToDMY } from '@/app/utils/date';
-import { childVariants, staggerContainer } from '@/app/animation/constants';
+import {
+  childVariants,
+  staggerContainer,
+  viewPlayersStyle,
+} from '@/app/animation/constants';
 import { Skeleton } from '../ui/skeleton';
+import { collection, onSnapshot, query } from 'firebase/firestore';
 
 interface IPlayers extends SessionPlayerDetails {
   status: string;
@@ -53,6 +48,31 @@ const AllPlayers = () => {
 
   const currentUser = useAppSelector((state: RootState) => state.user as userDetails);
   const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    const getAllPlayersRef = collection(database, 'players');
+    const allPlayersQuery = query(getAllPlayersRef);
+
+    const unsubscribePlayers = onSnapshot(allPlayersQuery, (snapshot) => {
+      const updatedPlayers: IPlayers[] = [];
+
+      snapshot.forEach((doc) => {
+        if (doc.exists()) {
+          console.log(doc.data(), 'doc Data');
+
+          const playersArr = doc.data() as IPlayers;
+
+          updatedPlayers.push(playersArr);
+        }
+      });
+
+      seGetPlayers(updatedPlayers);
+    });
+
+    return () => {
+      unsubscribePlayers();
+    };
+  }, []);
 
   // Function to fetch player data from IndexedDB
   const fetchPlayerData = async () => {
@@ -221,7 +241,7 @@ const AllPlayers = () => {
             </div>
           </div>
           {singlePlayer ? (
-            <div className="h-full pb-[30px]">
+            <div className={`${viewPlayersStyle} h-full pb-[30px]`}>
               {singlePlayer?.avatar ? (
                 <div
                   style={{
@@ -266,7 +286,9 @@ const AllPlayers = () => {
             </div>
           )}
         </div>
-        <div className="max-[900px]:hidden bg-[#0F172A] h-fit w-[95%] mx-auto flex flex-col gap-4 mt-[30px] py-[30px] px-4 text-[16px] rounded-[20px]">
+        <div
+          className={`max-[900px]:hidden ${viewPlayersStyle} h-fit w-[95%] mx-auto flex flex-col gap-4 mt-[30px] py-[30px] px-4 text-[16px] rounded-[20px]`}
+        >
           <p className="relative">
             Players Statuses
             <motion.span

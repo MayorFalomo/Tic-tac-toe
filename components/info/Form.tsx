@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import emailjs from '@emailjs/browser';
 import toast from 'react-hot-toast';
+import { gameInfoStyle } from '@/app/animation/constants';
 
 const Form = () => {
   const form = useRef<HTMLFormElement | null>(null);
@@ -100,7 +101,7 @@ const Form = () => {
 
         <button
           type="submit"
-          className="w-full rounded bg-white text-black px-6 pb-2 pt-2.5 text-xs font-medium uppercase leading-normal shadow-primary-3 transition duration-150 ease-in-out hover:opacity-80 hover:shadow-primary-2 focus:bg-primary-accent-300 focus:shadow-primary-2 focus:outline-none focus:ring-0 active:bg-primary-600 active:shadow-primary-2 dark:shadow-black/30 dark:hover:shadow-dark-strong dark:focus:shadow-dark-strong dark:active:shadow-dark-strong"
+          className={`w-full rounded ${gameInfoStyle} text-black px-6 pb-2 pt-2.5 text-xs font-medium uppercase leading-normal shadow-primary-3 transition duration-150 ease-in-out hover:opacity-80 hover:shadow-primary-2 focus:bg-primary-accent-300 focus:shadow-primary-2 focus:outline-none focus:ring-0 active:bg-primary-600 active:shadow-primary-2 dark:shadow-black/30 dark:hover:shadow-dark-strong dark:focus:shadow-dark-strong dark:active:shadow-dark-strong`}
           data-twe-ripple-init
           data-twe-ripple-color="light"
           disabled={messageStatus === 'loading'}
@@ -130,7 +131,7 @@ const Form = () => {
             </motion.span>
           ) : (
             <motion.span variants={messageVariant} initial="hidden" animate="show">
-              Send a message
+              Send message to developer
             </motion.span>
           )}
           {messageStatus === 'loading' && (

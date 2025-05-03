@@ -17,6 +17,7 @@ import {
 import Image from 'next/image';
 import TicTacToe from '@/public/TicTacToe.webp';
 import Celebrate from '@/public/celebrate.webp';
+import { gameInfoStyle } from '@/app/animation/constants';
 
 const InfoMenu: React.FC = () => {
   const { currentTheme } = useTheme();
@@ -29,7 +30,9 @@ const InfoMenu: React.FC = () => {
           : 'bg-[#000] text-brightGreen'
       } w-[100vw] min-h-[100vh] overflow-auto flex items-center justify-center `}
     >
-      <div className="min-[680px]:grid grid-cols-2 max-[680px]:block items-start w-[60%] max-[1100px]:w-[80%] max-[780px]:w-[90%] border border-white/40 p-3 my-[40px] rounded-[10px]">
+      <div
+        className={` text-white min-[680px]:grid grid-cols-2 max-[680px]:block items-start w-[60%] max-[1100px]:w-[80%] max-[780px]:w-[90%] border border-white/40 p-3 my-[40px] rounded-[10px]`}
+      >
         <ul className=" flex flex-col items-start gap-[20px] my-3 list-none ">
           <motion.li
             initial={{ x: -50, opacity: 0 }}
@@ -175,16 +178,19 @@ const InfoMenu: React.FC = () => {
                       >
                         Current Features{' '}
                       </h3>
-                      <li>Real-time player pairing. </li>
+                      <li>Fast Real-time player pairing. </li>
                       <li>Live player to player chat. </li>
+                      <li>Get Instant notifications on your profile</li>
                       <li>Send Reactions in chats. </li>
-                      <li>Get instant notification update. </li>
+                      <li>See update, for when a user starts typing </li>
+                      <li>See wh</li>
+                      <li>see changes happen in real-time </li>
                       <li>Light/Dark mode. </li>
                       <li>Sound Control. </li>
                       <li>Change notifications background. </li>
                       <li>Track Players Status. </li>
                       <li>View each players profile. </li>
-                      <li>Select an Avatar </li>
+                      <li>Select an Avatar or choose custom a image </li>
                       <li>Sign up</li>
                       <li>Login with saved profile </li>
                     </ul>

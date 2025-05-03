@@ -385,7 +385,7 @@ const UserChats = () => {
       <div
         className={`${
           currentTheme === 'light' ? 'bg-royalGreen text-white' : 'bg-black text-white'
-        } min-h-full grid grid-cols-[400px_auto] max-[950px]:grid-cols-[300px_auto] max-[750px]:grid-cols-[280px_auto_0] max-[550px]:grid-cols-[250px_auto_0] h-screen overflow-hidden w-full text-white`}
+        } min-h-full grid grid-cols-[400px_auto_200px] max-[950px]:grid-cols-[300px_auto_200px] max-[750px]:grid-cols-[280px_auto_150px] max-[550px]:grid-cols-[250px_auto_0] h-screen overflow-hidden w-full text-white`}
       >
         <div className="h-full w-full border-r border-white/40 p-4 pb-[50px] overflow-auto">
           <div className="flex flex-col gap-4">
