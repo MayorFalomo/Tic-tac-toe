@@ -23,7 +23,7 @@ const GlobalUserChatField = (props: Props) => {
         </div>
         <div className="flex flex-col w-full ">
           <p className="flex justify-between items-center w-full">
-            <span className="font-bold">{res.name}</span>
+            <span className="font-bold text-white/70">{res.name}</span>
             <span>
               <Ellipsis size={16} />{' '}
             </span>

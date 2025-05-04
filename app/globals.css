@@ -111,23 +111,90 @@
     /* Rotate to create a diagonal effect */
   }
 
-  @keyframes pulse {
-  0% {
-    transform: scale(1);
-    box-shadow: 0 0 0 rgba(30, 58, 138, 0.7);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(30, 58, 138, 0.7);
-  }
-  100% {
-    transform: scale(1);
-    box-shadow: 0 0 0 rgba(30, 58, 138, 0);
-  }
+/* Gradient Text Styles */
+.text-gradient {
+  @apply bg-clip-text text-transparent;
 }
 
-.pulse-animation {
-  animation: pulse 3s; /* Pulsing effect every 2 seconds */
+/* Cosmic Gold */
+.text-gradient-cosmic-gold {
+  @apply bg-gradient-to-r from-amber-300 via-yellow-300 to-amber-400 
+         drop-shadow-[0_0_10px_rgba(245,158,11,0.5)];
 }
+
+/* Neo Plasma */
+.text-gradient-neo-plasma {
+  @apply bg-gradient-to-r from-fuchsia-400 via-pink-400 to-purple-500
+         drop-shadow-[0_0_10px_rgba(219,39,119,0.5)];
+}
+
+/* Arctic Frost */
+.text-gradient-arctic {
+  @apply bg-gradient-to-r from-cyan-300 via-blue-300 to-cyan-400
+         drop-shadow-[0_0_10px_rgba(34,211,238,0.5)];
+}
+
+/* Emerald Pulse */
+.text-gradient-emerald {
+  @apply bg-gradient-to-r from-emerald-300 via-green-300 to-teal-400
+         drop-shadow-[0_0_10px_rgba(16,185,129,0.5)];
+}
+
+/* Solar Flare */
+.text-gradient-solar {
+  @apply bg-gradient-to-r from-orange-400 via-red-400 to-orange-500
+         drop-shadow-[0_0_10px_rgba(249,115,22,0.5)];
+}
+
+/* Nebula Dream */
+.text-gradient-nebula {
+  @apply bg-gradient-to-r from-violet-400 via-indigo-400 to-purple-500
+         drop-shadow-[0_0_10px_rgba(139,92,246,0.5)];
+}
+
+/* Deep Ocean */
+.text-gradient-ocean {
+  @apply bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-500
+         drop-shadow-[0_0_10px_rgba(59,130,246,0.5)];
+}
+
+/* Icon Glow Effects */
+.icon-glow-gold {
+  @apply text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.6)];
+}
+
+.icon-glow-plasma {
+  @apply text-pink-400 drop-shadow-[0_0_8px_rgba(219,39,119,0.6)];
+}
+
+.icon-glow-frost {
+  @apply text-cyan-400 drop-shadow-[0_0_8px_rgba(34,211,238,0.6)];
+}
+
+.icon-glow-emerald {
+  @apply text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.6)];
+}
+
+.icon-glow-solar {
+  @apply text-orange-400 drop-shadow-[0_0_8px_rgba(249,115,22,0.6)];
+}
+
+.icon-glow-nebula {
+  @apply text-violet-400 drop-shadow-[0_0_8px_rgba(139,92,246,0.6)];
+}
+
+.icon-glow-ocean {
+  @apply text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,0.6)];
+}
+
+/* Futuristic grid pattern background */
+.bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, rgba(75, 85, 99, 0.1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(75, 85, 99, 0.1) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+ 
 }
 

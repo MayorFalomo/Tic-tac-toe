@@ -61,7 +61,7 @@ const ProfileHeader = () => {
             const playerData = (doc.data().unreadMessages as Unread[]) || [];
             console.log(playerData, 'playerData');
 
-            setUserNotifs(playerData);
+            setUserNotifs(playerData.reverse());
           }
         });
       });

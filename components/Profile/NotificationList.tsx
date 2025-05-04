@@ -37,7 +37,10 @@ const NotificationsList: React.FC<NotificationsListProps> = ({
         {notifications.length > 0 ? (
           notifications.map((notification, index) => (
             <div className="divide-y divide-gray-100" key={index}>
-              <NotificationItem notification={notification} />
+              <NotificationItem
+                notification={notification}
+                NotificationsArray={notifications}
+              />
             </div>
           ))
         ) : (

@@ -55,7 +55,6 @@ const UserChats = () => {
 
   const combinedChattersId = useMemo(() => {
     if (!playersChatState?.combinedChattingId) {
-      // console.log('new computed CombinedId');
       const playerOneId = currentUser?.userId;
       const playerTwoId = playersChatState?.selectedPlayer?.id;
       if (playerOneId && playerTwoId) {
@@ -276,7 +275,7 @@ const UserChats = () => {
           typing: false,
         });
 
-        //! Fetch the current user's player document to update unreadMessages
+        //! Get the selected player document to update unreadMessages
         const playerDocRef = doc(
           db,
           'players',
@@ -297,8 +296,6 @@ const UserChats = () => {
               name: currentUser?.name,
               avatar: currentUser?.avatar,
               type: 'message',
-              // senderId: currentUser?.userId,
-              // receiverId: selectedPlayerId,
             }),
           });
 
@@ -324,7 +321,8 @@ const UserChats = () => {
   const handleChatSelect = async (chat: PlayerChatType) => {
     // dispatch(setCombinedChattingId(chat?.combinedId));
 
-    setGetSelectedChatCombinedId(chat?.combinedId); //Get the selectedChat combinedId
+    setGetSelectedChatCombinedId(chat?.combinedId); //a state to store the selectedChat combinedId
+
     const getSelectedChat = chat?.participantsObject.filter(
       (res) => res.id !== currentUser?.userId
     );

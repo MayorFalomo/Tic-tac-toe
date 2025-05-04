@@ -41,11 +41,11 @@ export type Unread = {
   name: string;
   avatar: string;
   message: string;
-  // senderId: string;
-  // receiverId?: string;
   status?: boolean;
   type?: string;
   timeStamp: TimeStamp;
+  answer?: string;
+  senderId?: string;
 }
 
 export type PlayerDetails = {
@@ -106,7 +106,7 @@ export type TrackPlayersBoolean = {
   playerTwo: string;
 }
 
-export type SessionPlayerDetails = {
+export interface SessionPlayerDetails {
   id: string;
   name: string;
   avatar: string | null;
@@ -200,6 +200,15 @@ export interface GlobalChatType {
   timeStamp: string;
 }
 
+export enum firebaseCollections {
+  GAMESESSIONS = 'gameSessions',
+  GLOBALCHAT = 'globalChat',
+  PLAYERS = 'players',
+  PLAYERSCHATS = 'playersChats',
+  PLAYERMOVES = 'playersMoves',
+  USERCHATS = 'userChats',
+}
+
 export enum AvatarValueType {
   Anime = 'Anime',
   SuperHeroes = 'Superheroes',
@@ -211,6 +220,19 @@ export enum LoadingState {
   LOADING = 'loading',
   SUCCESS = 'success',
   Failed = 'failed'
+}
+
+export enum NotifType {
+  MESSAGE = 'message',
+  ALERT = 'alert',
+  UPDATE = 'update',
+  BATTLE = 'battle',  
+}
+
+export enum BattleReplyStatus {
+  ACCEPT = 'accept',
+  DECLINE = 'decline',
+  PENDING = 'pending',
 }
 
 export const defaultImg = 'https://i.pinimg.com/564x/33/f4/d8/33f4d8c6de4d69b21652512cbc30bb05.jpg'

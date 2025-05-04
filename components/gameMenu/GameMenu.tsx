@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Button } from '../ui/button';
-import { EarthIcon, Gamepad2, Info, Settings } from 'lucide-react';
+import { EarthIcon, Gamepad2, Info, Settings, Users } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -11,10 +11,13 @@ import Bouncy from '@/app/animation/Bouncy';
 import ProfileHeader from '../Profile/ProfileHeader';
 import {
   gameInfoStyle,
+  globalChatStyle,
   playGameStyle,
   settingsBtnStyle,
   viewPlayersStyle,
 } from '@/app/animation/constants';
+import { IoIosPeople } from 'react-icons/io';
+import { FaEarthAfrica } from 'react-icons/fa6';
 
 type Props = {};
 
@@ -91,7 +94,7 @@ const GameMenu = (props: Props) => {
                   } hover:border-white`}
                 >
                   <span>
-                    <EarthIcon />{' '}
+                    <IoIosPeople size={24} />{' '}
                   </span>
                   <span>View Players </span>
                 </Button>
@@ -104,17 +107,15 @@ const GameMenu = (props: Props) => {
                   className={`w-[100%] flex items-center gap-4 py-3 cursor-pointer text-[16px] ${
                     currentTheme === 'light'
                       ? 'bg-transparent text-[#9F8151] border hover:bg-white'
-                      : gameInfoStyle
+                      : globalChatStyle
                   } hover:border-white`}
                 >
-                  <span>
-                    <EarthIcon />{' '}
-                  </span>
-                  <span>Global Chat </span>
+                  <FaEarthAfrica className="icon-glow-nebula" />{' '}
+                  <span className="text-gradient text-gradient-nebula">Global Chat </span>
                 </Button>
               </Link>
             </Bouncy>
-            <Bouncy delay={0.6} className="w-[40%]  max-[600px]:w-[70%]">
+            <Bouncy delay={0.8} className="w-[40%]  max-[600px]:w-[70%]">
               <Link href="/settings">
                 <Button
                   className={`w-[100%] flex items-center gap-4 py-3 cursor-pointer text-[16px] ${
@@ -131,7 +132,7 @@ const GameMenu = (props: Props) => {
               </Link>
             </Bouncy>
 
-            <Bouncy delay={0.8} className="w-[40%]  max-[600px]:w-[70%]">
+            <Bouncy delay={1} className="w-[40%]  max-[600px]:w-[70%]">
               <Link href="/info">
                 <Button
                   className={`w-[100%] flex items-center gap-4 py-3 cursor-pointer text-[16px] ${
@@ -143,7 +144,7 @@ const GameMenu = (props: Props) => {
                   <span>
                     <Info />{' '}
                   </span>
-                  <span> Game Info </span>
+                  <span className=""> Game Info </span>
                 </Button>
               </Link>
             </Bouncy>

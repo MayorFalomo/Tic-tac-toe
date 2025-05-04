@@ -155,7 +155,7 @@ const SignUp: React.FC = () => {
   const searchForOpponent = async (playerId: string) => {
     try {
       setLoading('search');
-      const playersRef = collection(db, 'players'); // Create a reference to players collection on Firestore
+      const playersRef = collection(db, 'players'); // Reference to players collection on Firestore
 
       const q = query(
         playersRef,
