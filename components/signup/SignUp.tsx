@@ -230,7 +230,7 @@ const SignUp: React.FC = () => {
                 // Pass our players object details to the handleGameSession to create a gameSession on Firestore
                 await handleGameSession(playerOneDetails, playerTwoDetails);
 
-                dispatch(setAPlayer({ id: playerId })); // Store the current player's ID
+                // dispatch(setAPlayer({ id: playerId })); // Store the current player's ID for use
                 dispatch(setSessionId(getSessionId)); // Store the current game session ID
                 setLoading(null); // Stop the loading spinner
                 clearTimeout(timeoutId); // Clear the timeout

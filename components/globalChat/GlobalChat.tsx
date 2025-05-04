@@ -155,7 +155,7 @@ const GlobalChat = () => {
     },
     {
       id: 3,
-      page: 'Gameinfo',
+      page: 'Game Info',
       link: '/info',
     },
     {
@@ -349,7 +349,23 @@ const GlobalChat = () => {
                       <Settings className="icon-glow-solar" />
                     )}
                   </span>
-                  {item.page}
+                  {item.page === 'Game menu' ? (
+                    <span className="text-gradient text-gradient-nebula">
+                      {item.page}
+                    </span>
+                  ) : item?.page === 'Players' ? (
+                    <span className="text-gradient text-gradient-ocean">
+                      {item?.page}
+                    </span>
+                  ) : item?.page === 'Game Info' ? (
+                    <span className="text-gradient text-gradient-emerald">
+                      {item.page}
+                    </span>
+                  ) : item?.page === 'Settings' ? (
+                    <span className="text-gradient text-gradient-solar">{item.page}</span>
+                  ) : (
+                    <span>{item.page}</span>
+                  )}
                 </Link>
               ))}
             </div>

@@ -1,4 +1,12 @@
-import { BattleReply, BattleReplyStatus, NotifType, Unread } from '@/app/types/types';
+import {
+  BattleReplyStatus,
+  firebaseCollections,
+  GameSession,
+  NotifType,
+  PlayerDetails,
+  PlayerStatus,
+  Unread,
+} from '@/app/types/types';
 import { formatTimeToNow } from '@/app/utils/date';
 import { db } from '@/firebase-config/firebase';
 import {
@@ -7,10 +15,24 @@ import {
 } from '@/lib/features/ChatAPlayerSlice';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
-import { arrayUnion, doc, getDoc, Timestamp, updateDoc } from 'firebase/firestore';
+import {
+  arrayUnion,
+  doc,
+  getDoc,
+  setDoc,
+  Timestamp,
+  updateDoc,
+} from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { Spinner } from '../ui/Spinner';
+import { createGameSession } from '../funcs/HandleAuth';
+import { givePlayerNames } from '@/lib/features/PlayerSlice';
+import {
+  setCombinedGameSessionId,
+  setPlayersSessionId,
+  setSessionId,
+} from '@/lib/features/TrackerSlice';
 
 interface NotificationItemProps {
   notification: Unread;
@@ -82,8 +104,47 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
     }
   };
 
-  const acceptInviteToBattle = (senderId: string, combinedId: string) => {
+  const acceptInviteToBattle = async (senderId: string, combinedId: string) => {
     try {
+      setAcceptState(true); // for the loader
+      const opponentDocRef = doc(db, 'players', senderId);
+      const opponentDocGet = await getDoc(opponentDocRef);
+      if (!opponentDocGet.exists()) {
+        console.error('Player does not exist');
+        return;
+      }
+      const opponentData = opponentDocGet.data();
+
+      const playerOneDetails = {
+        id: currentUser?.userId,
+        name: currentUser?.name,
+        avatar: currentUser?.avatar,
+        networkState: currentUser?.networkState
+          ? PlayerStatus.ONLINE
+          : PlayerStatus.OFFLINE,
+      };
+      const playerTwoDetails = {
+        id: opponentData?.userId,
+        name: opponentData?.name,
+        avatar: opponentData?.avatar,
+        networkState: opponentData?.networkState,
+      };
+
+      const randomControl = Math.random() > 0.5 ? true : false; //So I can randomize the gameplay turns
+
+      const gameSessionId = await createGameSession(
+        currentUser?.userId!,
+        opponentData?.userId!,
+        randomControl
+      );
+
+      await handleGameSession(
+        combinedId,
+        playerOneDetails,
+        playerTwoDetails,
+        randomControl
+      );
+
       const updatedNotifs = NotificationsArray.filter(
         (res) => res?.combinedId === combinedId && res?.type === NotifType.BATTLE
       )?.map((item) => {
@@ -92,10 +153,126 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
           answer: BattleReplyStatus.ACCEPT,
         };
       });
+      const currentUserDocRef = doc(db, 'players', currentUser?.userId!);
+
+      await updateDoc(currentUserDocRef, {
+        unreadMessages: arrayUnion(...updatedNotifs),
+      });
+      dispatch(setSessionId(gameSessionId)); // Store the current game session ID
+      setAcceptState(null); // Stop the loading spinner
+      setTimeout(async () => {
+        router.push('/battle'); // Redirect after 2 seconds
+      }, 2000);
       setShowConfirmation(false);
       router.push(`/battle`);
     } catch (error) {
       console.log(error);
+    }
+  };
+
+  const handleGameSession = async (
+    combinedId: string,
+    playerOneDetails: PlayerDetails,
+    opponent: PlayerDetails,
+    randomControl: boolean
+  ) => {
+    try {
+      const sessionDoc = await getDoc(
+        doc(db, firebaseCollections.GAMESESSIONS, combinedId)
+      );
+      if (sessionDoc.exists()) {
+        const sessionData = sessionDoc.data();
+        const playerOne = {
+          id: playerOneDetails?.id,
+          name: playerOneDetails?.name,
+          avatar: playerOneDetails?.avatar,
+          networkState: PlayerStatus.ONLINE,
+        };
+        const playerTwo = {
+          id: opponent?.id,
+          name: opponent?.name,
+          avatar: opponent?.avatar,
+          networkState: opponent?.networkState,
+        };
+        dispatch(
+          givePlayerNames({
+            playerOne: playerOne,
+            playerTwo: playerTwo,
+          })
+        );
+        dispatch(setCombinedGameSessionId(combinedId));
+        return sessionData;
+      } else {
+        const newGameSession: GameSession = {
+          sessionId: combinedId,
+          currentTurn: randomControl ? playerOneDetails.id : opponent.id,
+          firstPlayer: randomControl ? playerOneDetails.id : opponent.id,
+          unChangeableFirstPlayer: randomControl ? playerOneDetails.id : opponent.id,
+          rounds: 1,
+          createdAt: new Date().toISOString(),
+          scores: {
+            playerOne: 0,
+            playerTwo: 0,
+          },
+          roundWinner: '',
+          endOfRound: false,
+          trackRoundPlayer: randomControl ? playerOneDetails.id : opponent.id,
+          winningCombination: [],
+          quitGame: false,
+          goToNextRound: true,
+          draw: false,
+          players: {
+            playerOne: {
+              id: playerOneDetails?.id,
+              name: playerOneDetails?.name,
+              avatar: playerOneDetails?.avatar!,
+            },
+            playerTwo: {
+              id: opponent.id,
+              name: opponent.name,
+              avatar: opponent.avatar!,
+            },
+          },
+          unreadMessages: {
+            playerOne: 0,
+            playerTwo: 0,
+          },
+          trackPlayersOnlineStatus: {
+            playerOne: playerOneDetails?.networkState,
+            playerTwo: opponent?.networkState,
+          },
+        };
+        await setDoc(
+          doc(db, firebaseCollections.GAMESESSIONS, combinedId),
+          newGameSession
+        );
+        // await saveAvatar(playerOneDetails?.id, opponent?.id, combinedId);
+
+        setPlayersSessionId(doc(db, 'gameSessions', combinedId));
+        const playerOneDets = {
+          id: playerOneDetails?.id,
+          name: playerOneDetails?.name,
+          avatar: playerOneDetails?.avatar,
+        };
+
+        const playerTwoDets = {
+          id: opponent?.id,
+          name: opponent?.name,
+          avatar: opponent?.avatar,
+        };
+
+        dispatch(
+          givePlayerNames({
+            playerOne: playerOneDets,
+            playerTwo: playerTwoDets,
+          })
+        );
+
+        dispatch(setCombinedGameSessionId(combinedId));
+        return newGameSession; //Return the created gameSession
+      }
+    } catch (error) {
+      console.error('Error creating game session:', error);
     }
   };
 
