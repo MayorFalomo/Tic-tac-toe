@@ -33,6 +33,8 @@ import toast from 'react-hot-toast';
 import useTypingIndicator from '@/hooks/useTypingIndicator';
 import { motion } from 'framer-motion';
 import { formatTimestamp } from '@/app/utils/date';
+import { playGameStyle, settingsBtnStyle } from '@/app/animation/constants';
+import Nav from '../nav/Nav';
 
 const UserChats = () => {
   const playersChatState = useAppSelector((state: RootState) => state.chatUp);
@@ -137,15 +139,12 @@ const UserChats = () => {
     const playerDocs = await getDocs(playersQuery);
     const queryForCombinedSnap = await getDocs(queryForCombined);
 
-    // console.log(queryForCombinedSnap, 'queryCombinedSnap');
-
     //! Check for if a chat does not exist between the players before.
     if (!queryForCombinedSnap.empty) {
       const playerDocID = queryForCombinedSnap.docs[0]?.id;
       setChatsId(playerDocID);
       const playerDoc = await getDoc(doc(db, 'userChats', combinedId));
       const playerChat = playerDoc?.data() as PlayerChatType;
-      // console.log(playerChat, 'playerChat first');
 
       if (playerChat) {
         setTrackChatters(playerChat);
@@ -383,13 +382,15 @@ const UserChats = () => {
       <div
         className={`${
           currentTheme === 'light' ? 'bg-royalGreen text-white' : 'bg-black text-white'
-        } min-h-full grid grid-cols-[400px_auto_200px] max-[950px]:grid-cols-[300px_auto_200px] max-[750px]:grid-cols-[280px_auto_150px] max-[550px]:grid-cols-[250px_auto_0] h-screen overflow-hidden w-full text-white`}
+        } max-w-[1500px] mx-auto grid min-[1300px]:grid-cols-[380px_auto_360px] min-[950px]:grid-cols-[340px_auto_320px] max-[950px]:grid-cols-[320px_auto_200px] max-[750px]:grid-cols-[280px_auto_150px] max-[550px]:grid-cols-[250px_auto_0] h-screen overflow-hidden w-full text-white`}
       >
         <div className="h-full w-full border-r border-white/40 p-4 pb-[50px] overflow-auto">
           <div className="flex flex-col gap-4">
             <h1
               className={`${
-                currentTheme === 'light' ? 'text-golden' : 'text-white'
+                currentTheme === 'light'
+                  ? 'text-golden'
+                  : 'text-gradient text-gradient-arctic'
               } pt-1 mb-4 px-3 text-[24px]`}
             >
               <Link href="/players">Your Chats</Link>
@@ -409,7 +410,7 @@ const UserChats = () => {
                           key={contact?.id}
                           className="flex items-center gap-3 cursor-pointer mb-4"
                         >
-                          <div className="w-[40px] h-[40px] border border-white/50 rounded-full overflow-hidden">
+                          <div className="w-[40px] h-[40px] min-h-[40px] min-w-[40px] border border-white/50 rounded-full overflow-hidden">
                             <Image
                               src={contact?.avatar ?? defaultImg} // Or src={contact?.avatar ?? ''}
                               width={40}
@@ -482,8 +483,12 @@ const UserChats = () => {
             </div>
           </div>
         </div>
-        <div className="w-[70%] max-[750px]:w-[90%] max-[600px]:w-[95%] h-full overflow-hidden border-x border-white/40">
-          <div className="flex items-center gap-3  border-b border-white/50 w-full py-4 px-2">
+        <div
+          className={`w-full max-[750px]:w-[90%] max-[600px]:w-[95%] h-full overflow-hidden border-x border-white/40`}
+        >
+          <div
+            className={`${playGameStyle} flex items-center gap-3 border-t-0  border-b border-white/50 w-full py-4 px-2`}
+          >
             {playersChatState?.selectedPlayer?.avatar && (
               <Image
                 src={playersChatState?.selectedPlayer?.avatar}
@@ -540,44 +545,47 @@ const UserChats = () => {
               </div>
             </div>
           </div>
-          <div className="relative bg-gray-300 p-4">
-            <textarea
-              className="flex text-black items-center min-[600px]:h-[100%] max-[600px]:h-[100px] w-full rounded px-2 py-4 pt-2 text-sm placeholder:pt-2 placeholder:pl-2 outline-none border-none "
-              placeholder="Type your message and send reactions…"
-              onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  // Allow Shift+Enter for new line
-                  e.preventDefault();
+          <div className={`${playGameStyle} relative bg-gray-300 p-4`}>
+            <div className=" w-full bg-white rounded-md flex items-center">
+              <textarea
+                className="flex text-black font-normal items-center min-[600px]:h-[100%] max-[600px]:h-[100px] w-full resize-none rounded px-2 py-4 pt-2 text-sm placeholder:pt-2 placeholder:pl-2 outline-none border-none "
+                placeholder="Type your message and send reactions…"
+                onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    // Allow Shift+Enter for new line
+                    e.preventDefault();
+                    sendMessage(
+                      e.currentTarget.value,
+                      playersChatState?.selectedPlayer?.id.length < 1
+                        ? getOpponentId!
+                        : playersChatState?.selectedPlayer?.id
+                    );
+                  }
+                }}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                  setTextMessage(e.target.value);
+                  handleTyping();
+                }}
+                value={textMessage}
+                maxLength={100}
+              />
+              <Button
+                onClick={() =>
                   sendMessage(
-                    e.currentTarget.value,
+                    textMessage,
                     playersChatState?.selectedPlayer?.id.length < 1
                       ? getOpponentId!
                       : playersChatState?.selectedPlayer?.id
-                  );
+                  )
                 }
-              }}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                setTextMessage(e.target.value);
-                handleTyping();
-              }}
-              value={textMessage}
-              maxLength={100}
-            />
-            <Button
-              onClick={() =>
-                sendMessage(
-                  textMessage,
-                  playersChatState?.selectedPlayer?.id.length < 1
-                    ? getOpponentId!
-                    : playersChatState?.selectedPlayer?.id
-                )
-              }
-              className="absolute top-[20px] right-[30px]"
-            >
-              Send{' '}
-            </Button>
+                className="mr-2"
+              >
+                Send{' '}
+              </Button>
+            </div>
           </div>
         </div>
+        <Nav />
       </div>
     </div>
   );

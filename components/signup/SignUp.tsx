@@ -6,7 +6,6 @@ import { LoadingSpinner } from './Loader';
 import { push, ref, set } from 'firebase/database';
 import { database, db } from '@/firebase-config/firebase';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { setAPlayer } from '@/lib/features/userSlice';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { givePlayerNames } from '@/lib/features/PlayerSlice';

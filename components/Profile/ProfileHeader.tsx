@@ -60,7 +60,6 @@ const ProfileHeader = () => {
           if (doc.exists()) {
             const playerData = (doc.data().unreadMessages as Unread[]) || [];
             console.log(playerData, 'playerData');
-
             setUserNotifs(playerData.reverse());
           }
         });
@@ -79,7 +78,7 @@ const ProfileHeader = () => {
     if (!userDocs.empty) {
       const userData = userDocs.docs[0].data();
       const notifications = userData?.unreadMessages || [];
-      setUserNotifs(notifications);
+      setUserNotifs(notifications.reverse());
     }
   };
 

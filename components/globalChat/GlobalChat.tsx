@@ -30,6 +30,8 @@ import { Home, Info, Settings } from 'lucide-react';
 import { globalChatStyle } from '@/app/animation/constants';
 import { IoIosPeople } from 'react-icons/io';
 import useOnlineStatus from '@/hooks/useOnlinePresence';
+import clsx from 'clsx';
+import Nav from '../nav/Nav';
 
 interface IPlayers extends SessionPlayerDetails {
   invited: boolean;
@@ -141,29 +143,6 @@ const GlobalChat = () => {
       console.error('Error sending message:', error);
     }
   };
-
-  const navList = [
-    {
-      id: 1,
-      page: 'Game menu',
-      link: '/',
-    },
-    {
-      id: 2,
-      page: 'Players',
-      link: '/players',
-    },
-    {
-      id: 3,
-      page: 'Game Info',
-      link: '/info',
-    },
-    {
-      id: 4,
-      page: 'Settings',
-      link: '/settings',
-    },
-  ];
 
   const handleBattleInvitation = async (inviteeId: string) => {
     if (inviteeId === undefined || null) return;
@@ -329,48 +308,7 @@ const GlobalChat = () => {
             </div>
           </div>
         </div>
-        <div className="w-full">
-          <div className="flex flex-col gap-4 p-4 h-full w-full overflow-auto">
-            <div className="flex flex-col w-full items-start gap-4 py-4 ">
-              {navList.map((item) => (
-                <Link
-                  className={`w-full flex items-center gap-3 border-b border-white/40 py-2 `}
-                  key={item.id}
-                  href={item.link}
-                >
-                  <span>
-                    {item?.link === '/' ? (
-                      <Home className="icon-glow-frost" />
-                    ) : item?.link === '/info' ? (
-                      <Info className="icon-glow-emerald" />
-                    ) : item?.link === '/players' ? (
-                      <IoIosPeople className="icon-glow-ocean" size={24} />
-                    ) : (
-                      <Settings className="icon-glow-solar" />
-                    )}
-                  </span>
-                  {item.page === 'Game menu' ? (
-                    <span className="text-gradient text-gradient-nebula">
-                      {item.page}
-                    </span>
-                  ) : item?.page === 'Players' ? (
-                    <span className="text-gradient text-gradient-ocean">
-                      {item?.page}
-                    </span>
-                  ) : item?.page === 'Game Info' ? (
-                    <span className="text-gradient text-gradient-emerald">
-                      {item.page}
-                    </span>
-                  ) : item?.page === 'Settings' ? (
-                    <span className="text-gradient text-gradient-solar">{item.page}</span>
-                  ) : (
-                    <span>{item.page}</span>
-                  )}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
+        <Nav />
       </div>
     </div>
   );

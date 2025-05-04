@@ -197,7 +197,7 @@ export interface GlobalChatType {
   message: string;
   name: string;
   avatar: string;
-  timeStamp: string;
+  timeStamp: TimeStamp;
 }
 
 export enum firebaseCollections {

@@ -106,7 +106,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
 
   const acceptInviteToBattle = async (senderId: string, combinedId: string) => {
     try {
-      setAcceptState(true); // for the loader
+      setAcceptState(false); // for the loader
       const opponentDocRef = doc(db, 'players', senderId);
       const opponentDocGet = await getDoc(opponentDocRef);
       if (!opponentDocGet.exists()) {
@@ -160,7 +160,9 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       });
       dispatch(setSessionId(gameSessionId)); // Store the current game session ID
       setAcceptState(null); // Stop the loading spinner
+      setAcceptState(true);
       setTimeout(async () => {
+        setAcceptState(null); // back to default state
         router.push('/battle'); // Redirect after 2 seconds
       }, 2000);
       setShowConfirmation(false);
@@ -364,9 +366,9 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                 >
                   {declineState ? (
                     'Declined'
-                  ) : !declineState ? (
-                    <span>
-                      Decline <Spinner className="ml-2" />{' '}
+                  ) : declineState === false ? (
+                    <span className="flex items-center gap-2">
+                      Decline <Spinner size={'small'} className="text-white" />{' '}
                     </span>
                   ) : (
                     'Decline'
@@ -381,7 +383,16 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                   }
                   className="px-4 py-1 bg-black text-white rounded-md"
                 >
-                  Let&apos;s battle
+                  {acceptState ? (
+                    <span>Ready </span>
+                  ) : acceptState === false ? (
+                    <span>
+                      {' '}
+                      Gearing up <Spinner size={'small'} className="text-white" />
+                    </span>
+                  ) : (
+                    <span>Let's Battle </span>
+                  )}
                 </button>
               </div>
             )}

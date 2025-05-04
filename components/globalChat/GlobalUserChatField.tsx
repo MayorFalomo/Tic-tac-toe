@@ -1,4 +1,5 @@
 import { GlobalChatType } from '@/app/types/types';
+import { formatTimeToNow } from '@/app/utils/date';
 import { Ellipsis } from 'lucide-react';
 import Image from 'next/image';
 import React from 'react';
@@ -28,7 +29,10 @@ const GlobalUserChatField = (props: Props) => {
               <Ellipsis size={16} />{' '}
             </span>
           </p>
-          <span>{res.message}</span>
+          <p className="flex items-center justify-between">
+            <span>{res.message}</span>
+            <span className="text-white text-sm">{formatTimeToNow(res.timeStamp)}</span>
+          </p>
         </div>
       </div>
       {/* <span className="text-gray-500 text-sm">

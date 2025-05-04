@@ -2,7 +2,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { Checkbox } from '../ui/checkbox';
 import { useAudio } from '@/contexts/AudioContext';
-import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch } from '@/lib/hooks';
@@ -13,6 +12,7 @@ import FadeIn from '@/app/animation/FadeIn';
 import Bouncy from '@/app/animation/Bouncy';
 import { motion } from 'framer-motion';
 import { settingsBtnStyle } from '@/app/animation/constants';
+import { GoArrowLeft } from 'react-icons/go';
 
 const Settings: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -69,7 +69,7 @@ const Settings: React.FC = () => {
             className="ml-5 max-[400px]:ml-3 mt-4"
           >
             <Link href="/">
-              <span>{<ArrowLeft />} </span>
+              <span>{<GoArrowLeft size={24} />} </span>
             </Link>
           </motion.div>
           <Bouncy
