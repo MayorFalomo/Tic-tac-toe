@@ -96,7 +96,7 @@ const Login = () => {
             updatedAt: new Date().toISOString(),
           });
 
-          //Then it changes the players status to looking instead of online
+          //Then it changes the players status to looking instead of online on firestore/database
           handleUserPresence(playerData?.id, playerData?.name);
 
           //Since we've handled changing a users status we can now search for other players with a status of looking too

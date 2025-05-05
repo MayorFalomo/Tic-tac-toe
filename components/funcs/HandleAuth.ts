@@ -1,9 +1,12 @@
 import { onDisconnect, update } from "firebase/database";
 import { database, db,} from "@/firebase-config/firebase";
 import { push, ref, set, } from "@firebase/database";
-import { collection, doc, getDocs, query, setDoc, updateDoc } from "firebase/firestore";
-import { PlayerStatus } from "@/app/types/types";
+import { collection, doc, getDoc, getDocs, query, setDoc, updateDoc } from "firebase/firestore";
+import { firebaseCollections, GameSession, PlayerDetails, PlayerStatus } from "@/app/types/types";
 import emailjs from '@emailjs/browser';
+import { useAppDispatch } from "@/lib/hooks";
+import { givePlayerNames } from "@/lib/features/PlayerSlice";
+import { setCombinedGameSessionId, setPlayersSessionId } from "@/lib/features/TrackerSlice";
 
 
 export const handleUserPresence = async (userId: string, playerName: string) => {

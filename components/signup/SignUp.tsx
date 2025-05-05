@@ -168,7 +168,7 @@ const SignUp: React.FC = () => {
         toast.error('No opponent found, I am the cause');
         unsubscribe(); // Unsubscribe from the listener
         return;
-      }, 60 * 10 * 1000); // 60 seconds
+      }, 60 * 1000); // 60 seconds
 
       // Our Listener for available opponents
       const unsubscribe = onSnapshot(q, async (snapshot) => {
@@ -360,8 +360,7 @@ const SignUp: React.FC = () => {
   // };
 
   const confirmBothPlayersReady = async () => {
-    // Implement your logic to confirm both players are ready
-    // For example, you could use a UI prompt or a timeout
+    // Simulate a confirmation process for both players to be ready
     return new Promise((resolve) => {
       setTimeout(() => resolve(true), 3000); // Simulate a 3-second wait for confirmation
     });

@@ -1,6 +1,6 @@
 'use client';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useAppSelector } from '@/lib/hooks';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -10,8 +10,12 @@ import { Button } from '../ui/button';
 import {
   BattleReplyStatus,
   Chat,
+  firebaseCollections,
+  GameSession,
   GlobalChatType,
   NotifType,
+  PlayerDetails,
+  PlayerStatus,
   SessionPlayerDetails,
   userDetails,
 } from '@/app/types/types';
@@ -21,9 +25,11 @@ import {
   doc,
   getDoc,
   onSnapshot,
+  query,
   setDoc,
   Timestamp,
   updateDoc,
+  where,
 } from 'firebase/firestore';
 import { db } from '@/firebase-config/firebase';
 import { Home, Info, Settings } from 'lucide-react';
@@ -32,6 +38,16 @@ import { IoIosPeople } from 'react-icons/io';
 import useOnlineStatus from '@/hooks/useOnlinePresence';
 import clsx from 'clsx';
 import Nav from '../nav/Nav';
+import { Spinner } from '../ui/Spinner';
+import { createGameSession, handleUserPresence } from '../funcs/HandleAuth';
+import toast from 'react-hot-toast';
+import {
+  setCombinedGameSessionId,
+  setPlayersSessionId,
+  setSessionId,
+} from '@/lib/features/TrackerSlice';
+import { givePlayerNames } from '@/lib/features/PlayerSlice';
+import { useRouter } from 'next/navigation';
 
 interface IPlayers extends SessionPlayerDetails {
   invited: boolean;
@@ -44,9 +60,13 @@ const GlobalChat = () => {
   const [textMessage, setTextMessage] = useState<string>('');
   const [scrollToBtm, setScrollToBtm] = useState<boolean>(false);
   const [getPlayerChatters, setGetPlayerChatters] = useState<IPlayers[]>([]);
+  const [loadingSpinner, setLoadingSpinner] = useState<string | null>(null);
+  const [storedId, setStoredId] = useState<string | null>(null);
 
   const currentUser = useAppSelector((state: RootState) => state.user);
+  const dispatch = useAppDispatch();
   const online = useOnlineStatus();
+  const router = useRouter();
 
   useEffect(() => {
     const docRef = doc(db, 'globalChat', 'messages');
@@ -83,20 +103,27 @@ const GlobalChat = () => {
 
         if (docSnap.exists()) {
           const data = docSnap.data();
-          console.log('Document data:', data);
 
           setGlobalPlayerChatters(data.messages || []);
           const playerChatters: GlobalChatType[] = data.messages || [];
+
+          const seen = new Set();
+          //Now I ensure that I don't get the currentUser in the array and also multiple users of with the same ID
           const filteredChatters: IPlayers[] = playerChatters
             .filter((res) => res?.senderId !== currentUser?.userId)
-            .map((res: GlobalChatType) => {
-              return {
-                id: res.senderId,
-                name: res.name,
-                avatar: res.avatar,
-                invited: false,
-              };
+            .map((res) => ({
+              id: res.senderId,
+              name: res.name,
+              avatar: res.avatar,
+              invited: false,
+            }))
+            .filter((player) => {
+              if (seen.has(player.id)) return false;
+              seen.add(player.id);
+              return true;
             });
+
+          setGetPlayerChatters(filteredChatters);
           setGetPlayerChatters(filteredChatters);
         } else {
           console.log('No such document!');
@@ -144,50 +171,227 @@ const GlobalChat = () => {
     }
   };
 
-  const handleBattleInvitation = async (inviteeId: string) => {
+  const handleSendBattleInvitation = async (inviteeId: string) => {
     if (inviteeId === undefined || null) return;
     if (!currentUser?.userId) return;
 
-    const combinedId =
-      currentUser?.userId > inviteeId
-        ? currentUser?.userId + inviteeId
-        : inviteeId + currentUser?.userId;
+    try {
+      setLoadingSpinner('start');
 
-    const battleInvitationData = {
-      combinedId: combinedId,
-      id: new Date().getTime(),
-      message: `${currentUser?.name} has invited you to a battle`,
-      timeStamp: Timestamp.now(),
-      name: currentUser?.name,
-      // avatar: currentUser?.avatar,
-      type: NotifType.BATTLE,
-      answer: BattleReplyStatus.PENDING,
-      senderId: currentUser?.userId,
-    };
+      const combinedId =
+        currentUser?.userId > inviteeId
+          ? currentUser?.userId + inviteeId
+          : inviteeId + currentUser?.userId;
 
-    const playerDocRef = doc(db, 'players', inviteeId);
-    const playerDocSnap = await getDoc(playerDocRef);
-    if (playerDocSnap.exists()) {
-      await updateDoc(playerDocRef, {
-        unreadMessages: arrayUnion(battleInvitationData),
-      });
-    } else {
-      console.log('No such document!');
+      const inviteObj = {
+        id: new Date().getTime(),
+        combinedId: combinedId,
+        senderId: currentUser?.userId,
+        timeStamp: Timestamp.now(),
+        type: NotifType.BATTLE,
+        answer: BattleReplyStatus.PENDING,
+        avatar: currentUser?.avatar,
+      };
+
+      await setDoc(doc(db, 'battleInvitations', combinedId), inviteObj);
+
+      const battleInvitationObj = {
+        combinedId: combinedId,
+        id: new Date().getTime(),
+        message: `${currentUser?.name} has invited you to a battle`,
+        timeStamp: Timestamp.now(),
+        name: currentUser?.name,
+        type: NotifType.BATTLE,
+        answer: BattleReplyStatus.PENDING,
+        senderId: currentUser?.userId,
+      };
+
+      const playerDocRef = doc(db, 'players', inviteeId);
+      const playerDocSnap = await getDoc(playerDocRef);
+      if (playerDocSnap.exists()) {
+        await updateDoc(playerDocRef, {
+          unreadMessages: arrayUnion(battleInvitationObj),
+        });
+
+        const playerRef = collection(db, 'battleInvitations');
+        const playerQuery = query(
+          playerRef,
+          where('combinedId', '==', combinedId),
+          where('answer', '==', BattleReplyStatus.PENDING)
+        );
+        const timeOut = setTimeout(() => {
+          setLoadingSpinner('stop');
+          setStoredId(null);
+          toast('Player did not respond on time.');
+          unsubscribe();
+          return;
+        }, 60 * 1000); // 60 seconds
+
+        const unsubscribe = onSnapshot(playerQuery, (snapshot) => {
+          snapshot.forEach(async (doc) => {
+            const data = doc.data();
+            if (data.answer === BattleReplyStatus.ACCEPT) {
+              clearTimeout(timeOut)
+              const getOponentDetails = playerDocSnap.data();
+              console.log(getOponentDetails, 'getOponentDetails');
+
+              toast(`${getOponentDetails.name} has accepted your invitation`);
+
+              const playerOneDetails = {
+                id: currentUser?.userId,
+                name: currentUser?.name,
+                avatar: currentUser?.avatar!,
+                networkState: online ? PlayerStatus.ONLINE : PlayerStatus.OFFLINE,
+              };
+
+              const playerTwoDetails = {
+                id: getOponentDetails.id,
+                name: getOponentDetails.name,
+                avatar: getOponentDetails.avatar,
+                networkState: getOponentDetails.networkState,
+              };
+              const randomControl = Math.random() > 0.5 ? true : false; //So I can randomize the gameplay turns
+
+              const getSessionId = await createGameSession(
+                currentUser?.userId,
+                getOponentDetails.id,
+                randomControl
+              );
+              console.log(getSessionId, 'getSessionId');
+
+              dispatch(setSessionId(getSessionId)); // Store the current game session ID
+              await handleGameSession(
+                combinedId,
+                playerOneDetails,
+                playerTwoDetails,
+                randomControl
+              );
+              await updateDoc(doc.ref, { status: PlayerStatus.INGAME });
+
+              setLoadingSpinner('end');
+              setTimeout(() => {
+                setLoadingSpinner(null);
+                router.push('/');
+              }, 2000);
+            }
+          });
+        });
+        return () => {
+          clearTimeout(timeOut);
+          unsubscribe();
+        };
+      } else {
+        console.log('No such document!');
+      }
+    } catch (error) {
+      console.log('An error has occurred', error);
     }
+  };
 
-    // Reference to the battleInvitations document
-    // const docRef = doc(db, 'battleInvitations', combinedId);
-    // const docSnap = await getDoc(docRef);
-    // if (docSnap.exists()) {
-    //   const data = docSnap.data();
-    //   const invitations = data.invitations || [];
-    //   invitations.push(battleInvitationData);
-    //   await setDoc(docRef, { invitations });
+  const handleGameSession = async (
+    combinedId: string,
+    playerOneDetails: PlayerDetails,
+    opponent: PlayerDetails,
+    randomControl: boolean
+  ) => {
+    try {
+      const sessionDoc = await getDoc(
+        doc(db, firebaseCollections.GAMESESSIONS, combinedId)
+      );
+      if (sessionDoc.exists()) {
+        const sessionData = sessionDoc.data();
+        const playerOne = {
+          id: playerOneDetails?.id,
+          name: playerOneDetails?.name,
+          avatar: playerOneDetails?.avatar,
+          networkState: PlayerStatus.ONLINE,
+        };
+        const playerTwo = {
+          id: opponent?.id,
+          name: opponent?.name,
+          avatar: opponent?.avatar,
+          networkState: opponent?.networkState,
+        };
+        dispatch(
+          givePlayerNames({
+            playerOne: playerOne,
+            playerTwo: playerTwo,
+          })
+        );
+        dispatch(setCombinedGameSessionId(combinedId));
+        return sessionData;
+      } else {
+        const newGameSession: GameSession = {
+          sessionId: combinedId,
+          currentTurn: randomControl ? playerOneDetails.id : opponent.id,
+          firstPlayer: randomControl ? playerOneDetails.id : opponent.id,
+          unChangeableFirstPlayer: randomControl ? playerOneDetails.id : opponent.id,
+          rounds: 1,
+          createdAt: new Date().toISOString(),
+          scores: {
+            playerOne: 0,
+            playerTwo: 0,
+          },
+          roundWinner: '',
+          endOfRound: false,
+          trackRoundPlayer: randomControl ? playerOneDetails.id : opponent.id,
+          winningCombination: [],
+          quitGame: false,
+          goToNextRound: true,
+          draw: false,
+          players: {
+            playerOne: {
+              id: playerOneDetails?.id,
+              name: playerOneDetails?.name,
+              avatar: playerOneDetails?.avatar!,
+            },
+            playerTwo: {
+              id: opponent.id,
+              name: opponent.name,
+              avatar: opponent.avatar!,
+            },
+          },
+          unreadMessages: {
+            playerOne: 0,
+            playerTwo: 0,
+          },
+          trackPlayersOnlineStatus: {
+            playerOne: playerOneDetails?.networkState,
+            playerTwo: opponent?.networkState,
+          },
+        };
+        await setDoc(
+          doc(db, firebaseCollections.GAMESESSIONS, combinedId),
+          newGameSession
+        );
+        // await saveAvatar(playerOneDetails?.id, opponent?.id, combinedId);
 
-    // } else {
-    //   await setDoc(docRef, { invitations: [battleInvitationData] });
-    // }
-    // console.log('Battle invitation sent successfully!');
+        setPlayersSessionId(doc(db, 'gameSessions', combinedId));
+        const playerOneDets = {
+          id: playerOneDetails?.id,
+          name: playerOneDetails?.name,
+          avatar: playerOneDetails?.avatar,
+        };
+
+        const playerTwoDets = {
+          id: opponent?.id,
+          name: opponent?.name,
+          avatar: opponent?.avatar,
+        };
+
+        dispatch(
+          givePlayerNames({
+            playerOne: playerOneDets,
+            playerTwo: playerTwoDets,
+          })
+        );
+
+        dispatch(setCombinedGameSessionId(combinedId));
+        return newGameSession; //Return the created gameSession
+      }
+    } catch (error) {
+      console.error('Error creating game session:', error);
+    }
   };
 
   return (
@@ -229,10 +433,16 @@ const GlobalChat = () => {
                         <span className="font-bold">{res.name}</span>
                       </p>
                       <button
-                        onClick={() => handleBattleInvitation(res.id)}
-                        className={`text-gradient-neo-plasma py-2 rounded-[4px] w-[100px] text-[12px] font-normal px-[3px]`}
+                        onClick={() => {
+                          setStoredId(res.id);
+                          handleSendBattleInvitation(res.id);
+                        }}
+                        className={`text-gradient-neo-plasma flex items-center justify-center gap-1 py-2 rounded-[4px] w-[100px] text-[12px] font-normal px-[3px]`}
                       >
                         Invite{' '}
+                        {loadingSpinner && res.id === storedId && (
+                          <Spinner size={'small'} className="text-white" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -245,7 +455,7 @@ const GlobalChat = () => {
           className={`w-full max-[750px]:w-[90%] max-[600px]:w-[95%] h-full overflow-hidden border-x border-white/40`}
         >
           <div
-            className={`${globalChatStyle} flex items-center gap-3  border-b border-white/50 w-full py-4 px-2`}
+            className={`${globalChatStyle} flex items-center gap-3 border-t-0 border-b border-white/50 w-full py-4 px-2`}
           >
             {currentUser?.avatar && (
               <Image

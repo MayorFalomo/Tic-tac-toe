@@ -200,6 +200,18 @@ export interface GlobalChatType {
   timeStamp: TimeStamp;
 }
 
+export interface battleInvitationType {
+  combinedId: string;
+  id: string;
+  message: string;
+  timeStamp: TimeStamp;
+  name: string;
+  avatar: string;
+  type: string;
+  answer: string;
+  senderId: string;
+}
+
 export enum firebaseCollections {
   GAMESESSIONS = 'gameSessions',
   GLOBALCHAT = 'globalChat',

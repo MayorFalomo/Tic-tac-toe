@@ -1,4 +1,5 @@
 import {
+  battleInvitationType,
   BattleReplyStatus,
   firebaseCollections,
   GameSession,
@@ -33,6 +34,7 @@ import {
   setPlayersSessionId,
   setSessionId,
 } from '@/lib/features/TrackerSlice';
+import toast from 'react-hot-toast';
 
 interface NotificationItemProps {
   notification: Unread;
@@ -50,7 +52,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   );
   const [showConfirmationBtn, setShowConfirmation] = useState(false);
   const [declineState, setDeclineState] = useState<boolean | null>(null);
-  const [acceptState, setAcceptState] = useState<boolean | null>(null);
+  const [acceptState, setAcceptState] = useState<string | null>(null);
   const currentUser = useAppSelector((state: RootState) => state.user);
 
   const router = useRouter();
@@ -106,14 +108,17 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
 
   const acceptInviteToBattle = async (senderId: string, combinedId: string) => {
     try {
-      setAcceptState(false); // for the loader
-      const opponentDocRef = doc(db, 'players', senderId);
-      const opponentDocGet = await getDoc(opponentDocRef);
-      if (!opponentDocGet.exists()) {
-        console.error('Player does not exist');
+      setAcceptState('start'); // for the loader
+      const combinedRef = doc(db, 'battleInvitations', combinedId);
+      const getCombinedDets = await getDoc(combinedRef);
+      if (!getCombinedDets.exists()) {
+        toast('This invite does not exist anymore');
         return;
       }
-      const opponentData = opponentDocGet.data();
+
+      const opponentData = getCombinedDets.data() as battleInvitationType;
+
+      console.log(opponentData, 'opponentData');
 
       const playerOneDetails = {
         id: currentUser?.userId,
@@ -123,20 +128,25 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
           ? PlayerStatus.ONLINE
           : PlayerStatus.OFFLINE,
       };
+
       const playerTwoDetails = {
-        id: opponentData?.userId,
+        id: senderId,
         name: opponentData?.name,
         avatar: opponentData?.avatar,
-        networkState: opponentData?.networkState,
+        networkState: 'online',
       };
+
+      console.log(playerTwoDetails, 'playerTwoDetails');
 
       const randomControl = Math.random() > 0.5 ? true : false; //So I can randomize the gameplay turns
 
       const gameSessionId = await createGameSession(
         currentUser?.userId!,
-        opponentData?.userId!,
+        senderId,
         randomControl
       );
+
+      console.log(gameSessionId, 'gameSessionId');
 
       await handleGameSession(
         combinedId,
@@ -158,15 +168,16 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       await updateDoc(currentUserDocRef, {
         unreadMessages: arrayUnion(...updatedNotifs),
       });
+      await updateDoc(combinedRef, {
+        answer: BattleReplyStatus.ACCEPT,
+      });
       dispatch(setSessionId(gameSessionId)); // Store the current game session ID
-      setAcceptState(null); // Stop the loading spinner
-      setAcceptState(true);
+      setAcceptState('end');
+      setShowConfirmation(false);
       setTimeout(async () => {
         setAcceptState(null); // back to default state
         router.push('/battle'); // Redirect after 2 seconds
       }, 2000);
-      setShowConfirmation(false);
-      router.push(`/battle`);
     } catch (error) {
       console.log(error);
     }
@@ -271,6 +282,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         );
 
         dispatch(setCombinedGameSessionId(combinedId));
+        console.log(newGameSession, 'newGameSession');
         return newGameSession; //Return the created gameSession
       }
     } catch (error) {
@@ -335,7 +347,11 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         onClick={() =>
           checkOutTheNotification(notification?.combinedId, notification.type!)
         }
-        className={`flex gap-3 ${notification?.type === 'message' && 'cursor-pointer'}`}
+        className={clsx(
+          notification.type === 'battle' && ' cursor-pointer',
+          notification?.type === 'message' && 'cursor-pointer',
+          `flex gap-3 `
+        )}
       >
         <div
           className={`h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0 ${getIconClass()}`}
@@ -383,15 +399,15 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                   }
                   className="px-4 py-1 bg-black text-white rounded-md"
                 >
-                  {acceptState ? (
+                  {acceptState === 'end' ? (
                     <span>Ready </span>
-                  ) : acceptState === false ? (
+                  ) : acceptState === 'start' ? (
                     <span>
                       {' '}
                       Gearing up <Spinner size={'small'} className="text-white" />
                     </span>
                   ) : (
-                    <span>Let's Battle </span>
+                    <span>Let&apos;s Battle </span>
                   )}
                 </button>
               </div>

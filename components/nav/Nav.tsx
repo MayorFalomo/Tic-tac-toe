@@ -54,7 +54,7 @@ const Nav = (props: Props) => {
                 ) : item?.link === '/players' ? (
                   <IoIosPeople className="icon-glow-ocean" size={24} />
                 ) : item?.link === '/global-chat' ? (
-                  <FaEarthAfrica className="icon-glow-nebula" />
+                  <FaEarthAfrica className="icon-glow-gold" />
                 ) : (
                   <Settings className="icon-glow-solar" />
                 )}
