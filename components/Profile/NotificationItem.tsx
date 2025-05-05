@@ -52,7 +52,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
     null
   );
   const [showConfirmationBtn, setShowConfirmation] = useState(false);
-  const [declineState, setDeclineState] = useState<boolean | null>(null);
+  const [declineState, setDeclineState] = useState<string | null>(null);
   const [acceptState, setAcceptState] = useState<string | null>(null);
   const currentUser = useAppSelector((state: RootState) => state.user);
 
@@ -119,8 +119,6 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
 
       const opponentData = getCombinedDets.data() as battleInvitationType;
 
-      console.log(opponentData, 'opponentData');
-
       const playerOneDetails = {
         id: currentUser?.userId,
         name: currentUser?.name,
@@ -137,18 +135,13 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         networkState: 'online',
       };
 
-      console.log(playerTwoDetails, 'playerTwoDetails');
-
       const randomControl = Math.random() > 0.5 ? true : false; //So I can randomize the gameplay turns
-      console.log(randomControl, 'rando');
 
       const gameSessionId = await createGameSession(
         currentUser?.userId!,
         senderId,
         randomControl
       );
-
-      console.log(gameSessionId, 'gameSessionId');
 
       await handleGameSession(
         combinedId,
@@ -157,19 +150,8 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         randomControl
       );
 
-      // const updatedNotifs = NotificationsArray.filter(
-      //   (res) => res?.combinedId === combinedId && res?.type === NotifType.BATTLE
-      // )?.map((item) => {
-      //   return {
-      //     ...item,
-      //     answer: BattleReplyStatus.ACCEPT,
-      //   };
-      // });
-      // const currentUserDocRef = doc(db, 'players', currentUser?.userId!);
+      await sendNotification(combinedId, BattleReplyStatus.ACCEPT);
 
-      // await updateDoc(currentUserDocRef, {
-      //   unreadMessages: arrayUnion(...updatedNotifs),
-      // });
       await updateDoc(combinedRef, {
         answer: BattleReplyStatus.ACCEPT,
       });
@@ -177,7 +159,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       setAcceptState('end');
       setShowConfirmation(false);
       setTimeout(async () => {
-        setAcceptState(null); // back to default state
+        setAcceptState(null);
         router.push('/battle'); // Redirect after 2 seconds
       }, 2000);
     } catch (error) {
@@ -284,7 +266,6 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         );
 
         dispatch(setCombinedGameSessionId(combinedId));
-        console.log(newGameSession, 'newGameSession');
         return newGameSession; //Return the created gameSession
       }
     } catch (error) {
@@ -292,23 +273,26 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
     }
   };
 
+  const sendNotification = async (combinedId: string, reply: string) => {
+    const pushedNotif = NotificationsArray.filter(
+      (res) => res?.combinedId === combinedId && res?.type === NotifType.BATTLE
+    )?.map((item) => {
+      return {
+        ...item,
+        answer: reply,
+      };
+    });
+    const currentUserDocRef = doc(db, 'players', currentUser?.userId!);
+    await updateDoc(currentUserDocRef, {
+      unreadMessages: arrayUnion(...pushedNotif),
+    });
+  };
+
   const handleDecline = async (senderId: string, combinedId: string) => {
-    setDeclineState(false);
+    setDeclineState('start');
     try {
       //I filter and map over the notifications array to get the specific notification, so I can change the status to decline on my end
-      const updatedNotifs = NotificationsArray.filter(
-        (res) => res?.combinedId === combinedId && res?.type === NotifType.BATTLE
-      )?.map((item) => {
-        return {
-          ...item,
-          answer: BattleReplyStatus.DECLINE,
-        };
-      });
-      //Then i update it on firebase
-      const currentUserDocRef = doc(db, 'players', currentUser?.userId!);
-      await updateDoc(currentUserDocRef, {
-        unreadMessages: arrayUnion(...updatedNotifs),
-      });
+      await sendNotification(combinedId, BattleReplyStatus.DECLINE);
 
       const playerDocRef = doc(db, 'players', senderId);
       const playerDocGet = await getDoc(playerDocRef);
@@ -328,7 +312,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       await updateDoc(playerDocRef, {
         unreadMessages: arrayUnion(battleInviteReply),
       });
-      setDeclineState(true);
+      setDeclineState('end');
       setTimeout(() => {
         setShowConfirmation(false);
         setStoreSelectedCombinedId(null);
@@ -382,9 +366,9 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                   }
                   className=" px-3 py-1 bg-red-700 rounded-md"
                 >
-                  {declineState ? (
+                  {declineState === 'end' ? (
                     'Declined'
-                  ) : declineState === false ? (
+                  ) : declineState === 'start' ? (
                     <span className="flex items-center gap-2">
                       Decline <Spinner size={'small'} className="text-white" />{' '}
                     </span>

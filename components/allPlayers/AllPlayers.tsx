@@ -48,7 +48,10 @@ const AllPlayers = () => {
 
   const currentUser = useAppSelector((state: RootState) => state.user as userDetails);
   const dispatch = useAppDispatch();
+  const navigate = useRouter();
+  const { currentTheme } = useTheme();
 
+  //React to changes for players as they happen
   useEffect(() => {
     const getAllPlayersRef = collection(database, 'players');
     const allPlayersQuery = query(getAllPlayersRef);
@@ -58,10 +61,7 @@ const AllPlayers = () => {
 
       snapshot.forEach((doc) => {
         if (doc.exists()) {
-          console.log(doc.data(), 'doc Data');
-
           const playersArr = doc.data() as IPlayers;
-
           updatedPlayers.push(playersArr);
         }
       });
@@ -108,19 +108,6 @@ const AllPlayers = () => {
       });
     }
   }, []);
-
-  const { currentTheme } = useTheme();
-
-  const combinedChattersId = useMemo(() => {
-    const playerOneId = currentUser?.userId;
-    const playerTwoId = singlePlayer?.id!;
-    if (playerOneId && playerTwoId) {
-      return playerOneId > playerTwoId
-        ? playerOneId + playerTwoId
-        : playerTwoId + playerOneId;
-    }
-  }, [singlePlayer?.id, currentUser?.userId]);
-  const navigate = useRouter();
 
   const handleChats = async () => {
     dispatch(setCombinedChattingId(''));
@@ -241,7 +228,7 @@ const AllPlayers = () => {
             </div>
           </div>
           {singlePlayer ? (
-            <div className={`${viewPlayersStyle} h-full pb-[30px]`}>
+            <div className={`${viewPlayersStyle} relative h-full pb-[30px]`}>
               {singlePlayer?.avatar ? (
                 <div
                   style={{
@@ -249,7 +236,7 @@ const AllPlayers = () => {
                     backgroundSize: 'cover',
                     backgroundPosition: 'top',
                   }}
-                  className="h-[70vh] max-[550px]:h-[40vh] w-full"
+                  className="h-[100vh] max-[550px]:h-[40vh] w-full"
                 >
                   {singlePlayer?.avatar && (
                     <p className="w-full h-full hover:bg-transparent bg-black/30 transition-all duration-500 "></p>
@@ -260,13 +247,13 @@ const AllPlayers = () => {
                   <p>Select a players profile</p>
                 </div>
               )}
-              <div className="text-[20px] max-[600px]:text-[17px] mb-[10px]">
+              <div className="absolute bottom-[5%] text-white left-[30px] z-10 text-[20px] max-[600px]:text-[17px] mb-[10px]">
                 <h2 className="flex items-center gap-3 mt-[30px]  px-3 ">
                   <span>Players Name:</span>
                   <span>{singlePlayer?.name}</span>
                 </h2>
                 <p className="flex items-center gap-3 mt-[5px] px-3 pb-2 ">
-                  <span>Date Created:</span>
+                  <span>Date Joined:</span>
                   <span>
                     {singlePlayer?.createdAt
                       ? formatDateToDMY(singlePlayer?.createdAt)

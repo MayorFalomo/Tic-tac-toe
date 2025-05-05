@@ -14,7 +14,7 @@ import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import ReactConfetti from 'react-confetti';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Chat, GameSession } from '@/app/types/types';
+import { Chat, GameSession, PlayerStatus } from '@/app/types/types';
 import { useWindowSize } from 'react-use';
 // import { useRouter } from 'next/navigation';
 import { useAudio } from '@/contexts/AudioContext';
@@ -23,6 +23,8 @@ import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
 import {
   changeNotifBg,
+  setCombinedGameSessionId,
+  setSessionId,
   setTrackDisableRound,
   setTrackSound,
 } from '@/lib/features/TrackerSlice';
@@ -39,6 +41,8 @@ import { db } from '@/firebase-config/firebase';
 // import { setAPlayer, updateUser } from '@/lib/features/userSlice';
 import toast from 'react-hot-toast';
 import { givePlayerNames } from '@/lib/features/PlayerSlice';
+import { setCombinedChattingId } from '@/lib/features/ChatAPlayerSlice';
+import { useRouter } from 'next/navigation';
 
 type Props = {
   gameData: GameSession | null;
@@ -68,7 +72,8 @@ const HomeHeader: React.FC<Props> = ({
   const playersObject = useAppSelector((state: RootState) => state.players.players);
   const track = useAppSelector((state: RootState) => state.track);
   const dispatch = useAppDispatch();
-  // const router = useRouter();
+
+  const router = useRouter();
 
   //useEffect to control sound state
   useEffect(() => {
@@ -119,20 +124,19 @@ const HomeHeader: React.FC<Props> = ({
     await updateDoc(doc(db, 'gameSessions', combinedId), {
       quitGame: true,
     });
-    // await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
-    //   status: PlayerStatus.ONLINE,
-    // });
-    // await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
-    //   status: PlayerStatus.ONLINE,
-    // });
+    await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
+      status: PlayerStatus.ONLINE,
+    });
     dispatch(
       givePlayerNames({
         playerOne: {},
-        playersObject: {
-          id: '',
-        },
+        playerTwo: {},
       })
     );
+    dispatch(setCombinedChattingId(''));
+    dispatch(setCombinedGameSessionId(''));
+    dispatch(setSessionId(''));
+    router.push('/');
   };
 
   const handleModal = async () => {
@@ -142,7 +146,7 @@ const HomeHeader: React.FC<Props> = ({
     //Meanwhile in my chat modal, when a player sends a message it sends an object containing
     //*Note senderId, message, timestamp, Reaction
     //Then just the way we did the instant update with local state , we do the same thing here with the chat messages
-    //So whatever messages we send appears instantly then we can sort it by the id so it shows who is in sender and receiver based on the id for each player.
+    //# So whatever messages we send appears instantly then we can sort it by the id so it shows who is in sender and receiver based on the id for each player.
     setOpenModal(true);
     await loadChat();
   };
@@ -271,8 +275,7 @@ const HomeHeader: React.FC<Props> = ({
           </div>
         </div>
         <AnimatePresence>
-          {ultimateWinner !== null ||
-          (roundWinner !== null && roundWinner!?.length > 1) ? (
+          {ultimateWinner && (
             <motion.div
               style={{
                 background: 'rgba(255, 255, 255, 0.1)',
@@ -290,15 +293,35 @@ const HomeHeader: React.FC<Props> = ({
                   ultimateWinner !== null || '' ? 'text-golden' : 'text-white'
                 } text-[24px] text-center m-auto`}
               >
-                {ultimateWinner !== null
-                  ? 'Congrats!' + ' ' + ultimateWinner
-                  : roundWinner !== null || ''
+                {ultimateWinner !== null ? 'Congrats!' + ' ' + ultimateWinner : ''}
+              </h1>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {roundWinner !== null && roundWinner!?.length > 1 && (
+            <motion.div
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(3.6px)',
+                WebkitBackdropFilter: 'filter(5px',
+                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+              }}
+              className="absolute z-20 left-0 right-0 top-[50%] w-full p-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <h1
+                className={`${
+                  ultimateWinner !== null || '' ? 'text-golden' : 'text-white'
+                } text-[24px] text-center m-auto`}
+              >
+                {roundWinner !== null || roundWinner !== ''
                   ? roundWinner + ' ' + 'wins'
                   : ''}
               </h1>
             </motion.div>
-          ) : (
-            ''
           )}
         </AnimatePresence>
       </div>

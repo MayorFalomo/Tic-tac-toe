@@ -93,8 +93,6 @@ const SignUp: React.FC = () => {
     e.preventDefault();
 
     try {
-      console.log('helloooo');
-
       setLoading(ProfileStatus.CREATE); //Set The loading spinner to be true
       const playerNameSelect = playerName ? playerName : 'PlayerOne';
       setShowPlayerName(true);
