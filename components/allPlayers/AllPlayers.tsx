@@ -33,6 +33,8 @@ import {
 } from '@/app/animation/constants';
 import { Skeleton } from '../ui/skeleton';
 import { collection, onSnapshot, query } from 'firebase/firestore';
+import { IoMdArrowDropleft } from 'react-icons/io';
+import { FaArrowLeftLong } from 'react-icons/fa6';
 
 interface IPlayers extends SessionPlayerDetails {
   status: string;
@@ -134,9 +136,12 @@ const AllPlayers = () => {
           <h1
             className={`${
               currentTheme === 'light' ? 'text-golden' : 'text-white'
-            } pt-1 mb-4 px-3 text-[24px]`}
+            }  pt-1 mb-4 text-[24px]`}
           >
-            <Link href="/">Tic-Tac-Toe</Link>
+            <Link className="flex items-center gap-3" href="/">
+              <FaArrowLeftLong size={18} />
+              <span>Tic-Tac-Toe</span>
+            </Link>
           </h1>
           <div>
             {loading === LoadingState?.SUCCESS ? (
