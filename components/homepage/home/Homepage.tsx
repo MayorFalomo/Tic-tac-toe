@@ -50,7 +50,7 @@ const Homepage: React.FC = () => {
       : playerTwoId + playerOneId;
   }, [playersObject]);
 
-  console.log(combinedId, 'combinedId');
+  console.log(combinedId, 'combinedId logged');
 
   //Single most important UseEffect in the game, It controls the entire game functionality and moves between players
   useEffect(() => {
@@ -96,12 +96,16 @@ const Homepage: React.FC = () => {
   }, [combinedId]);
 
   useEffect(() => {
+    console.log(combinedId, 'coombinedId home');
+
     if (!combinedId) {
-      router.push('/');
+      setTimeout(() => {
+        router.push('/');
+      }, 4000);
     } else {
       toast.success('Welcome to the game');
     }
-  }, [playerId]);
+  }, [playerId, combinedId]);
 
   useEffect(() => {
     if (combinedId) {

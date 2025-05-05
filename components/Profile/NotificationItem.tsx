@@ -35,6 +35,7 @@ import {
   setSessionId,
 } from '@/lib/features/TrackerSlice';
 import toast from 'react-hot-toast';
+import clsx from 'clsx';
 
 interface NotificationItemProps {
   notification: Unread;
@@ -139,6 +140,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       console.log(playerTwoDetails, 'playerTwoDetails');
 
       const randomControl = Math.random() > 0.5 ? true : false; //So I can randomize the gameplay turns
+      console.log(randomControl, 'rando');
 
       const gameSessionId = await createGameSession(
         currentUser?.userId!,
@@ -155,19 +157,19 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         randomControl
       );
 
-      const updatedNotifs = NotificationsArray.filter(
-        (res) => res?.combinedId === combinedId && res?.type === NotifType.BATTLE
-      )?.map((item) => {
-        return {
-          ...item,
-          answer: BattleReplyStatus.ACCEPT,
-        };
-      });
-      const currentUserDocRef = doc(db, 'players', currentUser?.userId!);
+      // const updatedNotifs = NotificationsArray.filter(
+      //   (res) => res?.combinedId === combinedId && res?.type === NotifType.BATTLE
+      // )?.map((item) => {
+      //   return {
+      //     ...item,
+      //     answer: BattleReplyStatus.ACCEPT,
+      //   };
+      // });
+      // const currentUserDocRef = doc(db, 'players', currentUser?.userId!);
 
-      await updateDoc(currentUserDocRef, {
-        unreadMessages: arrayUnion(...updatedNotifs),
-      });
+      // await updateDoc(currentUserDocRef, {
+      //   unreadMessages: arrayUnion(...updatedNotifs),
+      // });
       await updateDoc(combinedRef, {
         answer: BattleReplyStatus.ACCEPT,
       });
@@ -265,13 +267,13 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         const playerOneDets = {
           id: playerOneDetails?.id,
           name: playerOneDetails?.name,
-          avatar: playerOneDetails?.avatar,
+          avatar: playerOneDetails?.avatar!,
         };
 
         const playerTwoDets = {
           id: opponent?.id,
           name: opponent?.name,
-          avatar: opponent?.avatar,
+          avatar: opponent?.avatar!,
         };
 
         dispatch(

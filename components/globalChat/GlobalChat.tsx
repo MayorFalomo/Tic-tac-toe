@@ -190,6 +190,7 @@ const GlobalChat = () => {
         timeStamp: Timestamp.now(),
         type: NotifType.BATTLE,
         answer: BattleReplyStatus.PENDING,
+        name: currentUser?.name,
         avatar: currentUser?.avatar,
       };
 
@@ -217,7 +218,7 @@ const GlobalChat = () => {
         const playerQuery = query(
           playerRef,
           where('combinedId', '==', combinedId),
-          where('answer', '==', BattleReplyStatus.PENDING)
+          where('answer', '==', BattleReplyStatus.ACCEPT)
         );
         const timeOut = setTimeout(() => {
           setLoadingSpinner('stop');
@@ -230,8 +231,10 @@ const GlobalChat = () => {
         const unsubscribe = onSnapshot(playerQuery, (snapshot) => {
           snapshot.forEach(async (doc) => {
             const data = doc.data();
+            console.log(data, 'data');
+
             if (data.answer === BattleReplyStatus.ACCEPT) {
-              clearTimeout(timeOut)
+              clearTimeout(timeOut);
               const getOponentDetails = playerDocSnap.data();
               console.log(getOponentDetails, 'getOponentDetails');
 
@@ -271,7 +274,7 @@ const GlobalChat = () => {
               setLoadingSpinner('end');
               setTimeout(() => {
                 setLoadingSpinner(null);
-                router.push('/');
+                router.push('/battle');
               }, 2000);
             }
           });
@@ -312,6 +315,9 @@ const GlobalChat = () => {
           avatar: opponent?.avatar,
           networkState: opponent?.networkState,
         };
+        console.log(playerOne, 'playerOne');
+        console.log(playerTwo, 'playerTwo');
+
         dispatch(
           givePlayerNames({
             playerOne: playerOne,
@@ -378,6 +384,9 @@ const GlobalChat = () => {
           name: opponent?.name,
           avatar: opponent?.avatar,
         };
+
+        console.log(playerOneDets, 'playerOneDets');
+        console.log(playerTwoDets, 'playerTwoDets');
 
         dispatch(
           givePlayerNames({

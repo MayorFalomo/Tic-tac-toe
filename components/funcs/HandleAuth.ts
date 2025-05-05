@@ -35,6 +35,7 @@ export const handleUserPresence = async (userId: string, playerName: string) => 
 export const createGameSession = async (playerId: string, opponentId: string, getBoolean: boolean) => {
     try {
       const sessionRef = push(ref(database, 'gameSessions')); //creates a ref to our database and name it "gameSessions"
+      
       //Our session ref would create/set a new object in a sessionRef
       await set(sessionRef, {
         playerOneId: getBoolean ? playerId : opponentId,
@@ -42,6 +43,8 @@ export const createGameSession = async (playerId: string, opponentId: string, ge
         status: PlayerStatus?.LOOKING,
         createdAt: new Date().toISOString(),
       });
+      
+      console.log(sessionRef.key, 'sessionRef key');
       
       return sessionRef.key;
     } catch (error) {
