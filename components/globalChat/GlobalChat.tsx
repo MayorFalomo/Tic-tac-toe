@@ -9,7 +9,6 @@ import GlobalUserChatField from './GlobalUserChatField';
 import { Button } from '../ui/button';
 import {
   BattleReplyStatus,
-  Chat,
   firebaseCollections,
   GameSession,
   GlobalChatType,
@@ -17,7 +16,6 @@ import {
   PlayerDetails,
   PlayerStatus,
   SessionPlayerDetails,
-  userDetails,
 } from '@/app/types/types';
 import {
   arrayUnion,
@@ -32,14 +30,13 @@ import {
   where,
 } from 'firebase/firestore';
 import { db } from '@/firebase-config/firebase';
-import { Home, Info, Settings } from 'lucide-react';
+import { ArrowBigLeft, X } from 'lucide-react';
 import { globalChatStyle } from '@/app/animation/constants';
-import { IoIosPeople } from 'react-icons/io';
 import useOnlineStatus from '@/hooks/useOnlinePresence';
 import clsx from 'clsx';
 import Nav from '../nav/Nav';
 import { Spinner } from '../ui/Spinner';
-import { createGameSession, handleUserPresence } from '../funcs/HandleAuth';
+import { createGameSession } from '../funcs/HandleAuth';
 import toast from 'react-hot-toast';
 import {
   setCombinedGameSessionId,
@@ -48,7 +45,6 @@ import {
 } from '@/lib/features/TrackerSlice';
 import { givePlayerNames } from '@/lib/features/PlayerSlice';
 import { useRouter } from 'next/navigation';
-import { formatTimeToNow } from '@/app/utils/date';
 import { groupChattersByTime } from '@/app/utils/groupByTime';
 import { Skeleton } from '../ui/skeleton';
 
@@ -65,6 +61,8 @@ const GlobalChat = () => {
   const [getPlayerChatters, setGetPlayerChatters] = useState<IPlayers[]>([]);
   const [loadingSpinner, setLoadingSpinner] = useState<string | null>(null);
   const [storedId, setStoredId] = useState<string | null>(null);
+  const [navOpen, setNavOpen] = useState<boolean>(false);
+  const [storeChatId, setStoreChatId] = useState<string | null>(null);
 
   const currentUser = useAppSelector((state: RootState) => state.user);
   const dispatch = useAppDispatch();
@@ -408,9 +406,9 @@ const GlobalChat = () => {
       <div
         className={`${
           currentTheme === 'light' ? 'bg-royalGreen text-white' : 'bg-black text-white'
-        } max-w-[1500px] mx-auto grid min-[1300px]:grid-cols-[380px_auto_360px] min-[950px]:grid-cols-[340px_auto_320px] max-[950px]:grid-cols-[320px_auto_200px] max-[750px]:grid-cols-[280px_auto_150px] max-[550px]:grid-cols-[250px_auto_0] h-screen overflow-hidden w-full text-white`}
+        } relative max-w-[1500px] mx-auto grid min-[1300px]:grid-cols-[380px_auto_360px] max-[1300px]:grid-cols-[350px_auto_330px] max-[1100px]:grid-cols-[310px_auto_300px] max-[1020px]:grid-cols-[290px_auto_270px] max-[920px]:grid-cols-[320px_auto_100px] max-[820px]:grid-cols-[270px_auto_100px] max-[750px]:grid-cols-[250px_auto_0] max-[620px]:grid-cols-[auto] h-screen overflow-hidden w-full text-white`}
       >
-        <div className="h-full w-full border-r border-white/40 p-4 pb-[50px] overflow-auto">
+        <div className="h-full w-full border-r border-white/40 p-4 pb-[50px] overflow-auto max-[620px]:hidden">
           <div className="flex flex-col gap-4">
             <h1
               className={`${
@@ -461,25 +459,45 @@ const GlobalChat = () => {
           </div>
         </div>
         <div
-          className={`w-full max-[750px]:w-[90%] max-[600px]:w-[95%] h-full overflow-hidden border-x border-white/40`}
+          className={`w-full max-[750px]:w-[100%]  h-full overflow-hidden min-[620px]:border-x border-white/40`}
         >
           <div
-            className={`${globalChatStyle} flex items-center gap-3 border-t-0 border-b border-white/50 w-full py-4 px-2`}
+            className={`${globalChatStyle} flex items-center justify-between  border-t-0 border-x-0 border-b border-white/50 `}
           >
-            {currentUser?.avatar && (
-              <Image
-                src={currentUser?.avatar}
-                className="w-[50px] h-[50px] rounded-full object-cover object-top border border-white/50 "
-                width={50}
-                height={50}
-                alt="img"
-              />
-            )}
-            <div className="flex flex-col items-center gap-[1px]">
-              <p>{currentUser?.name} </p>
-              <span className="text-[12px]">{online ? 'online' : ''} </span>
+            <div className={`flex items-center gap-3 w-full py-4 px-2`}>
+              <ArrowBigLeft className=" cursor-pointer" />
+              {currentUser?.avatar && (
+                <Image
+                  src={currentUser?.avatar}
+                  className="w-[50px] h-[50px] rounded-full object-cover object-top border border-white/50 "
+                  width={50}
+                  height={50}
+                  alt="img"
+                />
+              )}
+              <div className="flex flex-col items-center gap-[1px]">
+                <p>{currentUser?.name} </p>
+                <span className="text-[12px]">{online ? 'online' : ''} </span>
+              </div>
             </div>
+            {navOpen ? (
+              <button
+                onClick={() => setNavOpen(false)}
+                className="flex flex-col gap-[7px] mx-6 cursor-pointer"
+              >
+                <X />
+              </button>
+            ) : (
+              <button
+                onClick={() => setNavOpen(true)}
+                className="min-[620px]:hidden max-[620px]:flex flex flex-col gap-[7px] mx-6 cursor-pointer"
+              >
+                <span className="bg-white h-0.5 w-8"></span>
+                <span className="bg-white h-0.5 w-8"></span>
+              </button>
+            )}
           </div>
+
           <div className="py-3 h-[70%] overflow-auto">
             <div className="flex flex-col h-full overflow-auto">
               <div className="flex flex-col h-full gap-3">
@@ -489,11 +507,16 @@ const GlobalChat = () => {
                       <h3 className="flex justify-center bg-white/30 text-white w-fit mx-auto rounded-[20px] text-[14px] px-4 py-1">
                         {key}
                       </h3>
-                      {groupedChatters[key]?.map((res) => (
+                      {groupedChatters[key]?.map((res, index) => (
                         <React.Fragment key={res.id}>
                           <GlobalUserChatField
                             res={res}
                             currentUserId={currentUser?.userId}
+                            handleInvite={(id) => {
+                              handleSendBattleInvitation(id);
+                            }}
+                            storeChatId={storeChatId}
+                            setStoreChatId={setStoreChatId}
                           />
                         </React.Fragment>
                       ))}
@@ -511,8 +534,9 @@ const GlobalChat = () => {
               </div>
             </div>
           </div>
+
           <div className={`relative flex items-center ${globalChatStyle} p-4`}>
-            <div className={`bg-white flex items-center w-full px-2 rounded-md`}>
+            <div className={`bg-white flex items-center w-full mb-3 px-2 rounded-md`}>
               <textarea
                 className="flex text-black items-center min-[600px]:h-[100%] max-[600px]:h-[100px] w-full rounded px-2 py-4 pt-2 text-sm font-normal placeholder:pt-2 placeholder:pl-2 outline-none border-none resize-none "
                 placeholder="Send a message..."
@@ -538,7 +562,7 @@ const GlobalChat = () => {
             </div>
           </div>
         </div>
-        <Nav />
+        {<Nav navPresent navOpen={navOpen} />}
       </div>
     </div>
   );

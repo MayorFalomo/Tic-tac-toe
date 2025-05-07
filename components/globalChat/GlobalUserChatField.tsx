@@ -4,20 +4,36 @@ import { convertToDate, formatTime } from '@/app/utils/groupByTime';
 import clsx from 'clsx';
 import { Ellipsis } from 'lucide-react';
 import Image from 'next/image';
-import React from 'react';
+import React, { useState } from 'react';
 
 type Props = {
   res: GlobalChatType;
   currentUserId: string;
+  setStoreChatId?: (arg: string | null) => void;
+  storeChatId?: string | null;
+  handleInvite: (arg: string) => void;
+  setStoredId?: (arg: string | null) => void;
 };
 
 const GlobalUserChatField = (props: Props) => {
-  const { res, currentUserId } = props;
+  const {
+    res,
+    currentUserId,
+    handleInvite,
+    storeChatId,
+    setStoreChatId,
+    setStoredId,
+  } = props;
+
+  const [modalOpen, setModalOpen] = useState<boolean>(false);
+  const [getChatIndex, setChatIndex] = useState(null);
 
   const getHourAndMin = (time: TimeStamp) => {
     const dateObject = convertToDate(time);
     return formatTime(dateObject);
   };
+
+  // console.log(storeIndex, 'storeIndex');
 
   return (
     <div>
@@ -40,6 +56,16 @@ const GlobalUserChatField = (props: Props) => {
         )}
         <div className={`relative flex flex-col max-w-xs  `}>
           <p className="flex justify-between items-center w-full">
+            {currentUserId === res?.senderId && (
+              <span
+                onClick={() => {
+                  setStoreChatId!(storeChatId ? null : res.id);
+                }}
+                className="max-[620px]:flex cursor-pointer min-[620px]:hidden"
+              >
+                <Ellipsis size={16} />{' '}
+              </span>
+            )}
             <span
               className={clsx(
                 currentUserId === res.senderId && 'ml-auto text-black',
@@ -48,10 +74,36 @@ const GlobalUserChatField = (props: Props) => {
             >
               {res.name}
             </span>
-            <span className="hidden">
-              <Ellipsis size={16} />{' '}
-            </span>
+            {currentUserId !== res?.senderId && (
+              <span
+                onClick={() => {
+                  setStoreChatId!(storeChatId ? null : res.id);
+                }}
+                className="max-[620px]:flex cursor-pointer min-[620px]:hidden"
+              >
+                <Ellipsis size={16} />{' '}
+              </span>
+            )}
           </p>
+          {storeChatId === res?.id && (
+            <ul
+              className={clsx(
+                currentUserId === res?.senderId && 'left-[-80px] w-fit',
+                currentUserId !== res?.senderId && ' left-[80px] w-fit',
+                `text-gradient-nebula absolute top-[20px] whitespace-nowrap list-none`
+              )}
+            >
+              <li
+                onClick={() => {
+                  setStoredId!(res.id);
+                  handleInvite(res.senderId);
+                }}
+                className=" px-3 py-1 rounded-lg"
+              >
+                Invite {res.name}{' '}
+              </li>
+            </ul>
+          )}
           <div className="">
             <p
               className={clsx(

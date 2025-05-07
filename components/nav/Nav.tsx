@@ -5,9 +5,14 @@ import clsx from 'clsx';
 import { IoIosPeople } from 'react-icons/io';
 import { FaEarthAfrica } from 'react-icons/fa6';
 
-type Props = {};
+type Props = {
+  navPresent: boolean;
+  navOpen: boolean;
+};
 
 const Nav = (props: Props) => {
+  const { navPresent = false, navOpen } = props;
+
   const navList = [
     {
       id: 1,
@@ -37,12 +42,19 @@ const Nav = (props: Props) => {
   ];
 
   return (
-    <div className="w-full">
+    <div
+      className={clsx(
+        navOpen && navPresent && 'fixed right-0 top-[80px] z-10 w-[60%] bg-black ',
+        !navOpen && navPresent && `max-[620px]:fixed right-[-100vw] top-[80px]`,
+        !navPresent && !navOpen && 'w-full max-[620px]:hidden',
+        'transition-all duration-500 ease-in-out'
+      )}
+    >
       <div className="flex flex-col gap-4 p-4 h-full w-full overflow-auto">
         <div className="flex flex-col w-full items-start gap-4 py-4 ">
           {navList.map((item) => (
             <Link
-              className={`w-full flex items-center gap-3 border-b border-white/40 py-2 `}
+              className={`w-full flex items-center max-[920px]:justify-center gap-3 border-b border-white/40 py-2 `}
               key={item.id}
               href={item.link}
             >
@@ -66,7 +78,10 @@ const Nav = (props: Props) => {
                     item?.id === 2 && 'text-gradient text-gradient-ocean',
                     item?.id === 4 && 'text-gradient text-gradient-emerald',
                     item?.id === 5 && 'text-gradient text-gradient-solar',
-                    item?.id === 3 && 'text-gradient text-gradient-cosmic-gold'
+                    item?.id === 3 && 'text-gradient text-gradient-cosmic-gold',
+                    navOpen && navPresent && 'max-[920px]:flex',
+                    !navOpen && navPresent && 'max-[920px]:hidden max-[620px]:flex',
+                    !navOpen && !navPresent && 'max-[920px]:hidden'
                   )}
                 >
                   {item?.page}{' '}
