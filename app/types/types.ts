@@ -200,6 +200,10 @@ export interface GlobalChatType {
   timeStamp: TimeStamp;
 }
 
+export interface GroupedChatters {
+  [key: string]: GlobalChatType[];
+}
+
 export interface battleInvitationType {
   combinedId: string;
   id: string;

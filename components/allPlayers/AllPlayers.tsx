@@ -139,8 +139,8 @@ const AllPlayers = () => {
             }  pt-1 mb-4 text-[24px]`}
           >
             <Link className="flex items-center gap-3" href="/">
-              <FaArrowLeftLong size={18} />
-              <span>Tic-Tac-Toe</span>
+              <FaArrowLeftLong className="icon-glow-frost" size={18} />
+              <span className="text-gradient text-gradient-ocean">Tic-Tac-Toe</span>
             </Link>
           </h1>
           <div>
@@ -225,7 +225,7 @@ const AllPlayers = () => {
                 className={clsx(
                   currentUser?.userId.length < 1 && 'cursor-not-allowed',
                   !singlePlayer?.id && 'cursor-not-allowed',
-                  ' cursor-pointer'
+                  `cursor-pointer bg-black`
                 )}
               >
                 Message {singlePlayer?.name}{' '}
@@ -233,15 +233,18 @@ const AllPlayers = () => {
             </div>
           </div>
           {singlePlayer ? (
-            <div className={`${viewPlayersStyle} relative h-full pb-[30px]`}>
+            <div
+              className={`${viewPlayersStyle} relative h-full pb-[30px] max-[550px]:pb-0`}
+            >
               {singlePlayer?.avatar ? (
                 <div
                   style={{
                     backgroundImage: `url(${singlePlayer?.avatar})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'top',
+                    // backgroundColor: viewPlayersStyle,
                   }}
-                  className="h-[100vh] max-[550px]:h-[40vh] w-full"
+                  className={`h-[100vh] ${viewPlayersStyle} max-[550px]:h-full w-full`}
                 >
                   {singlePlayer?.avatar && (
                     <p className="w-full h-full hover:bg-transparent bg-black/30 transition-all duration-500 "></p>

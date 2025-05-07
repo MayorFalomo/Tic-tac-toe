@@ -22,6 +22,7 @@ import {
 import NotificationsList from './NotificationList';
 import { playGameStyle } from '@/app/animation/constants';
 import useOnClickOutside from '@/hooks/useOnclickOutside';
+import { RxAvatar } from 'react-icons/rx';
 
 const EditName = React.lazy(() => import('./EditPlayerNameModal'));
 const EditProfilePicture = React.lazy(() => import('./EditProfilePicture'));
@@ -244,8 +245,8 @@ const ProfileHeader = () => {
           {openNotifModal && (
             <motion.div
               className={clsx(
-                logout && 'bottom-[-200px]',
-                `absolute bottom-[-150px] left-0 mt-2 w-full overflow-hidden ${playGameStyle} text-black rounded-[10px] shadow-lg z-10`
+                logout && 'bottom-[-250px]',
+                `absolute bottom-[-160px] min-[580px]:left-[-20px] max-[580px]:left-[-60px] mt-2 w-[300px] overflow-hidden ${playGameStyle} text-black rounded-[10px] shadow-lg z-10`
               )}
               variants={{
                 initial: { height: 0, opacity: 0, pointerEvents: 'none' },
@@ -304,7 +305,7 @@ const ProfileHeader = () => {
                     <span className="ml-2">Change your Avatar</span>
                     <span>
                       {' '}
-                      <Edit size={14} />
+                      <RxAvatar size={16} />
                     </span>
                   </button>
                 </li>
@@ -339,20 +340,23 @@ const ProfileHeader = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="flex items-center justify-between gap-2 px-2 mb-3 mt-2"
+                    className="flex flex-col justify-between gap-2 px-2 mb-3 mt-2"
                   >
-                    <button
-                      onClick={() => setLogout(false)}
-                      className="bg-black text-white px-2 py-[7px] text-sm rounded-md"
-                    >
-                      No thanks
-                    </button>
-                    <button
-                      onClick={handleLogOut}
-                      className="bg-red-600 text-white px-2 py-[7px] text-sm rounded-md"
-                    >
-                      Yes, Logout.
-                    </button>
+                    <p className="px-2 text-[14px]">Your account would be deleted!. </p>
+                    <div className="flex items-center justify-between gap-2 px-2">
+                      <button
+                        onClick={() => setLogout(false)}
+                        className="bg-black text-white px-2 py-[7px] text-sm rounded-md"
+                      >
+                        No thanks
+                      </button>
+                      <button
+                        onClick={handleLogOut}
+                        className="bg-red-600 text-white px-2 py-[7px] text-sm rounded-md"
+                      >
+                        Yes, Logout.
+                      </button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

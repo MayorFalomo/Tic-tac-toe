@@ -48,6 +48,9 @@ import {
 } from '@/lib/features/TrackerSlice';
 import { givePlayerNames } from '@/lib/features/PlayerSlice';
 import { useRouter } from 'next/navigation';
+import { formatTimeToNow } from '@/app/utils/date';
+import { groupChattersByTime } from '@/app/utils/groupByTime';
+import { Skeleton } from '../ui/skeleton';
 
 interface IPlayers extends SessionPlayerDetails {
   invited: boolean;
@@ -315,8 +318,6 @@ const GlobalChat = () => {
           avatar: opponent?.avatar,
           networkState: opponent?.networkState,
         };
-        console.log(playerOne, 'playerOne');
-        console.log(playerTwo, 'playerTwo');
 
         dispatch(
           givePlayerNames({
@@ -370,8 +371,6 @@ const GlobalChat = () => {
           doc(db, firebaseCollections.GAMESESSIONS, combinedId),
           newGameSession
         );
-        // await saveAvatar(playerOneDetails?.id, opponent?.id, combinedId);
-
         setPlayersSessionId(doc(db, 'gameSessions', combinedId));
         const playerOneDets = {
           id: playerOneDetails?.id,
@@ -384,9 +383,6 @@ const GlobalChat = () => {
           name: opponent?.name,
           avatar: opponent?.avatar,
         };
-
-        console.log(playerOneDets, 'playerOneDets');
-        console.log(playerTwoDets, 'playerTwoDets');
 
         dispatch(
           givePlayerNames({
@@ -402,6 +398,10 @@ const GlobalChat = () => {
       console.error('Error creating game session:', error);
     }
   };
+
+  const groupedChatters = groupChattersByTime(
+    globalPlayerChatters ? globalPlayerChatters : []
+  );
 
   return (
     <div>
@@ -483,20 +483,31 @@ const GlobalChat = () => {
           <div className="py-3 h-[70%] overflow-auto">
             <div className="flex flex-col h-full overflow-auto">
               <div className="flex flex-col h-full gap-3">
-                {globalPlayerChatters?.map((res: GlobalChatType, index) => {
-                  return (
-                    <div className=" py-2 border-b border-white/40" key={res?.id}>
-                      <GlobalUserChatField
-                        res={res}
-                        // playerChats={globalPlayerChatters}
-                        // currentUser={currentUser}
-                        //   chatUniqueId={chatsId}
-                        //   scrollToBtm={scrollToBtm}
-                        //   setScrollToBtm={setScrollToBtm}
-                      />
+                {Object.keys(groupedChatters)?.length > 0 ? (
+                  Object.keys(groupedChatters)?.map((key, index) => (
+                    <React.Fragment key={key || index}>
+                      <h3 className="flex justify-center bg-white/30 text-white w-fit mx-auto rounded-[20px] text-[14px] px-4 py-1">
+                        {key}
+                      </h3>
+                      {groupedChatters[key]?.map((res) => (
+                        <React.Fragment key={res.id}>
+                          <GlobalUserChatField
+                            res={res}
+                            currentUserId={currentUser?.userId}
+                          />
+                        </React.Fragment>
+                      ))}
+                    </React.Fragment>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center space-x-4">
+                    <div className="space-y-2">
+                      {Array.from({ length: 6 }).map((_, index) => (
+                        <Skeleton key={index} className="h-4 w-full bg-white" />
+                      ))}
                     </div>
-                  );
-                })}
+                  </div>
+                )}
               </div>
             </div>
           </div>

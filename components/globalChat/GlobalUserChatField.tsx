@@ -1,39 +1,91 @@
-import { GlobalChatType } from '@/app/types/types';
+import { GlobalChatType, TimeStamp } from '@/app/types/types';
 import { formatTimeToNow } from '@/app/utils/date';
+import { convertToDate, formatTime } from '@/app/utils/groupByTime';
+import clsx from 'clsx';
 import { Ellipsis } from 'lucide-react';
 import Image from 'next/image';
 import React from 'react';
 
 type Props = {
   res: GlobalChatType;
+  currentUserId: string;
 };
 
 const GlobalUserChatField = (props: Props) => {
-  const { res } = props;
+  const { res, currentUserId } = props;
+
+  const getHourAndMin = (time: TimeStamp) => {
+    const dateObject = convertToDate(time);
+    return formatTime(dateObject);
+  };
+
   return (
     <div>
-      <div className="flex items-center gap-2 px-3">
-        <div className="min-w-[40px] min-h-[40px] w-[40px] h-[40px]">
-          <Image
-            src={res.avatar || '/defaultAvatar.png'}
-            alt="User Avatar"
-            width={50}
-            height={50}
-            className="w-full h-full object-cover object-top rounded-full"
-          />
-        </div>
-        <div className="flex flex-col w-full ">
+      <div
+        className={clsx(
+          res?.senderId === currentUserId && 'flex justify-end items-start gap-2 px-3',
+          `flex items-start gap-2 px-3`
+        )}
+      >
+        {currentUserId !== res.senderId && (
+          <div className="min-w-[30px] min-h-[30px] w-[30px] h-[30px]">
+            <Image
+              src={res.avatar || '/defaultAvatar.png'}
+              alt="User Avatar"
+              width={30}
+              height={30}
+              className="w-full h-full object-cover object-top rounded-full border border-white/50"
+            />
+          </div>
+        )}
+        <div className={`relative flex flex-col max-w-xs  `}>
           <p className="flex justify-between items-center w-full">
-            <span className="font-bold text-white/70">{res.name}</span>
-            <span>
+            <span
+              className={clsx(
+                currentUserId === res.senderId && 'ml-auto text-black',
+                `font-medium text-[14px] mb-0.5 text-white/70`
+              )}
+            >
+              {res.name}
+            </span>
+            <span className="hidden">
               <Ellipsis size={16} />{' '}
             </span>
           </p>
-          <p className="flex items-center justify-between">
-            <span>{res.message}</span>
-            <span className="text-white text-sm">{formatTimeToNow(res.timeStamp)}</span>
-          </p>
+          <div className="">
+            <p
+              className={clsx(
+                currentUserId === res.senderId &&
+                  'bg-blue-600 text-white rounded-l-lg rounded-br-lg',
+                currentUserId !== res.senderId && `bg-white rounded-r-lg rounded-bl-lg`,
+                'text-black px-2 py-2'
+              )}
+            >
+              <span className="w-[100%]">{res.message}</span>
+            </p>
+            <span
+              className={clsx(
+                currentUserId === res?.senderId
+                  ? 'flex justify-start '
+                  : `flex justify-end`,
+                'text-white mt-1 text-sm whitespace-nowrap'
+              )}
+            >
+              {getHourAndMin(res?.timeStamp)}
+            </span>
+          </div>
         </div>
+        {currentUserId === res.senderId && (
+          <div className="min-w-[30px] min-h-[30px] w-[30px] h-[30px]">
+            <Image
+              src={res.avatar || '/defaultAvatar.png'}
+              alt="User Avatar"
+              width={30}
+              height={30}
+              className="w-full h-full object-cover object-top rounded-full border border-white/50"
+            />
+          </div>
+        )}
       </div>
       {/* <span className="text-gray-500 text-sm">
         {new Date(res.timestamp).toLocaleString()}

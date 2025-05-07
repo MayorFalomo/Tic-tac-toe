@@ -50,11 +50,6 @@ const EditProfilePicture: React.FC<Props> = ({
   const [loadingState, setLoadingState] = useState('');
   const { updateData } = useIndexedDB();
 
-  const getInitials = (name: string | undefined) => {
-    if (!name) return '';
-    return name.charAt(0).toUpperCase();
-  };
-
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
 

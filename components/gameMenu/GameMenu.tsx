@@ -68,10 +68,10 @@ const GameMenu = (props: Props) => {
                 alt="img"
               />
             </div>
-            <Bouncy delay={0.2} className="w-[40%] max-[600px]:w-[70%] mt-[40px]">
+            <Bouncy delay={0.2} className="w-[40%] max-[600px]:w-[70%] mt-[30px]">
               <Link href="/signup">
                 <Button
-                  className={`w-[100%] flex items-center gap-4 cursor-pointer text-[16px] ${
+                  className={`w-[100%] flex items-center gap-4 py-4 cursor-pointer text-[16px] ${
                     currentTheme === 'light'
                       ? 'bg-transparent text-[#9F8151] border hover:bg-white'
                       : `${playGameStyle} pulse-animation`
@@ -87,7 +87,7 @@ const GameMenu = (props: Props) => {
             <Bouncy delay={0.4} className="w-[40%]  max-[600px]:w-[70%]">
               <Link href="/players">
                 <Button
-                  className={`w-[100%] flex items-center gap-4 py-3 cursor-pointer text-[16px] ${
+                  className={`w-[100%] flex items-center gap-4 py-4 cursor-pointer text-[16px] ${
                     currentTheme === 'light'
                       ? 'bg-transparent text-[#9F8151] border hover:bg-white'
                       : gameInfoStyle
@@ -104,7 +104,7 @@ const GameMenu = (props: Props) => {
             <Bouncy delay={0.6} className="w-[40%] max-[600px]:w-[70%]">
               <Link href="/global-chat">
                 <Button
-                  className={`w-[100%] flex items-center gap-4 py-3 cursor-pointer text-[16px] ${
+                  className={`w-[100%] flex items-center gap-4 py-4 cursor-pointer text-[16px] ${
                     currentTheme === 'light'
                       ? 'bg-transparent text-[#9F8151] border hover:bg-white'
                       : globalChatStyle
@@ -115,10 +115,11 @@ const GameMenu = (props: Props) => {
                 </Button>
               </Link>
             </Bouncy>
+
             <Bouncy delay={0.8} className="w-[40%]  max-[600px]:w-[70%]">
               <Link href="/settings">
                 <Button
-                  className={`w-[100%] flex items-center gap-4 py-3 cursor-pointer text-[16px] ${
+                  className={`w-[100%] flex items-center gap-4 py-4 cursor-pointer text-[16px] ${
                     currentTheme === 'light'
                       ? 'bg-transparent text-[#9F8151] border hover:bg-white'
                       : settingsBtnStyle
