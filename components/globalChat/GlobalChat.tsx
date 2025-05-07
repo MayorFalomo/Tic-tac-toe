@@ -465,7 +465,9 @@ const GlobalChat = () => {
             className={`${globalChatStyle} flex items-center justify-between  border-t-0 border-x-0 border-b border-white/50 `}
           >
             <div className={`flex items-center gap-3 w-full py-4 px-2`}>
-              <IoIosArrowRoundBack className=" cursor-pointer" size={24} />
+              <Link href={'/'}>
+                <IoIosArrowRoundBack className=" cursor-pointer" size={24} />
+              </Link>
               {currentUser?.avatar && (
                 <Image
                   src={currentUser?.avatar}
