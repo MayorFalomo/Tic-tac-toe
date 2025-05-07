@@ -30,10 +30,9 @@ import {
   where,
 } from 'firebase/firestore';
 import { db } from '@/firebase-config/firebase';
-import { ArrowBigLeft, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { globalChatStyle } from '@/app/animation/constants';
 import useOnlineStatus from '@/hooks/useOnlinePresence';
-import clsx from 'clsx';
 import Nav from '../nav/Nav';
 import { Spinner } from '../ui/Spinner';
 import { createGameSession } from '../funcs/HandleAuth';
@@ -47,6 +46,7 @@ import { givePlayerNames } from '@/lib/features/PlayerSlice';
 import { useRouter } from 'next/navigation';
 import { groupChattersByTime } from '@/app/utils/groupByTime';
 import { Skeleton } from '../ui/skeleton';
+import { IoIosArrowRoundBack } from 'react-icons/io';
 
 interface IPlayers extends SessionPlayerDetails {
   invited: boolean;
@@ -465,7 +465,7 @@ const GlobalChat = () => {
             className={`${globalChatStyle} flex items-center justify-between  border-t-0 border-x-0 border-b border-white/50 `}
           >
             <div className={`flex items-center gap-3 w-full py-4 px-2`}>
-              <ArrowBigLeft className=" cursor-pointer" />
+              <IoIosArrowRoundBack className=" cursor-pointer" size={24} />
               {currentUser?.avatar && (
                 <Image
                   src={currentUser?.avatar}
@@ -562,7 +562,7 @@ const GlobalChat = () => {
             </div>
           </div>
         </div>
-        {<Nav navPresent navOpen={navOpen} />}
+        {<Nav navPresent={true} navOpen={navOpen} />}
       </div>
     </div>
   );

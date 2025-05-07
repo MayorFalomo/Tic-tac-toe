@@ -1,5 +1,4 @@
 import { GlobalChatType, TimeStamp } from '@/app/types/types';
-import { formatTimeToNow } from '@/app/utils/date';
 import { convertToDate, formatTime } from '@/app/utils/groupByTime';
 import clsx from 'clsx';
 import { Ellipsis } from 'lucide-react';

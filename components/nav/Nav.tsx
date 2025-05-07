@@ -5,14 +5,12 @@ import clsx from 'clsx';
 import { IoIosPeople } from 'react-icons/io';
 import { FaEarthAfrica } from 'react-icons/fa6';
 
-type Props = {
-  navPresent: boolean;
-  navOpen: boolean;
-};
+interface IProps {
+  navPresent?: boolean;
+  navOpen?: boolean;
+}
 
-const Nav = (props: Props) => {
-  const { navPresent = false, navOpen } = props;
-
+const Nav: React.FC<IProps> = ({ navOpen, navPresent = false }) => {
   const navList = [
     {
       id: 1,
