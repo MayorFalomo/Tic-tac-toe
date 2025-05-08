@@ -52,6 +52,7 @@ const UserChats = () => {
     string | null
   >(null);
   const [getSelectedChat, setGetSelectedChat] = useState<PlayerDetails[]>([]);
+  const [navOpen, setNavOpen] = useState<boolean>(false);
 
   const { currentTheme } = useTheme();
 
@@ -103,6 +104,7 @@ const UserChats = () => {
     }
   }, [combinedChattersId, currentUser?.userId, getSelectedChatCombinedId]);
 
+  //Listens for chats
   useEffect(() => {
     if (combinedChattersId) {
       const chatRef = collection(db, 'userChats');
@@ -123,7 +125,7 @@ const UserChats = () => {
         unsubscribeChats(); // Unsubscribe when component unmounts
       };
     }
-  }, [combinedChattersId, getSelectedChatCombinedId]);
+  }, [combinedChattersId, getSelectedChatCombinedId, textMessage]);
 
   const loadChats = async (combinedId: string) => {
     const playersRef = collection(db, 'userChats');
@@ -256,6 +258,9 @@ const UserChats = () => {
           }),
         });
 
+        setTextMessage('');
+        setScrollToBtm(true);
+
         const playerOneId = currentUser?.userId;
         const playerTwoId = getSelectedChat[0]?.id ?? selectedPlayerId;
 
@@ -297,13 +302,9 @@ const UserChats = () => {
               type: 'message',
             }),
           });
-
-          // console.log(unreadMessages, 'unread');
         } else {
           console.log('Player document does not exist.');
         }
-        setTextMessage('');
-        setScrollToBtm(true);
       } else {
         console.log('No chat session found to send the message.');
       }
@@ -319,7 +320,6 @@ const UserChats = () => {
   //Function to load the chat messages for the selected chat
   const handleChatSelect = async (chat: PlayerChatType) => {
     // dispatch(setCombinedChattingId(chat?.combinedId));
-
     setGetSelectedChatCombinedId(chat?.combinedId); //a state to store the selectedChat combinedId
 
     const getSelectedChat = chat?.participantsObject.filter(
@@ -382,7 +382,7 @@ const UserChats = () => {
       <div
         className={`${
           currentTheme === 'light' ? 'bg-royalGreen text-white' : 'bg-black text-white'
-        } max-w-[1500px] mx-auto grid min-[1300px]:grid-cols-[380px_auto_360px] min-[950px]:grid-cols-[340px_auto_320px] max-[950px]:grid-cols-[320px_auto_200px] max-[750px]:grid-cols-[280px_auto_150px] max-[550px]:grid-cols-[250px_auto_0] h-screen overflow-hidden w-full text-white`}
+        } max-w-[1500px] mx-auto grid min-[1300px]:grid-cols-[380px_auto_360px] max-[1300px]:grid-cols-[350px_auto_330px]  max-[1100px]:grid-cols-[310px_auto_300px] max-[1020px]:grid-cols-[290px_auto_270px] max-[920px]:grid-cols-[290px_auto_150px] max-[820px]:grid-cols-[270px_auto_100px] max-[750px]:grid-cols-[250px_auto_0] max-[620px]:grid-cols-[auto_0_0] h-screen overflow-hidden w-full text-white`}
       >
         <div className="h-full w-full border-r border-white/40 p-4 pb-[50px] overflow-auto">
           <div className="flex flex-col gap-4">
@@ -484,7 +484,7 @@ const UserChats = () => {
           </div>
         </div>
         <div
-          className={`w-full max-[750px]:w-[90%] max-[600px]:w-[95%] h-full overflow-hidden border-x border-white/40`}
+          className={`w-full max-[750px]:w-full max-[600px]:w-[95%] h-full overflow-hidden border-x border-white/40`}
         >
           <div
             className={`${playGameStyle} flex items-center gap-3 border-t-0  border-b border-white/50 w-full py-4 px-2`}
@@ -513,7 +513,7 @@ const UserChats = () => {
               </p>
             </div>
           </div>
-          <div className="py-6 h-[70%] overflow-auto">
+          <div className="py-6 h-[70%] overflow-auto px-3">
             <div className="flex flex-col h-full overflow-auto">
               <div className="flex flex-col h-full gap-3">
                 {trackChatters?.messages!?.length > 0 ? (
@@ -585,7 +585,7 @@ const UserChats = () => {
             </div>
           </div>
         </div>
-        <Nav />
+        <Nav navOpen={navOpen} navPresent={true} className="max-[820px]:hidden" />
       </div>
     </div>
   );

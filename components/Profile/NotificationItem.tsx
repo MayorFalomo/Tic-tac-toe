@@ -150,7 +150,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
         randomControl
       );
 
-      await sendNotification(combinedId, BattleReplyStatus.ACCEPT);
+      // await sendNotification(combinedId, BattleReplyStatus.ACCEPT);
 
       await updateDoc(combinedRef, {
         answer: BattleReplyStatus.ACCEPT,
@@ -388,7 +388,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
                   {acceptState === 'end' ? (
                     <span>Ready </span>
                   ) : acceptState === 'start' ? (
-                    <span>
+                    <span className="flex items-center gap-2 whitespace-nowrap">
                       {' '}
                       Gearing up <Spinner size={'small'} className="text-white" />
                     </span>

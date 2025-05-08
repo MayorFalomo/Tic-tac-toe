@@ -242,7 +242,6 @@ const AllPlayers = () => {
                     backgroundImage: `url(${singlePlayer?.avatar})`,
                     backgroundSize: 'cover',
                     backgroundPosition: 'top',
-                    // backgroundColor: viewPlayersStyle,
                   }}
                   className={`h-[100vh] ${viewPlayersStyle} max-[550px]:h-full w-full`}
                 >

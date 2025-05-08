@@ -1,9 +1,11 @@
 import { GlobalChatType, TimeStamp } from '@/app/types/types';
 import { convertToDate, formatTime } from '@/app/utils/groupByTime';
+import useOnClickOutside from '@/hooks/useOnclickOutside';
 import clsx from 'clsx';
 import { Ellipsis } from 'lucide-react';
 import Image from 'next/image';
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
+import { Spinner } from '../ui/Spinner';
 
 type Props = {
   res: GlobalChatType;
@@ -12,6 +14,7 @@ type Props = {
   storeChatId?: string | null;
   handleInvite: (arg: string) => void;
   setStoredId?: (arg: string | null) => void;
+  loadingSpinner?: string | null;
 };
 
 const GlobalUserChatField = (props: Props) => {
@@ -21,18 +24,13 @@ const GlobalUserChatField = (props: Props) => {
     handleInvite,
     storeChatId,
     setStoreChatId,
-    setStoredId,
+    loadingSpinner,
   } = props;
-
-  const [modalOpen, setModalOpen] = useState<boolean>(false);
-  const [getChatIndex, setChatIndex] = useState(null);
 
   const getHourAndMin = (time: TimeStamp) => {
     const dateObject = convertToDate(time);
     return formatTime(dateObject);
   };
-
-  // console.log(storeIndex, 'storeIndex');
 
   return (
     <div>
@@ -54,17 +52,12 @@ const GlobalUserChatField = (props: Props) => {
           </div>
         )}
         <div className={`relative flex flex-col max-w-xs  `}>
-          <p className="flex justify-between items-center w-full">
-            {currentUserId === res?.senderId && (
-              <span
-                onClick={() => {
-                  setStoreChatId!(storeChatId ? null : res.id);
-                }}
-                className="max-[620px]:flex cursor-pointer min-[620px]:hidden"
-              >
+          <div className="flex justify-between items-center w-full">
+            {/* {currentUserId === res?.senderId && (
+              <span className="b max-[620px]:flex cursor-pointer min-[620px]:hidden">
                 <Ellipsis size={16} />{' '}
               </span>
-            )}
+            )} */}
             <span
               className={clsx(
                 currentUserId === res.senderId && 'ml-auto text-black',
@@ -74,35 +67,45 @@ const GlobalUserChatField = (props: Props) => {
               {res.name}
             </span>
             {currentUserId !== res?.senderId && (
-              <span
+              <div
                 onClick={() => {
                   setStoreChatId!(storeChatId ? null : res.id);
                 }}
-                className="max-[620px]:flex cursor-pointer min-[620px]:hidden"
+                className="relative max-[620px]:flex cursor-pointer min-[620px]:hidden"
               >
                 <Ellipsis size={16} />{' '}
-              </span>
+                {storeChatId === res?.id && (
+                  <ul
+                    className={clsx(
+                      currentUserId !== res?.senderId && ' left-[-100px] w-fit',
+                      `text-gradient-nebula rounded-md absolute top-[20px] whitespace-nowrap list-none`
+                    )}
+                  >
+                    <li
+                      onClick={() => {
+                        if (currentUserId === res.senderId) return;
+                        handleInvite(res.senderId);
+                      }}
+                      className="flex items-center gap-2 px-3 py-1 rounded-lg whitespace-nowrap"
+                    >
+                      {loadingSpinner === 'start' && res.id === storeChatId
+                        ? `waiting for ${
+                            res.name.length > 9 ? res.name.slice(0, 9) : res.name
+                          }`
+                        : loadingSpinner === 'end' && res.id === storeChatId
+                        ? `Ready!`
+                        : `Invite ${
+                            res.name.length > 9 ? res.name.slice(0, 9) : res.name
+                          }`}
+                      {loadingSpinner === 'start' && res.id === storeChatId && (
+                        <Spinner size={'small'} className="text-white" />
+                      )}
+                    </li>
+                  </ul>
+                )}
+              </div>
             )}
-          </p>
-          {storeChatId === res?.id && (
-            <ul
-              className={clsx(
-                currentUserId === res?.senderId && 'left-[-80px] w-fit',
-                currentUserId !== res?.senderId && ' left-[80px] w-fit',
-                `text-gradient-nebula absolute top-[20px] whitespace-nowrap list-none`
-              )}
-            >
-              <li
-                onClick={() => {
-                  setStoredId!(res.id);
-                  handleInvite(res.senderId);
-                }}
-                className=" px-3 py-1 rounded-lg"
-              >
-                Invite {res.name}{' '}
-              </li>
-            </ul>
-          )}
+          </div>
           <div className="">
             <p
               className={clsx(

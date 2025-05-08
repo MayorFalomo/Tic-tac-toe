@@ -4,13 +4,19 @@ import { Home, Info, Settings } from 'lucide-react';
 import clsx from 'clsx';
 import { IoIosPeople } from 'react-icons/io';
 import { FaEarthAfrica } from 'react-icons/fa6';
+import { usePathname } from 'next/navigation';
 
 interface IProps {
   navPresent?: boolean;
   navOpen?: boolean;
+  className?: string;
 }
 
-const Nav: React.FC<IProps> = ({ navOpen, navPresent = false }) => {
+const Nav: React.FC<IProps> = ({
+  navOpen,
+  navPresent = false,
+  className = 'max-[920px]:hidden',
+}) => {
   const navList = [
     {
       id: 1,
@@ -39,11 +45,13 @@ const Nav: React.FC<IProps> = ({ navOpen, navPresent = false }) => {
     },
   ];
 
+  const route = usePathname();
+
   return (
     <div
       className={clsx(
-        navOpen && navPresent && 'fixed right-0 top-[80px] z-10 w-[60%] bg-black ',
-        !navOpen && navPresent && `max-[620px]:fixed right-[-100vw] top-[80px]`,
+        navOpen && navPresent && 'fixed right-0 top-[70px] z-10 w-[60%] bg-black ',
+        !navOpen && navPresent && `max-[620px]:fixed right-[-100vw] top-[70px]`,
         !navPresent && !navOpen && 'w-full max-[620px]:hidden',
         'transition-all duration-500 ease-in-out'
       )}
@@ -52,7 +60,9 @@ const Nav: React.FC<IProps> = ({ navOpen, navPresent = false }) => {
         <div className="flex flex-col w-full items-start gap-4 py-4 ">
           {navList.map((item) => (
             <Link
-              className={`w-full flex items-center max-[920px]:justify-center gap-3 border-b border-white/40 py-2 `}
+              className={`${
+                item.link === route && 'opacity-70 cursor-not-allowed'
+              } w-full flex items-center max-[920px]:justify-center gap-3 border-b border-white/40 py-2 `}
               key={item.id}
               href={item.link}
             >
@@ -79,7 +89,7 @@ const Nav: React.FC<IProps> = ({ navOpen, navPresent = false }) => {
                     item?.id === 3 && 'text-gradient text-gradient-cosmic-gold',
                     navOpen && navPresent && 'max-[920px]:flex',
                     !navOpen && navPresent && 'max-[920px]:hidden max-[620px]:flex',
-                    !navOpen && !navPresent && 'max-[920px]:hidden'
+                    !navOpen && !navPresent && { className }
                   )}
                 >
                   {item?.page}{' '}

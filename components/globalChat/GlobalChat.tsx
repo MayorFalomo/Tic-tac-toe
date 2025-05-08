@@ -31,7 +31,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/firebase-config/firebase';
 import { X } from 'lucide-react';
-import { globalChatStyle } from '@/app/animation/constants';
+import { FadeVariants, globalChatStyle } from '@/app/animation/constants';
 import useOnlineStatus from '@/hooks/useOnlinePresence';
 import Nav from '../nav/Nav';
 import { Spinner } from '../ui/Spinner';
@@ -47,6 +47,8 @@ import { useRouter } from 'next/navigation';
 import { groupChattersByTime } from '@/app/utils/groupByTime';
 import { Skeleton } from '../ui/skeleton';
 import { IoIosArrowRoundBack } from 'react-icons/io';
+import clsx from 'clsx';
+import { motion } from 'framer-motion';
 
 interface IPlayers extends SessionPlayerDetails {
   invited: boolean;
@@ -67,6 +69,7 @@ const GlobalChat = () => {
   const currentUser = useAppSelector((state: RootState) => state.user);
   const dispatch = useAppDispatch();
   const online = useOnlineStatus();
+
   const router = useRouter();
 
   useEffect(() => {
@@ -76,8 +79,9 @@ const GlobalChat = () => {
         const data = snapshot.data();
         setGlobalPlayerChatters(data.messages || []);
         const playerChatters: GlobalChatType[] = data.messages || [];
+        const seen = new Set();
         const filteredChatters: IPlayers[] = playerChatters
-          .filter((item) => item?.senderId !== currentUser?.userId)
+          // .filter((item) => item?.senderId !== currentUser?.userId)
           .map((res: GlobalChatType) => {
             return {
               id: res.id,
@@ -85,6 +89,11 @@ const GlobalChat = () => {
               avatar: res.avatar,
               invited: false,
             };
+          })
+          .filter((player) => {
+            if (seen.has(player?.id)) return false;
+            seen.add(player?.id);
+            return true;
           });
         setGetPlayerChatters(filteredChatters);
       } else {
@@ -111,7 +120,7 @@ const GlobalChat = () => {
           const seen = new Set();
           //Now I ensure that I don't get the currentUser in the array and also multiple users of with the same ID
           const filteredChatters: IPlayers[] = playerChatters
-            .filter((res) => res?.senderId !== currentUser?.userId)
+            // .filter((res) => res?.senderId !== currentUser?.userId)
             .map((res) => ({
               id: res.senderId,
               name: res.name,
@@ -124,7 +133,6 @@ const GlobalChat = () => {
               return true;
             });
 
-          setGetPlayerChatters(filteredChatters);
           setGetPlayerChatters(filteredChatters);
         } else {
           console.log('No such document!');
@@ -222,7 +230,7 @@ const GlobalChat = () => {
           where('answer', '==', BattleReplyStatus.ACCEPT)
         );
         const timeOut = setTimeout(() => {
-          setLoadingSpinner('stop');
+          setLoadingSpinner(null);
           setStoredId(null);
           toast('Player did not respond on time.');
           unsubscribe();
@@ -232,12 +240,10 @@ const GlobalChat = () => {
         const unsubscribe = onSnapshot(playerQuery, (snapshot) => {
           snapshot.forEach(async (doc) => {
             const data = doc.data();
-            console.log(data, 'data');
 
             if (data.answer === BattleReplyStatus.ACCEPT) {
               clearTimeout(timeOut);
               const getOponentDetails = playerDocSnap.data();
-              console.log(getOponentDetails, 'getOponentDetails');
 
               toast(`${getOponentDetails.name} has accepted your invitation`);
 
@@ -261,7 +267,6 @@ const GlobalChat = () => {
                 getOponentDetails.id,
                 randomControl
               );
-              console.log(getSessionId, 'getSessionId');
 
               dispatch(setSessionId(getSessionId)); // Store the current game session ID
               await handleGameSession(
@@ -277,6 +282,12 @@ const GlobalChat = () => {
                 setLoadingSpinner(null);
                 router.push('/battle');
               }, 2000);
+            } else if (data.answer === BattleReplyStatus.DECLINE) {
+              setLoadingSpinner(null);
+              toast('Player has declined your Invitation');
+              setStoreChatId(null);
+              setStoredId(null);
+              return;
             }
           });
         });
@@ -420,7 +431,7 @@ const GlobalChat = () => {
               <Link href="/">Global Chat</Link>
             </h1>
             <p className=" text-white/40">
-              Drop a message so players can find and invite you.{' '}
+              Drop a message so other players can find and invite you.{' '}
             </p>
             <div className="flex flex-col items-start gap-4 ">
               {getPlayerChatters?.map((res: SessionPlayerDetails) => {
@@ -444,7 +455,12 @@ const GlobalChat = () => {
                           setStoredId(res.id);
                           handleSendBattleInvitation(res.id);
                         }}
-                        className={`text-gradient-neo-plasma flex items-center justify-center gap-1 py-2 rounded-[4px] w-[100px] text-[12px] font-normal px-[3px]`}
+                        className={clsx(
+                          currentUser?.userId === res?.id &&
+                            ' cursor-not-allowed disabled:opacity-60',
+                          `text-gradient-neo-plasma flex items-center justify-center gap-1 py-2 rounded-[4px] w-[100px] text-[12px] font-normal px-[3px]`
+                        )}
+                        disabled={res?.id === currentUser?.userId}
                       >
                         Invite{' '}
                         {loadingSpinner && res.id === storedId && (
@@ -483,20 +499,27 @@ const GlobalChat = () => {
               </div>
             </div>
             {navOpen ? (
-              <button
+              <motion.button
                 onClick={() => setNavOpen(false)}
                 className="flex flex-col gap-[7px] mx-6 cursor-pointer"
+                variants={FadeVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
               >
                 <X />
-              </button>
+              </motion.button>
             ) : (
-              <button
+              <motion.button
                 onClick={() => setNavOpen(true)}
                 className="min-[620px]:hidden max-[620px]:flex flex flex-col gap-[7px] mx-6 cursor-pointer"
+                variants={FadeVariants}
+                animate="visible"
+                exit="exit"
               >
                 <span className="bg-white h-0.5 w-8"></span>
                 <span className="bg-white h-0.5 w-8"></span>
-              </button>
+              </motion.button>
             )}
           </div>
 
@@ -506,7 +529,7 @@ const GlobalChat = () => {
                 {Object.keys(groupedChatters)?.length > 0 ? (
                   Object.keys(groupedChatters)?.map((key, index) => (
                     <React.Fragment key={key || index}>
-                      <h3 className="flex justify-center bg-white/30 text-white w-fit mx-auto rounded-[20px] text-[14px] px-4 py-1">
+                      <h3 className="flex justify-center bg-white/30 text-white w-fit mx-auto rounded-[20px] text-[14px] my-4 px-4 py-1">
                         {key}
                       </h3>
                       {groupedChatters[key]?.map((res, index) => (
@@ -519,6 +542,7 @@ const GlobalChat = () => {
                             }}
                             storeChatId={storeChatId}
                             setStoreChatId={setStoreChatId}
+                            loadingSpinner={loadingSpinner}
                           />
                         </React.Fragment>
                       ))}
