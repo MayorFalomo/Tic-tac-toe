@@ -1,13 +1,18 @@
 'use client';
 import {
+  BattleReplyStatus,
   Chat,
   defaultImg,
+  firebaseCollections,
+  GameSession,
+  NotifType,
   PlayerChatType,
   PlayerDetails,
+  PlayerStatus,
   Unread,
 } from '@/app/types/types';
 import { db } from '@/firebase-config/firebase';
-import { useAppSelector } from '@/lib/hooks';
+import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
 import {
   arrayUnion,
@@ -35,6 +40,16 @@ import { motion } from 'framer-motion';
 import { formatTimestamp } from '@/app/utils/date';
 import { playGameStyle, settingsBtnStyle } from '@/app/animation/constants';
 import Nav from '../nav/Nav';
+import clsx from 'clsx';
+import { IoIosArrowRoundBack } from 'react-icons/io';
+import { Spinner } from '../ui/Spinner';
+import { givePlayerNames } from '@/lib/features/PlayerSlice';
+import { setCombinedGameSessionId, setSessionId } from '@/lib/features/TrackerSlice';
+import { createGameSession } from '../funcs/HandleAuth';
+import { useRouter } from 'next/navigation';
+import useOnlineStatus from '@/hooks/useOnlinePresence';
+import { Search } from 'lucide-react';
+import { useDebounceValue } from '@/hooks/useDebounce';
 
 const UserChats = () => {
   const playersChatState = useAppSelector((state: RootState) => state.chatUp);
@@ -53,8 +68,19 @@ const UserChats = () => {
   >(null);
   const [getSelectedChat, setGetSelectedChat] = useState<PlayerDetails[]>([]);
   const [navOpen, setNavOpen] = useState<boolean>(false);
+  const [searchValue, setSearchValue] = useState<string | null>(null);
+
+  // const windowSize = useScreenSize(750);
+  const [openChat, setOpenChat] = useState<boolean>(false);
+  const [loadingSpinner, setLoadingSpinner] = useState<string | null>(null);
 
   const { currentTheme } = useTheme();
+  const router = useRouter();
+  const online = useOnlineStatus();
+
+  const dispatch = useAppDispatch();
+
+  const debouncedValue = useDebounceValue(searchValue!, 1000);
 
   const combinedChattersId = useMemo(() => {
     if (!playersChatState?.combinedChattingId) {
@@ -102,10 +128,11 @@ const UserChats = () => {
         unsubscribeChats(); // Unsubscribe when component unmounts
       };
     }
-  }, [combinedChattersId, currentUser?.userId, getSelectedChatCombinedId]);
+  }, [combinedChattersId, currentUser?.userId]);
 
   //Listens for chats
   useEffect(() => {
+    if (trackChatters?.messages.length! > 0) return;
     if (combinedChattersId) {
       const chatRef = collection(db, 'userChats');
       const q = query(
@@ -125,7 +152,7 @@ const UserChats = () => {
         unsubscribeChats(); // Unsubscribe when component unmounts
       };
     }
-  }, [combinedChattersId, getSelectedChatCombinedId, textMessage]);
+  }, [combinedChattersId, textMessage]);
 
   const loadChats = async (combinedId: string) => {
     const playersRef = collection(db, 'userChats');
@@ -317,74 +344,361 @@ const UserChats = () => {
     );
   };
 
+  // console.log(getSelectedChat[0]?.id);
+
   //Function to load the chat messages for the selected chat
   const handleChatSelect = async (chat: PlayerChatType) => {
-    // dispatch(setCombinedChattingId(chat?.combinedId));
-    setGetSelectedChatCombinedId(chat?.combinedId); //a state to store the selectedChat combinedId
+    if (typeof window !== 'undefined') {
+      const checkWidth = window.innerWidth <= 750;
 
-    const getSelectedChat = chat?.participantsObject.filter(
-      (res) => res.id !== currentUser?.userId
-    );
+      setOpenChat(checkWidth ? true : false); //This is for smaller screens to show the chat or close it
+      // dispatch(setCombinedChattingId(chat?.combinedId));
+      // setGetSelectedChatCombinedId(chat?.combinedId); //a state to store the selectedChat combinedId
 
-    setGetSelectedChat(getSelectedChat);
-    const filter = newWay?.filter((item) => item?.combinedId === chat?.combinedId);
-    setTrackChatters(filter[0]);
-
-    //Find the id of the selected player
-    const oppID = filter[0]?.participants?.filter((res) => res !== currentUser?.userId);
-
-    const playerOneId = currentUser?.userId;
-    const playerTwoId = oppID[0] ?? getOpponentId;
-
-    const chatRef = collection(db, 'userChats');
-
-    const q = query(chatRef, where('combinedId', '==', combinedChattersId));
-
-    const chatDoc = await getDocs(q);
-
-    if (!chatDoc.empty) {
-      const chatId = chatDoc.docs[0].id;
-
-      const chatDocumentRef = doc(db, 'userChats', chatId);
-
-      if (playerOneId + playerTwoId === getSelectedChatCombinedId || combinedChattersId) {
-        await updateDoc(chatDocumentRef, {
-          playerOneUnread: 0,
-        });
-      }
-      if (playerTwoId + playerOneId === getSelectedChatCombinedId || combinedChattersId) {
-        await updateDoc(chatDocumentRef, {
-          playerTwoUnread: 0,
-        });
-      }
-    }
-    const playerDocRef = doc(db, 'players', playerOneId);
-    const playerDoc = await getDoc(playerDocRef);
-
-    if (playerDoc.exists()) {
-      const unreadMessages: Unread[] = playerDoc.data()?.unreadMessages || {};
-
-      //Find the specific message in the unreadMessages array and remove it
-      const updatedUnreadMessages = unreadMessages.filter(
-        (message: Unread) => message.name !== currentUser?.name
-        // message.id !== playersChatState?.selectedPlayer?.id
+      const getSelectedChat = chat?.participantsObject.filter(
+        (res) => res.id !== currentUser?.userId
       );
 
-      // Update the unreadMessages in the player's document
-      await updateDoc(playerDocRef, {
-        unreadMessages: updatedUnreadMessages,
-      });
+      setGetSelectedChat(getSelectedChat);
+      const filter = newWay?.filter((item) => item?.combinedId === chat?.combinedId);
+      setTrackChatters(filter[0]);
+
+      //Find the id of the selected player
+      const oppID = filter[0]?.participants?.filter((res) => res !== currentUser?.userId);
+
+      const playerOneId = currentUser?.userId;
+      const playerTwoId = oppID[0] ?? getOpponentId;
+
+      const chatRef = collection(db, 'userChats');
+
+      const q = query(chatRef, where('combinedId', '==', combinedChattersId));
+
+      const chatDoc = await getDocs(q);
+
+      if (!chatDoc.empty) {
+        const chatId = chatDoc.docs[0].id;
+
+        const chatDocumentRef = doc(db, 'userChats', chatId);
+
+        if (
+          playerOneId + playerTwoId === getSelectedChatCombinedId ||
+          combinedChattersId
+        ) {
+          await updateDoc(chatDocumentRef, {
+            playerOneUnread: 0,
+          });
+        }
+        if (
+          playerTwoId + playerOneId === getSelectedChatCombinedId ||
+          combinedChattersId
+        ) {
+          await updateDoc(chatDocumentRef, {
+            playerTwoUnread: 0,
+          });
+        }
+      }
+      const playerDocRef = doc(db, 'players', playerOneId);
+      const playerDoc = await getDoc(playerDocRef);
+
+      if (playerDoc.exists()) {
+        const unreadMessages: Unread[] = playerDoc.data()?.unreadMessages || {};
+
+        //Find the specific message in the unreadMessages array and remove it
+        const updatedUnreadMessages = unreadMessages.filter(
+          (message: Unread) => message.name !== currentUser?.name
+          // message.id !== playersChatState?.selectedPlayer?.id
+        );
+
+        // Update the unreadMessages in the player's document
+        await updateDoc(playerDocRef, {
+          unreadMessages: updatedUnreadMessages,
+        });
+      }
     }
   };
+
+  const handleSendBattleInvitation = async (inviteeId: string) => {
+    if (inviteeId === undefined || null) return;
+    if (!currentUser?.userId) return;
+
+    try {
+      setLoadingSpinner('start');
+
+      const combinedId =
+        currentUser?.userId > inviteeId
+          ? currentUser?.userId + inviteeId
+          : inviteeId + currentUser?.userId;
+
+      const inviteObj = {
+        id: new Date().getTime(),
+        combinedId: combinedId,
+        senderId: currentUser?.userId,
+        timeStamp: Timestamp.now(),
+        type: NotifType.BATTLE,
+        answer: BattleReplyStatus.PENDING,
+        name: currentUser?.name,
+        avatar: currentUser?.avatar,
+      };
+
+      await setDoc(doc(db, 'battleInvitations', combinedId), inviteObj);
+
+      const battleInvitationObj = {
+        combinedId: combinedId,
+        id: new Date().getTime(),
+        message: `${currentUser?.name} has invited you to a battle`,
+        timeStamp: Timestamp.now(),
+        name: currentUser?.name,
+        type: NotifType.BATTLE,
+        answer: BattleReplyStatus.PENDING,
+        senderId: currentUser?.userId,
+      };
+
+      const playerDocRef = doc(db, 'players', inviteeId);
+      const playerDocSnap = await getDoc(playerDocRef);
+      if (playerDocSnap.exists()) {
+        await updateDoc(playerDocRef, {
+          unreadMessages: arrayUnion(battleInvitationObj),
+        });
+
+        const playerRef = collection(db, 'battleInvitations');
+        const playerQuery = query(
+          playerRef,
+          where('combinedId', '==', combinedId),
+          where('answer', '==', BattleReplyStatus.ACCEPT || BattleReplyStatus.DECLINE)
+        );
+        const timeOut = setTimeout(() => {
+          setLoadingSpinner(null);
+          // setStoredId(null);
+          toast('Player did not respond on time.');
+          unsubscribe();
+          return;
+        }, 60 * 1000); // 60 seconds
+
+        const unsubscribe = onSnapshot(playerQuery, (snapshot) => {
+          snapshot.forEach(async (doc) => {
+            const data = doc.data();
+
+            if (data.answer === BattleReplyStatus.ACCEPT) {
+              clearTimeout(timeOut);
+              const getOponentDetails = playerDocSnap.data();
+
+              toast(`${getOponentDetails.name} has accepted your invitation`);
+
+              const playerOneDetails = {
+                id: currentUser?.userId,
+                name: currentUser?.name,
+                avatar: currentUser?.avatar!,
+                networkState: online ? PlayerStatus.ONLINE : PlayerStatus.OFFLINE,
+              };
+
+              const playerTwoDetails = {
+                id: getOponentDetails.id,
+                name: getOponentDetails.name,
+                avatar: getOponentDetails.avatar,
+                networkState: getOponentDetails.networkState,
+              };
+              const randomControl = Math.random() > 0.5 ? true : false; //So I can randomize the gameplay turns
+
+              const getSessionId = await createGameSession(
+                currentUser?.userId,
+                getOponentDetails.id,
+                randomControl
+              );
+
+              dispatch(setSessionId(getSessionId)); // Store the current game session ID
+              await handleGameSession(
+                combinedId,
+                playerOneDetails,
+                playerTwoDetails,
+                randomControl
+              );
+              await updateDoc(doc.ref, { status: PlayerStatus.INGAME });
+
+              setLoadingSpinner('end');
+              setTimeout(() => {
+                setLoadingSpinner(null);
+                router.push('/battle');
+              }, 2000);
+            } else if (data.answer === BattleReplyStatus.DECLINE) {
+              setLoadingSpinner(null);
+              toast('Player has declined your Invitation');
+              // setStoreChatId(null);
+              // setStoredId(null);
+              return;
+            }
+          });
+        });
+        return () => {
+          clearTimeout(timeOut);
+          unsubscribe();
+        };
+      } else {
+        console.log('No such document!');
+      }
+    } catch (error) {
+      console.log('An error has occurred', error);
+    }
+  };
+
+  const handleGameSession = async (
+    combinedId: string,
+    playerOneDetails: PlayerDetails,
+    opponent: PlayerDetails,
+    randomControl: boolean
+  ) => {
+    try {
+      const sessionDoc = await getDoc(
+        doc(db, firebaseCollections.GAMESESSIONS, combinedId)
+      );
+      if (sessionDoc.exists()) {
+        const sessionData = sessionDoc.data();
+        const playerOne = {
+          id: playerOneDetails?.id,
+          name: playerOneDetails?.name,
+          avatar: playerOneDetails?.avatar,
+          networkState: PlayerStatus.ONLINE,
+        };
+        const playerTwo = {
+          id: opponent?.id,
+          name: opponent?.name,
+          avatar: opponent?.avatar,
+          networkState: opponent?.networkState,
+        };
+
+        dispatch(
+          givePlayerNames({
+            playerOne: playerOne,
+            playerTwo: playerTwo,
+          })
+        );
+        dispatch(setCombinedGameSessionId(combinedId));
+        return sessionData;
+      } else {
+        const newGameSession: GameSession = {
+          sessionId: combinedId,
+          currentTurn: randomControl ? playerOneDetails.id : opponent.id,
+          firstPlayer: randomControl ? playerOneDetails.id : opponent.id,
+          unChangeableFirstPlayer: randomControl ? playerOneDetails.id : opponent.id,
+          rounds: 1,
+          createdAt: new Date().toISOString(),
+          scores: {
+            playerOne: 0,
+            playerTwo: 0,
+          },
+          roundWinner: '',
+          endOfRound: false,
+          trackRoundPlayer: randomControl ? playerOneDetails.id : opponent.id,
+          winningCombination: [],
+          quitGame: false,
+          goToNextRound: true,
+          draw: false,
+          players: {
+            playerOne: {
+              id: playerOneDetails?.id,
+              name: playerOneDetails?.name,
+              avatar: playerOneDetails?.avatar!,
+            },
+            playerTwo: {
+              id: opponent.id,
+              name: opponent.name,
+              avatar: opponent.avatar!,
+            },
+          },
+          unreadMessages: {
+            playerOne: 0,
+            playerTwo: 0,
+          },
+          trackPlayersOnlineStatus: {
+            playerOne: playerOneDetails?.networkState,
+            playerTwo: opponent?.networkState,
+          },
+        };
+        await setDoc(
+          doc(db, firebaseCollections.GAMESESSIONS, combinedId),
+          newGameSession
+        );
+        // setPlayersSessionId(doc(db, 'gameSessions', combinedId));
+        const playerOneDets = {
+          id: playerOneDetails?.id,
+          name: playerOneDetails?.name,
+          avatar: playerOneDetails?.avatar,
+        };
+
+        const playerTwoDets = {
+          id: opponent?.id,
+          name: opponent?.name,
+          avatar: opponent?.avatar,
+        };
+
+        dispatch(
+          givePlayerNames({
+            playerOne: playerOneDets,
+            playerTwo: playerTwoDets,
+          })
+        );
+
+        dispatch(setCombinedGameSessionId(combinedId));
+        return newGameSession; //Return the created gameSession
+      }
+    } catch (error) {
+      console.error('Error creating game session:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (debouncedValue?.length > 1) {
+      const handleSearch = async (debounced: string) => {
+        // setLoading(true); // Set loading state
+        try {
+          const playerRef = collection(db, 'players');
+          const playerDoc = query(playerRef, where('name', '==', debounced));
+          const querySnapshot = await getDocs(playerDoc);
+          console.log('Is the query empty?', querySnapshot.empty); // Check if the query is empty
+          const results: PlayerDetails[] = [];
+          querySnapshot.forEach((doc) => {
+            console.log(doc.data(), 'found user');
+            const playerData = doc.data();
+            if (playerData.id && playerData.name && playerData.networkState) {
+              results.push(playerData as PlayerDetails);
+            }
+          });
+          console.log(results, 'results');
+
+          // setNewWay(results); // Store all found users
+        } catch (err) {
+          console.error(err);
+        } finally {
+          console.log('finaly');
+
+          // setLoading(false); // Reset loading state
+        }
+      };
+
+      handleSearch(debouncedValue);
+    } else {
+      console.log('nothing');
+
+      // setNewWay(null); // Clear results if the search input is too short
+    }
+  }, [debouncedValue]);
 
   return (
     <div>
       <div
-        className={`${
-          currentTheme === 'light' ? 'bg-royalGreen text-white' : 'bg-black text-white'
-        } max-w-[1500px] mx-auto grid min-[1300px]:grid-cols-[380px_auto_360px] max-[1300px]:grid-cols-[350px_auto_330px]  max-[1100px]:grid-cols-[310px_auto_300px] max-[1020px]:grid-cols-[290px_auto_270px] max-[920px]:grid-cols-[290px_auto_150px] max-[820px]:grid-cols-[270px_auto_100px] max-[750px]:grid-cols-[250px_auto_0] max-[620px]:grid-cols-[auto_0_0] h-screen overflow-hidden w-full text-white`}
+        className={clsx(
+          currentTheme === 'light' ? 'bg-royalGreen text-white' : 'bg-black text-white',
+          openChat && 'max-[750px]:grid-cols-[auto_0] max-[620px]:grid-cols-[auto_0]',
+          !openChat &&
+            'max-[750px]:grid-cols-[270px_auto_0] max-[700px]:grid-cols-[auto_0_0]',
+          ` transition-all duration-500 ease-in-out max-w-[1500px] mx-auto grid min-[1300px]:grid-cols-[380px_auto_360px] max-[1300px]:grid-cols-[350px_auto_330px]  max-[1100px]:grid-cols-[310px_auto_300px] max-[1020px]:grid-cols-[290px_auto_270px] max-[920px]:grid-cols-[290px_auto_150px] max-[820px]:grid-cols-[270px_auto_100px] max-h-screen h-screen overflow-hidden w-full text-white`
+        )}
       >
-        <div className="h-full w-full border-r border-white/40 p-4 pb-[50px] overflow-auto">
+        <div
+          className={clsx(
+            openChat && 'max-[750px]:hidden',
+            `transition-all duration-500 ease-in-out h-full w-full border-r border-white/40 p-4 pb-[50px] overflow-auto`
+          )}
+        >
           <div className="flex flex-col gap-4">
             <h1
               className={`${
@@ -395,6 +709,18 @@ const UserChats = () => {
             >
               <Link href="/players">Your Chats</Link>
             </h1>
+            <div className="flex items-center rounded-lg bg-white text-black">
+              <input
+                // onKeyDown={handleSearch}
+                onChange={(e) => {
+                  setSearchValue(e.target.value);
+                  // handleSearchForPlayer(e);
+                }}
+                placeholder="Search for a player"
+                className="w-full rounded-lg focus-visible:ring-0 outline-none border-none py-2 px-2"
+              />
+              <Search className="w-[50px] cursor-pointer " />
+            </div>
             <div className="flex flex-col items-start gap-2 ">
               {newWay?.length > 0 ? (
                 newWay.map((chat) => {
@@ -484,36 +810,64 @@ const UserChats = () => {
           </div>
         </div>
         <div
-          className={`w-full max-[750px]:w-full max-[600px]:w-[95%] h-full overflow-hidden border-x border-white/40`}
+          className={`w-full h-screen flex flex-col justify-between items-start border-x border-white/50`}
         >
           <div
-            className={`${playGameStyle} flex items-center gap-3 border-t-0  border-b border-white/50 w-full py-4 px-2`}
+            className={`${playGameStyle} flex items-center justify-between gap-4 border-t-0 border-b border-white/50 w-full py-4 px-2`}
           >
-            {playersChatState?.selectedPlayer?.avatar && (
-              <Image
-                src={playersChatState?.selectedPlayer?.avatar}
-                className="w-[50px] h-[50px] rounded-full object-cover object-top border border-white/50 "
-                width={50}
-                height={50}
-                alt="img"
-              />
-            )}
-            <div className="flex flex-col gap-[1px]">
-              <p>
-                {trackChatters?.participantsObject[0]?.id === currentUser?.userId
-                  ? trackChatters?.participantsObject[1]?.name
-                  : trackChatters?.participantsObject[0]?.name}{' '}
-              </p>
-              <p className="text-[12px] text-white">
-                {textMessage?.length < 2 && trackChatters?.typing ? (
-                  <span>typing...</span>
-                ) : (
-                  ''
-                )}
-              </p>
+            <div className={`flex items-center gap-3 `}>
+              <span
+                className="cursor-pointer max-[750px]:flex min-[750px]:hidden "
+                onClick={() => setOpenChat(false)}
+              >
+                <IoIosArrowRoundBack size={24} />{' '}
+              </span>
+              {playersChatState?.selectedPlayer?.avatar && (
+                <Image
+                  src={playersChatState?.selectedPlayer?.avatar}
+                  className="w-[50px] h-[50px] rounded-full object-cover object-top border border-white/50 "
+                  width={50}
+                  height={50}
+                  alt="img"
+                />
+              )}
+              <div className="flex flex-col gap-[1px]">
+                <p>
+                  {trackChatters?.participantsObject[0]?.id === currentUser?.userId
+                    ? trackChatters?.participantsObject[1]?.name
+                    : trackChatters?.participantsObject[0]?.name}{' '}
+                </p>
+                <p className="text-[12px] text-white">
+                  {textMessage?.length < 2 && trackChatters?.typing ? (
+                    <span>typing...</span>
+                  ) : (
+                    ''
+                  )}
+                </p>
+              </div>
             </div>
+            <button
+              onClick={() => {
+                // setStoredId(res.id);
+                handleSendBattleInvitation(getSelectedChat[0]?.id);
+              }}
+              className={clsx(
+                `text-gradient-ocean hover:border border-white flex items-center justify-center gap-1 py-2 rounded-[4px] text-[14px] font-normal text-nowrap px-[3px]`
+              )}
+            >
+              {loadingSpinner === 'end' ? (
+                <span>Ready </span>
+              ) : loadingSpinner === 'start' ? (
+                <span className="flex items-center gap-2 whitespace-nowrap">
+                  {' '}
+                  Gearing up <Spinner size={'small'} className="text-white" />
+                </span>
+              ) : (
+                <span className="px-2">Invite to battle </span>
+              )}
+            </button>
           </div>
-          <div className="py-6 h-[70%] overflow-auto px-3">
+          <div className="py-6 h-[80%] w-full overflow-auto px-3">
             <div className="flex flex-col h-full overflow-auto">
               <div className="flex flex-col h-full gap-3">
                 {trackChatters?.messages!?.length > 0 ? (
@@ -545,7 +899,7 @@ const UserChats = () => {
               </div>
             </div>
           </div>
-          <div className={`${playGameStyle} relative bg-gray-300 p-4`}>
+          <div className={`${playGameStyle} w-full relative bg-gray-300 p-4`}>
             <div className=" w-full bg-white rounded-md flex items-center">
               <textarea
                 className="flex text-black font-normal items-center min-[600px]:h-[100%] max-[600px]:h-[100px] w-full resize-none rounded px-2 py-4 pt-2 text-sm placeholder:pt-2 placeholder:pl-2 outline-none border-none "

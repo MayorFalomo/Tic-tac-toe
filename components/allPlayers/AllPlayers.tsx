@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { getAllPlayers, handlePlayersStatus } from '../funcs/HandleAuth';
 import {
   LoadingState,
@@ -33,7 +33,6 @@ import {
 } from '@/app/animation/constants';
 import { Skeleton } from '../ui/skeleton';
 import { collection, onSnapshot, query } from 'firebase/firestore';
-import { IoMdArrowDropleft } from 'react-icons/io';
 import { FaArrowLeftLong } from 'react-icons/fa6';
 
 interface IPlayers extends SessionPlayerDetails {
@@ -206,7 +205,10 @@ const AllPlayers = () => {
               <div className="flex flex-col items-center space-x-4">
                 <div className="space-y-2">
                   {Array.from({ length: 6 }).map((_, index) => (
-                    <Skeleton key={index} className="h-4 w-full bg-white" />
+                    <Skeleton
+                      key={index}
+                      className="h-[30px] w-[250px] max-w-full bg-white"
+                    />
                   ))}
                 </div>
               </div>
@@ -221,8 +223,15 @@ const AllPlayers = () => {
             <div>
               <Button
                 onClick={handleChats}
-                disabled={currentUser?.userId && singlePlayer?.id ? false : true}
+                disabled={
+                  currentUser?.userId === singlePlayer?.id
+                    ? true
+                    : currentUser?.userId && singlePlayer?.id
+                    ? false
+                    : true
+                }
                 className={clsx(
+                  currentUser?.userId === singlePlayer?.id && 'cursor-not-allowed',
                   currentUser?.userId.length < 1 && 'cursor-not-allowed',
                   !singlePlayer?.id && 'cursor-not-allowed',
                   `cursor-pointer bg-black`

@@ -23,6 +23,7 @@ import NotificationsList from './NotificationList';
 import { playGameStyle } from '@/app/animation/constants';
 import useOnClickOutside from '@/hooks/useOnclickOutside';
 import { RxAvatar } from 'react-icons/rx';
+import { HiOutlineBellAlert } from 'react-icons/hi2';
 
 const EditName = React.lazy(() => import('./EditPlayerNameModal'));
 const EditProfilePicture = React.lazy(() => import('./EditProfilePicture'));
@@ -159,7 +160,17 @@ const ProfileHeader = () => {
               onClick={toggleNotifications}
               aria-label="Notifications"
             >
-              <Bell className="w-6 h-6" />
+              <HiOutlineBellAlert
+                style={{
+                  background: 'rgba(255, 255, 255, 0.39)',
+                  borderRadius: '50px',
+                  boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  padding: '5px',
+                }}
+                size={35}
+              />
               {
                 <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                   {userNotifs.length > 9 ? '9+' : userNotifs.length}

@@ -475,7 +475,7 @@ const GlobalChat = () => {
           </div>
         </div>
         <div
-          className={`w-full max-[750px]:w-[100%]  h-full overflow-hidden min-[620px]:border-x border-white/40`}
+          className={`w-full max-[750px]:w-[100%] h-full overflow-hidden min-[620px]:border-x border-white/40`}
         >
           <div
             className={`${globalChatStyle} flex items-center justify-between  border-t-0 border-x-0 border-b border-white/50 `}

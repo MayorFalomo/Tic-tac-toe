@@ -43,6 +43,7 @@ import toast from 'react-hot-toast';
 import { givePlayerNames } from '@/lib/features/PlayerSlice';
 import { setCombinedChattingId } from '@/lib/features/ChatAPlayerSlice';
 import { useRouter } from 'next/navigation';
+import { HiOutlineBellAlert } from 'react-icons/hi2';
 
 type Props = {
   gameData: GameSession | null;
@@ -339,9 +340,31 @@ const HomeHeader: React.FC<Props> = ({
               {' '}
               {playersObject?.playerOne?.id === gameData?.players?.playerTwo?.id &&
               gameData?.unreadMessages?.playerTwo! > 0 ? (
-                <Bell size={20} color="white" />
+                <HiOutlineBellAlert
+                  className="p-6 h-full w-full bg-gray-200 rounded-md bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-10 border border-gray-100"
+                  size={40}
+                  color="white"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.42)',
+                    borderRadius: '50px',
+                    boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                    backdropFilter: 'blur(4.2px)',
+                    WebkitBackdropFilter: 'blur(4.2px)',
+                  }}
+                />
               ) : (
-                <MessageCircle color="white" size={20} />
+                <MessageCircle
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    borderRadius: '50px',
+                    boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                    backdropFilter: 'blur(5px)',
+                    WebkitBackdropFilter: 'blur(5px)',
+                    padding: '10px',
+                  }}
+                  color="white"
+                  size={40}
+                />
               )}
               {playersObject?.playerOne?.id === gameData?.players?.playerTwo?.id && (
                 <span
