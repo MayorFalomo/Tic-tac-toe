@@ -6,6 +6,7 @@ import Providers from './QueryProvider';
 import { ThemeProvider } from '../contexts/ThemeContext';
 import { AudioProvider } from '../contexts/AudioContext';
 import Head from 'next/head';
+import { UserProvider } from '@/contexts/UserContext';
 
 const inter = Prompt({ weight: '400', style: 'normal', subsets: ['latin'] });
 
@@ -90,7 +91,7 @@ export default function RootLayout({
           <Providers>
             <ThemeProvider>
               <AudioProvider src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">
-                {children}
+                <UserProvider>{children}</UserProvider>
               </AudioProvider>
             </ThemeProvider>
           </Providers>

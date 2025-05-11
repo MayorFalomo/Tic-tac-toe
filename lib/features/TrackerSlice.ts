@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-interface track {
+interface Track {
   trackTheWinnner: string;
   trackRounds: number;
    trackDisableRound: boolean;
@@ -14,6 +14,7 @@ interface track {
   };
   trackSound: boolean;
   notifBg: string;
+  iconColor: string;
 }
 
 export interface SessionId {
@@ -21,7 +22,7 @@ export interface SessionId {
   playerTwoSessionId: string;
 }
 
-const initialState: track = {
+const initialState: Track = {
   trackTheWinnner: "",
   trackRounds: 1,
    trackDisableRound: true,
@@ -37,7 +38,8 @@ const initialState: track = {
     playerTwo: 0,
   },
   trackSound: false,
-  notifBg: "red"
+  notifBg: "red",
+  iconColor: 'icon-glow-emerald'
 };
 
 export const trackerSlice = createSlice({
@@ -78,6 +80,9 @@ export const trackerSlice = createSlice({
     },
     changeNotifBg: (state, action) => {
       state.notifBg = action.payload;
+    },
+    changeIconColor: (state, action) => {
+      state.iconColor = action.payload
     }
   },
 });
@@ -92,6 +97,7 @@ export const {
   setTrackScores,
   setCombinedGameSessionId,
   setTrackSound,
-  changeNotifBg
+  changeNotifBg,
+  changeIconColor
 } = trackerSlice.actions;
 export default trackerSlice.reducer;

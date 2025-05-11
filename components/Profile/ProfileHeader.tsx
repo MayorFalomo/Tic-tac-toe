@@ -20,7 +20,7 @@ import {
   where,
 } from 'firebase/firestore';
 import NotificationsList from './NotificationList';
-import { playGameStyle } from '@/app/animation/constants';
+import { FadeVariants, playGameStyle } from '@/app/animation/constants';
 import useOnClickOutside from '@/hooks/useOnclickOutside';
 import { RxAvatar } from 'react-icons/rx';
 import { HiOutlineBellAlert } from 'react-icons/hi2';
@@ -33,6 +33,8 @@ const ProfileHeader = () => {
 
   const dispatch = useAppDispatch();
   const playerData = useAppSelector((state: RootState) => state.user);
+  const trackIconColor = useAppSelector((state: RootState) => state.track.iconColor);
+  const track = useAppSelector((state: RootState) => state.track.notifBg);
 
   const [editPlayer, setEditPlayer] = useState<boolean>(false);
   const [changeAvatar, setChangeAvatar] = useState<boolean>(false);
@@ -149,53 +151,57 @@ const ProfileHeader = () => {
     },
   });
 
+  console.log(trackIconColor, 'trackicon');
+
   return (
     <div ref={ref} className={`flex items-center gap-6 text-white`}>
       <div className="relative">
-        {
-          <div className="relative" ref={notificationRef}>
-            {/* Bell Icon with Badge */}
-            <button
-              className="relative p-2 rounded-full text-white hover:bg-gray-100 hover:text-black transition-all duration-300 ease-in-out"
-              onClick={toggleNotifications}
-              aria-label="Notifications"
+        <div className="relative" ref={notificationRef}>
+          {/* Bell Icon with Badge */}
+          <button
+            className="relative p-2 rounded-full text-white hover:bg-gray-100 hover:text-black transition-all duration-300 ease-in-out"
+            onClick={toggleNotifications}
+            aria-label="Notifications"
+          >
+            <HiOutlineBellAlert
+              style={{
+                background: 'rgba(255, 255, 255, 0.39)',
+                borderRadius: '50px',
+                boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                padding: '5px',
+              }}
+              className={`${trackIconColor}`}
+              size={35}
+            />
+
+            <span
+              style={{ backgroundColor: track || 'red' }}
+              className={`absolute -top-1 -right-1 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center`}
             >
-              <HiOutlineBellAlert
-                style={{
-                  background: 'rgba(255, 255, 255, 0.39)',
-                  borderRadius: '50px',
-                  boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  padding: '5px',
-                }}
-                size={35}
-              />
-              {
-                <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                  {userNotifs.length > 9 ? '9+' : userNotifs.length}
-                </span>
-              }
-              {/* <span className="bg-red-500 absolute top-[-10px] left-[20%] w-[15px] h-[15px] px-2 py-2 text-[12px] place-items-center flex justify-center items-center rounded-full"></span> */}
-            </button>
+              {userNotifs.length > 9 ? '9+' : userNotifs.length}
+            </span>
 
-            {/* Notification Panel with Tooltip Design */}
-            {isOpen && (
-              <div className="absolute min-[680px]:right-0 max-[680px]:left-0 mt-2 w-80 max-[580px]:w-[280px] max-[320px]:w-[220px] z-50 transform-gpu transition-all duration-200 ease-in-out origin-top-right">
-                {/* Triangle Pointer */}
-                <div className="absolute -top-2 min-[680px]:right-4 max-[680px]:left-4 w-4 h-4 transform rotate-45 bg-white border-t border-l border-gray-200"></div>
+            {/* <span className="bg-red-500 absolute top-[-10px] left-[20%] w-[15px] h-[15px] px-2 py-2 text-[12px] place-items-center flex justify-center items-center rounded-full"></span> */}
+          </button>
 
-                {/* Notification Content */}
-                <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-                  <NotificationsList
-                    notifications={userNotifs}
-                    onMarkAllAsRead={markAllNotifAsRead}
-                  />
-                </div>
+          {/* Notification Panel with Tooltip Design */}
+          {isOpen && (
+            <div className="absolute min-[680px]:right-0 max-[680px]:left-0 mt-2 w-80 max-[580px]:w-[280px] max-[320px]:w-[220px] z-50 transform-gpu transition-all duration-200 ease-in-out origin-top-right">
+              {/* Triangle Pointer */}
+              <div className="absolute -top-2 min-[680px]:right-4 max-[680px]:left-4 w-4 h-4 transform rotate-45 bg-white border-t border-l border-gray-200"></div>
+
+              {/* Notification Content */}
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+                <NotificationsList
+                  notifications={userNotifs}
+                  onMarkAllAsRead={markAllNotifAsRead}
+                />
               </div>
-            )}
-          </div>
-        }
+            </div>
+          )}
+        </div>
       </div>
       <motion.div
         className="w-[280px] max-[580px]:w-[240px] group relative border border-[#1D1D38] px-4 py-1 flex items-center justify-between rounded-[10px] gap-2 cursor-pointer"
@@ -348,9 +354,10 @@ const ProfileHeader = () => {
               <AnimatePresence>
                 {logout && (
                   <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    variants={FadeVariants}
+                    initial="hidden"
+                    animate="visible"
+                    exit="exit"
                     className="flex flex-col justify-between gap-2 px-2 mb-3 mt-2"
                   >
                     <p className="px-2 text-[14px]">Your account would be deleted!. </p>

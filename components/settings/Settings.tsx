@@ -5,7 +5,11 @@ import { useAudio } from '@/contexts/AudioContext';
 import Link from 'next/link';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAppDispatch } from '@/lib/hooks';
-import { changeNotifBg, setTrackSound } from '@/lib/features/TrackerSlice';
+import {
+  changeIconColor,
+  changeNotifBg,
+  setTrackSound,
+} from '@/lib/features/TrackerSlice';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/lib/store';
 import FadeIn from '@/app/animation/FadeIn';
@@ -13,6 +17,16 @@ import Bouncy from '@/app/animation/Bouncy';
 import { motion } from 'framer-motion';
 import { settingsBtnStyle } from '@/app/animation/constants';
 import { GoArrowLeft } from 'react-icons/go';
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
+import { Bell } from 'lucide-react';
 
 const Settings: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -42,6 +56,46 @@ const Settings: React.FC = () => {
     localStorage.setItem('notifBg', e.target.value);
   };
 
+  const iconColors = [
+    {
+      id: 1,
+      color: 'icon-glow-plasma',
+      name: 'Plasma',
+    },
+    {
+      id: 2,
+      color: 'icon-glow-frost',
+      name: 'Frost',
+    },
+    {
+      id: 3,
+      color: 'icon-glow-emerald',
+      name: 'Emerald',
+    },
+    {
+      id: 4,
+      color: 'icon-glow-nebula',
+      name: 'Nebula',
+    },
+    {
+      id: 5,
+      color: 'icon-glow-solar',
+      name: 'Solar',
+    },
+    {
+      id: 6,
+      color: 'icon-glow-ocean',
+      name: 'Ocean',
+    },
+    {
+      id: 7,
+      color: 'icon-glow-gold',
+      name: 'Gold',
+    },
+  ];
+
+  const res = () => {};
+
   return (
     <FadeIn>
       <div
@@ -54,7 +108,7 @@ const Settings: React.FC = () => {
             currentTheme === 'light'
               ? 'bg-white text-golden'
               : `${settingsBtnStyle} text-white`
-          } h-[50%] w-[50%] min-w-[400px] max-[500px]:min-w-[200px] max-[500px]:w-[90%] rounded-md mx-auto`}
+          } h-[50%] max-[480px]:h-[70%] w-[50%] min-w-[400px] max-[500px]:min-w-[200px] max-[500px]:w-[90%] rounded-md mx-auto`}
         >
           <motion.div
             initial={{ x: -50, opacity: 0 }}
@@ -85,7 +139,11 @@ const Settings: React.FC = () => {
             {track?.trackSound ? (
               <Checkbox onClick={handleSoundControl} id="stopSound" />
             ) : (
-              <Checkbox onClick={handleSoundControl} id="applySound" />
+              <Checkbox
+                onClick={handleSoundControl}
+                className="text-white bg-white border border-white"
+                id="applySound"
+              />
             )}
           </Bouncy>
 
@@ -122,6 +180,49 @@ const Settings: React.FC = () => {
                 type={'color'}
                 value={track?.notifBg}
               />
+            </div>
+          </Bouncy>
+          <Bouncy
+            delay={0.8}
+            className="min-[480px]:flex max-[480px]:flex-col justify-between max-[480px]:items-start min-[480px]:items-center w-[90%] mx-auto mt-[30px]"
+          >
+            <p className="text-sm font-medium leading-6 peer-disabled:cursor-not-allowed peer-disabled">
+              Change notification icon color
+            </p>
+            <div className=" gap-3">
+              <Select
+                onValueChange={(value) => {
+                  dispatch(changeIconColor(value));
+                }}
+              >
+                <SelectTrigger
+                  className={`w-[200px] max-[480px]:w-full bg-transparent rounded-none border-b-white text-white/60 border-b border outline-none border-x-0 border-t-0 text-[16px] focus:ring-offset-0 focus:ring-0`}
+                >
+                  <SelectValue
+                    className="text-[14px] placeholder:text-white"
+                    placeholder="Select your color"
+                  />
+                </SelectTrigger>
+                <SelectContent className="flex w-full">
+                  <SelectGroup className=" w-full">
+                    <SelectLabel className="px-2 ">
+                      Select your preferred icon color{' '}
+                    </SelectLabel>
+                    {iconColors.map((color) => (
+                      <SelectItem
+                        className="flex  px-2 py-2 w-full"
+                        key={color?.id}
+                        value={color.color}
+                      >
+                        <p className="min-w-full w-[230px] max-[480px]:w-[300px] flex items-center justify-between whitespace-nowrap">
+                          {color.name}
+                          <Bell className={`${color.color}`} size={14} />
+                        </p>
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
           </Bouncy>
         </div>

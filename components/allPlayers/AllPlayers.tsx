@@ -34,6 +34,7 @@ import {
 import { Skeleton } from '../ui/skeleton';
 import { collection, onSnapshot, query } from 'firebase/firestore';
 import { FaArrowLeftLong } from 'react-icons/fa6';
+import { usePlayer } from '@/contexts/UserContext';
 
 interface IPlayers extends SessionPlayerDetails {
   status: string;
@@ -41,16 +42,17 @@ interface IPlayers extends SessionPlayerDetails {
 }
 
 const AllPlayers = () => {
-  const { getData, db } = useIndexedDB();
+  // const { getData, db } = useIndexedDB();
 
   const [getPlayers, seGetPlayers] = useState<IPlayers[]>([]);
   const [singlePlayer, setSinglePlayer] = useState<IPlayers | null>(null);
   const [loading, setLoading] = useState<string>(LoadingState.LOADING);
 
-  const currentUser = useAppSelector((state: RootState) => state.user as userDetails);
+  // const currentUser = useAppSelector((state: RootState) => state.user as userDetails);
   const dispatch = useAppDispatch();
   const navigate = useRouter();
   const { currentTheme } = useTheme();
+  const { currentUser } = usePlayer();
 
   //React to changes for players as they happen
   useEffect(() => {
@@ -76,21 +78,21 @@ const AllPlayers = () => {
   }, []);
 
   // Function to fetch player data from IndexedDB
-  const fetchPlayerData = async () => {
-    const data = await getData();
-    if (data) {
-      dispatch(setAPlayer(data));
-      setLoading(LoadingState.SUCCESS);
-    }
-  };
+  // const fetchPlayerData = async () => {
+  //   const data = await getData();
+  //   if (data) {
+  //     dispatch(setAPlayer(data));
+  //     setLoading(LoadingState.SUCCESS);
+  //   }
+  // };
 
   //UseEffect to get data from db
-  useEffect(() => {
-    setLoading(LoadingState.LOADING);
-    if (db) {
-      fetchPlayerData();
-    }
-  }, [db]);
+  // useEffect(() => {
+  //   setLoading(LoadingState.LOADING);
+  //   if (db) {
+  //     fetchPlayerData();
+  //   }
+  // }, [db]);
 
   useEffect(() => {
     const retrievedKey = currentUser?.userId;
@@ -232,7 +234,7 @@ const AllPlayers = () => {
                 }
                 className={clsx(
                   currentUser?.userId === singlePlayer?.id && 'cursor-not-allowed',
-                  currentUser?.userId.length < 1 && 'cursor-not-allowed',
+                  currentUser?.userId!?.length < 1 && 'cursor-not-allowed',
                   !singlePlayer?.id && 'cursor-not-allowed',
                   `cursor-pointer bg-black`
                 )}
@@ -269,6 +271,10 @@ const AllPlayers = () => {
                   <span>{singlePlayer?.name}</span>
                 </h2>
                 <p className="flex items-center gap-3 mt-[5px] px-3 pb-2 ">
+                  <span>Player Status:</span>
+                  <span>{singlePlayer?.status ? singlePlayer?.status : ''}</span>
+                </p>
+                <p className="flex items-center gap-3 px-3 pb-2 ">
                   <span>Date Joined:</span>
                   <span>
                     {singlePlayer?.createdAt

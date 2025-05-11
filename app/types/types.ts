@@ -235,7 +235,8 @@ export enum AvatarValueType {
 export enum LoadingState {
   LOADING = 'loading',
   SUCCESS = 'success',
-  Failed = 'failed'
+  FAILED = 'failed',
+  IDLE = 'idle'
 }
 
 export enum NotifType {

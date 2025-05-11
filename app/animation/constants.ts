@@ -11,14 +11,15 @@ export const FadeVariants = {
 };
 
 export const scaleAndPopVariants = {
-  hidden: { opacity: 0, scale: 0.7 },
+  hidden: { opacity: 0, scale: 0.4 },
   visible: { opacity: 1, scale: 1 },
-  exit: { opacity: 0, scale: 0.7 },
+  exit: { opacity: 0, scale: 0.4 },
   transition: {
     type: 'spring',
     mass: 0.4,
     damping: 20,
     stiffness: 100,
+    duration: 0.8
     
   }
 };

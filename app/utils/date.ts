@@ -1,12 +1,8 @@
 import { formatDistanceToNow as dateFnsFormatDistanceToNow } from 'date-fns';
 import { TimeStamp } from '../types/types';
- import { format, isToday, isYesterday } from 'date-fns';
+import { format, isToday, isYesterday } from 'date-fns';
 import { Timestamp as TimeStampType } from 'firebase/firestore';
 
-
-// interface FirebaseTimestamp {
-//   toDate: () => Date;
-// }
 
 export function formatTimeToNow(date: Date | TimeStamp): string {
   const dateObject = isFirestoreTimestamp(date)
