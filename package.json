@@ -50,6 +50,7 @@
     "react-redux": "^9.2.0",
     "react-use": "^17.6.0",
     "redux": "^5.0.1",
+    "redux-persist": "^6.0.0",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
     "use-sound": "^4.0.3"

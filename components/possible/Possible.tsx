@@ -266,7 +266,7 @@ const Possible: React.FC<MappedOver> = ({
                       ? gameData?.players?.playerOne?.name
                       : gameData?.players?.playerTwo?.name
                   );
-                  //So it reflects offline after since most players go off here
+                  //update to offline after since most players go off here
                   await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
                     status: 'offline',
                   });

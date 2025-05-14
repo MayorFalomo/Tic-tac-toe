@@ -1,12 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import { getAllPlayers, handlePlayersStatus } from '../funcs/HandleAuth';
-import {
-  LoadingState,
-  PlayerStatus,
-  SessionPlayerDetails,
-  userDetails,
-} from '@/app/types/types';
+import { LoadingState, PlayerStatus, SessionPlayerDetails } from '@/app/types/types';
 import Image from 'next/image';
 import clsx from 'clsx';
 import { ArrowLeft } from 'lucide-react';
@@ -16,15 +11,12 @@ import { motion } from 'framer-motion';
 import FadeIn from '@/app/animation/FadeIn';
 import { Button } from '../ui/button';
 import { db as database } from '@/firebase-config/firebase';
-import { RootState } from '@/lib/store';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { useAppDispatch } from '@/lib/hooks';
 import { useRouter } from 'next/navigation';
 import {
   setCombinedChattingId,
   setSelectedPlayer,
 } from '@/lib/features/ChatAPlayerSlice';
-import useIndexedDB from '@/hooks/useIndexDb';
-import { setAPlayer } from '@/lib/features/userSlice';
 import { formatDateToDMY } from '@/app/utils/date';
 import {
   childVariants,
@@ -42,13 +34,10 @@ interface IPlayers extends SessionPlayerDetails {
 }
 
 const AllPlayers = () => {
-  // const { getData, db } = useIndexedDB();
-
   const [getPlayers, seGetPlayers] = useState<IPlayers[]>([]);
   const [singlePlayer, setSinglePlayer] = useState<IPlayers | null>(null);
   const [loading, setLoading] = useState<string>(LoadingState.LOADING);
 
-  // const currentUser = useAppSelector((state: RootState) => state.user as userDetails);
   const dispatch = useAppDispatch();
   const navigate = useRouter();
   const { currentTheme } = useTheme();
@@ -106,6 +95,7 @@ const AllPlayers = () => {
         if (retrievedKey) {
           const filtered = res.filter((player: any) => player.id === retrievedKey);
           setSinglePlayer(filtered);
+          setLoading(LoadingState.SUCCESS);
         }
         seGetPlayers(res);
       });
@@ -204,13 +194,13 @@ const AllPlayers = () => {
                 ))}
               </motion.div>
             ) : (
-              <div className="flex flex-col items-center space-x-4">
-                <div className="space-y-2">
+              <div className="flex flex-col items-center gap-6 space-x-4">
+                <div className="flex flex-col gap-4 mt-3 space-y-2">
                   {Array.from({ length: 6 }).map((_, index) => (
-                    <Skeleton
-                      key={index}
-                      className="h-[30px] w-[250px] max-w-full bg-white"
-                    />
+                    <div key={index} className="flex items-center gap-4">
+                      <Skeleton className="h-[40px] w-[40px]  rounded-full bg-white" />
+                      <Skeleton className="h-[50px] w-[190px] max-w-full bg-white" />
+                    </div>
                   ))}
                 </div>
               </div>
@@ -272,7 +262,19 @@ const AllPlayers = () => {
                 </h2>
                 <p className="flex items-center gap-3 mt-[5px] px-3 pb-2 ">
                   <span>Player Status:</span>
-                  <span>{singlePlayer?.status ? singlePlayer?.status : ''}</span>
+                  <span>
+                    {singlePlayer?.status ? singlePlayer?.status : ''}
+                    {singlePlayer?.status && (
+                      <span
+                        className={clsx(
+                          singlePlayer?.status === PlayerStatus.ONLINE &&
+                            'w-5 h-5 bg-brightGreen',
+                          singlePlayer?.status === PlayerStatus.OFFLINE && '',
+                          singlePlayer?.status === PlayerStatus.INGAME
+                        )}
+                      ></span>
+                    )}
+                  </span>
                 </p>
                 <p className="flex items-center gap-3 px-3 pb-2 ">
                   <span>Date Joined:</span>

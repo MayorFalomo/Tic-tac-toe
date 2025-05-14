@@ -24,17 +24,20 @@ import { FadeVariants, playGameStyle } from '@/app/animation/constants';
 import useOnClickOutside from '@/hooks/useOnclickOutside';
 import { RxAvatar } from 'react-icons/rx';
 import { HiOutlineBellAlert } from 'react-icons/hi2';
+import { usePlayer } from '@/contexts/UserContext';
 
 const EditName = React.lazy(() => import('./EditPlayerNameModal'));
 const EditProfilePicture = React.lazy(() => import('./EditProfilePicture'));
 
 const ProfileHeader = () => {
-  const { getData, db, deleteData } = useIndexedDB();
+  const { deleteData } = useIndexedDB();
 
   const dispatch = useAppDispatch();
   const playerData = useAppSelector((state: RootState) => state.user);
   const trackIconColor = useAppSelector((state: RootState) => state.track.iconColor);
   const track = useAppSelector((state: RootState) => state.track.notifBg);
+
+  const { currentUser } = usePlayer();
 
   const [editPlayer, setEditPlayer] = useState<boolean>(false);
   const [changeAvatar, setChangeAvatar] = useState<boolean>(false);
@@ -46,11 +49,9 @@ const ProfileHeader = () => {
   const ref = useRef<HTMLDivElement>(null);
 
   // Function to fetch player data from IndexedDB
-  const fetchPlayerData = async () => {
-    const data = await getData();
-    if (data) {
-      dispatch(setAPlayer(data));
-      getNotifications(data?.userId);
+  const fetchPlayerData = async (userId: string) => {
+    if (userId) {
+      getNotifications(userId);
     }
   };
 
@@ -88,10 +89,10 @@ const ProfileHeader = () => {
 
   // UseEffect to fetch player data when db is initialized
   useEffect(() => {
-    if (db) {
-      fetchPlayerData();
+    if (currentUser?.userId) {
+      fetchPlayerData(currentUser?.userId);
     }
-  }, [db]);
+  }, [currentUser?.userId]);
 
   const handleLogOut = async () => {
     try {
@@ -151,7 +152,7 @@ const ProfileHeader = () => {
     },
   });
 
-  console.log(trackIconColor, 'trackicon');
+  console.log(currentUser, 'trackicon');
 
   return (
     <div ref={ref} className={`flex items-center gap-6 text-white`}>
@@ -341,6 +342,7 @@ const ProfileHeader = () => {
                     )}
                     onClick={() => {
                       setLogout(true);
+                      setOpenNotifModal(true);
                     }}
                   >
                     <span className="ml-2">Logout</span>
@@ -370,7 +372,8 @@ const ProfileHeader = () => {
                       </button>
                       <button
                         onClick={handleLogOut}
-                        className="bg-red-600 text-white px-2 py-[7px] text-sm rounded-md"
+                        disabled={!currentUser?.userId}
+                        className="bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-2 py-[7px] text-sm rounded-md"
                       >
                         Yes, Logout.
                       </button>

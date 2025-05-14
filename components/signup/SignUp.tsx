@@ -53,6 +53,7 @@ import useIndexedDB from '@/hooks/useIndexDb';
 import ProfileHeader from '../Profile/ProfileHeader';
 import { RootState } from '@/lib/store';
 import { playGameStyle } from '@/app/animation/constants';
+import { Home } from 'lucide-react';
 export interface AvatarType {
   avatarType: string;
   avatarUrl: string;
@@ -114,13 +115,6 @@ const SignUp: React.FC = () => {
         status: PlayerStatus?.ONLINE,
       });
 
-      await storeData('currentUser', {
-        userId: playerId,
-        name: playerNameSelect,
-        avatar: Avatar,
-        createdAt: new Date().toISOString(),
-      });
-
       // Store player data in IndexedDB using the custom hook
 
       //create a players field on firestore using the returned playerId from firestore db
@@ -133,6 +127,13 @@ const SignUp: React.FC = () => {
         networkState: checkNetwork ? PlayerStatus.ONLINE : PlayerStatus?.OFFLINE,
         updatedAt: new Date().toISOString(),
         unreadMessages: [],
+      });
+
+      await storeData('currentUser', {
+        userId: playerId,
+        name: playerNameSelect,
+        avatar: Avatar,
+        createdAt: new Date().toISOString(),
       });
 
       // await sendEmail(playerNameSelect);
@@ -179,7 +180,7 @@ const SignUp: React.FC = () => {
 
           // Ensure the opponent is not the same as the current player
           if (opponentId !== playerId) {
-            const playerCreatedAtDate = new Date(doc.data().createdAt)
+            const playerCreatedAtDate = new Date(doc.data().updatedAt)
               .toISOString()
               .split('T')[0];
 
@@ -504,9 +505,7 @@ const SignUp: React.FC = () => {
       <div
         onClick={() => setAvatarType(null)}
         className={`${
-          currentTheme === 'light'
-            ? 'bg-royalGreen text-golden'
-            : 'bg-[#000] text-brightGreen'
+          currentTheme === 'light' ? 'bg-royalGreen text-golden' : 'bg-[#000] '
         } w-[100vw] h-[100vh]`}
       >
         <Toaster />
@@ -518,7 +517,9 @@ const SignUp: React.FC = () => {
             <form
               onSubmit={createPlayer}
               className={`${
-                currentTheme === 'light' ? 'bg-royalGreen text-golden' : 'bg-black'
+                currentTheme === 'light'
+                  ? 'bg-royalGreen text-golden'
+                  : 'bg-black text-gradient text-gradient-ocean'
               } border border-white/40 rounded-lg py-8 px-8 min-w-[250px] w-[400px] max-[550px]:w-[80%] max-[550px]:max-w-[90%] max-[550px]:px-3 `}
             >
               <h1 className="flex flex-nowrap items-center gap-2 text-[22px] max-[550px]:text-[18px] font-bold mb-2 overflow-hidden">
@@ -540,7 +541,11 @@ const SignUp: React.FC = () => {
                   currentTheme === 'light' ? '' : 'text-white'
                 } text-[14px]`}
               >
-                Please Sign up and search for a player{' '}
+                Click{' '}
+                <span className="text-gradient text-gradient-cosmic-gold">
+                  Enter Game
+                </span>{' '}
+                to start searching or pick your own custom name and avatar.
               </p>
               <div className="flex flex-col gap-2 mt-2">
                 <Input
@@ -595,7 +600,7 @@ const SignUp: React.FC = () => {
                   type="submit"
                   className={`${
                     loading ? 'cursor-not-allowed' : 'cursor-pointer'
-                  } text-[16px] ${playGameStyle} hover:bg-white transition-all duration-500 text-white my-3`}
+                  } signUpButton text-[16px] ${playGameStyle} hover:bg-white  text-white my-3`}
                 >
                   {loading ? (
                     <span className="flex items-center gap-2">
@@ -619,7 +624,8 @@ const SignUp: React.FC = () => {
                   )}{' '}
                 </Button>
               </div>
-              <div className=" flex items-center justify-center gap-3">
+              <div className="flex items-center justify-center gap-3">
+                <span className="text-white text-[12px]">Have an account already?</span>
                 <Link
                   href="/login"
                   className={` ${
@@ -628,20 +634,19 @@ const SignUp: React.FC = () => {
                 >
                   Login instead?{' '}
                 </Link>
-                <p
-                  className={`${
-                    currentTheme === 'light' ? 'bg-brightGreen' : 'bg-white/50'
-                  } h-0.5 w-3 rotate-90`}
-                ></p>
-                <Link
-                  href="/"
-                  className={`${
-                    currentTheme === 'light' ? 'text-white' : 'text-white'
-                  } flex justify-center text-[14px]`}
-                >
-                  Game Menu{' '}
-                </Link>
               </div>
+
+              <Link
+                href="/"
+                className={`${
+                  currentTheme === 'light'
+                    ? 'text-white'
+                    : ' text-gradient text-gradient-nebula'
+                }  mt-1 flex items-center justify-center gap-2 text-[14px]`}
+              >
+                <Home className=" icon-glow-nebula" size={16} />
+                <span>Game Menu </span>
+              </Link>
             </form>
           </div>
         </div>

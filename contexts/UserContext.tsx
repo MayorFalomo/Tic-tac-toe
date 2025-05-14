@@ -30,6 +30,8 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     try {
       setLoading(LoadingState.LOADING);
       const data = await getData();
+      console.log(data, 'data');
+
       if (data) {
         dispatch(setAPlayer(data));
         setLoading(LoadingState.SUCCESS);

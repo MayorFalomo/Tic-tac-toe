@@ -10,53 +10,53 @@ import { UserProvider } from '@/contexts/UserContext';
 
 const inter = Prompt({ weight: '400', style: 'normal', subsets: ['latin'] });
 
-// export const metadata: Metadata = {
-//   title: 'Online Multiplayer and player chat TicTacToe Game',
-//   description:
-//     'A multiplayer TicTacToe game with real-time playing and instant chatting while playing',
-//   keywords: [
-//     'TicTacToe',
-//     'multiplayer',
-//     'game',
-//     'online',
-//     'gaming',
-//     'Real-time chat',
-//     'strategy game',
-//   ],
-//   generator: 'Next.js',
-//   manifest: '/manifest.json',
-//   // themeColor: [{ media: '(prefers-color-scheme: dark)', color: '#000' }],
-//   authors: [
-//     {
-//       name: 'MayorFalomo',
-//       url: 'https://mayowa-falomo.netlify.app',
-//     },
-//   ],
-//   viewport:
-//     'minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, viewport-fit=cover',
-//   icons: [
-//     {
-//       rel: 'apple-touch-icon',
-//       url:
-//         'https://res.cloudinary.com/dsghy4siv/image/upload/v1737194177/Screenshot_417_xajhrr.png',
-//     },
-//     {
-//       rel: 'icon',
-//       url:
-//         'https://res.cloudinary.com/dsghy4siv/image/upload/v1737194177/Screenshot_417_xajhrr.png',
-//     },
-//   ],
-// };
+export const metadata: Metadata = {
+  title: 'Online Multiplayer and player chat TicTacToe Game',
+  description:
+    'A multiplayer TicTacToe game with real-time playing and instant chatting while playing',
+  keywords: [
+    'TicTacToe',
+    'multiplayer',
+    'game',
+    'online',
+    'gaming',
+    'Real-time chat',
+    'strategy game',
+  ],
+  generator: 'Next.js',
+  manifest: '/manifest.json',
+  // themeColor: [{ media: '(prefers-color-scheme: dark)', color: '#000' }],
+  authors: [
+    {
+      name: 'MayorFalomo',
+      url: 'https://mayowa-falomo.netlify.app',
+    },
+  ],
+  viewport:
+    'minimum-scale=1, initial-scale=1, width=device-width, shrink-to-fit=no, viewport-fit=cover',
+  icons: [
+    {
+      rel: 'apple-touch-icon',
+      url:
+        'https://res.cloudinary.com/dsghy4siv/image/upload/v1737194177/Screenshot_417_xajhrr.png',
+    },
+    {
+      rel: 'icon',
+      url:
+        'https://res.cloudinary.com/dsghy4siv/image/upload/v1737194177/Screenshot_417_xajhrr.png',
+    },
+  ],
+};
 
-// const viewport: Viewport = {
-//   colorScheme: 'light',
-//   themeColor: '#000000',
-//   width: 'device-width',
-//   initialScale: 1,
-// };
+const viewport: Viewport = {
+  colorScheme: 'light',
+  themeColor: '#000000',
+  width: 'device-width',
+  initialScale: 1,
+};
 
-// // Exporting this way to avoid NextJs 14 type error
-// export { viewport };
+// Exporting this way to avoid NextJs 14 type error
+export { viewport };
 
 export default function RootLayout({
   children,

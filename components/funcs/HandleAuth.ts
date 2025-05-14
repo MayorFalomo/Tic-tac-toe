@@ -53,26 +53,28 @@ export const createGameSession = async (playerId: string, opponentId: string, ge
 };
 
 export const handlePlayersStatus = async (userId: string, status?: string) => {
-  try {
-    const userRef = ref(database, `activePlayers/${userId}`); //We reference the "activePlayers" db we created in the createPlayerfunc and find a player by their userId
-
-    //Set the users status to online when they connect on firestore db first
-    await update(userRef, {
-      status: status,
-    });
-
-    //Change on firestore
-     await updateDoc(doc(db, 'players', userId), {
+  if (userId!) {
+    try {
+      const userRef = ref(database, `activePlayers/${userId}`); //We reference the "activePlayers" db we created in the createPlayerfunc and find a player by their userId
+  
+      //Set the users status to online when they connect on firestore db first
+      await update(userRef, {
         status: status,
       });
   
-    //Using firebase onDisconnect functionality to detect when a user goes offline
-  await onDisconnect(userRef).set({
-    status: PlayerStatus?.OFFLINE,
-  });
+      //Change on firestore
+       await updateDoc(doc(db, 'players', userId), {
+          status: status,
+        });
     
-  } catch (error) {
-    console.log(error, 'Error has occurred');
+      //Using firebase onDisconnect functionality to detect when a user goes offline
+    await onDisconnect(userRef).set({
+      status: PlayerStatus?.OFFLINE,
+    });
+      
+    } catch (error) {
+      console.log(error, 'Error has occurred');
+    }
   }
 };
 

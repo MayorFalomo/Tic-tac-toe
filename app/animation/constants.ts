@@ -49,7 +49,7 @@ export const scaleAndPopVariants = {
     },
   };
 
-export const playGameStyle = 'bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 hover:from-slate-800 hover:via-blue-800 hover:to-slate-800 border border-blue-900/30 shadow-[0_0_10px_rgba(30,58,138,0.15)] hover:shadow-[0_0_15px_rgba(30,58,138,0.25)] transition-all duration-300 text-blue-100 font-semibold text-lg backdrop-blur-sm'
+export const playGameStyle = 'bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 hover:from-slate-800 hover:via-blue-800 hover:to-slate-800 border border-blue-900/30 shadow-[0_0_10px_rgba(30,58,138,0.15)] hover:shadow-[0_0_15px_rgba(30,58,138,0.25)] text-blue-100 font-semibold text-lg backdrop-blur-sm'
 export const gameInfoStyle = 'bg-gradient-to-r from-gray-900 via-emerald-900 to-gray-900 hover:from-gray-800 hover:via-emerald-800 hover:to-gray-800 border border-emerald-900/30 shadow-[0_0_10px_rgba(6,78,59,0.15)] hover:shadow-[0_0_15px_rgba(6,78,59,0.25)] transition-all duration-300 text-emerald-100 font-semibold text-lg backdrop-blur-sm'
 export const settingsBtnStyle = "bg-gradient-to-r from-gray-900 via-rose-900 to-gray-900 hover:from-gray-800 hover:via-rose-800 hover:to-gray-800 border border-rose-900/30 shadow-[0_0_10px_rgba(136,19,55,0.15)] hover:shadow-[0_0_15px_rgba(136,19,55,0.25)] transition-all duration-300 text-rose-100 font-semibold text-lg backdrop-blur-sm"
 export const viewPlayersStyle = "bg-gradient-to-r from-gray-900 via-cyan-900 to-gray-900 hover:from-gray-800 hover:via-cyan-800 hover:to-gray-800 border border-cyan-900/30 shadow-[0_0_10px_rgba(22,78,99,0.15)] hover:shadow-[0_0_15px_rgba(22,78,99,0.25)] transition-all duration-300 text-cyan-100 font-semibold text-lg backdrop-blur-sm"

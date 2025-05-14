@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Button } from '../ui/button';
 import { EarthIcon, Gamepad2, Info, Settings, Users } from 'lucide-react';
 import Link from 'next/link';
