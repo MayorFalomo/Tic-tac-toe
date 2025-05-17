@@ -181,7 +181,7 @@ const ProfileHeader = () => {
               style={{ backgroundColor: track || 'red' }}
               className={`absolute -top-1 -right-1 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center`}
             >
-              {userNotifs.length > 9 ? '9+' : userNotifs.length}
+              {userNotifs?.length > 9 ? '9+' : userNotifs?.length}
             </span>
 
             {/* <span className="bg-red-500 absolute top-[-10px] left-[20%] w-[15px] h-[15px] px-2 py-2 text-[12px] place-items-center flex justify-center items-center rounded-full"></span> */}
@@ -218,9 +218,9 @@ const ProfileHeader = () => {
           <span className=" whitespace-nowrap capitalize">
             {playerData.name === ''
               ? 'Player'
-              : playerData?.name.length > 15
+              : playerData?.name?.length > 15
               ? playerData?.name?.slice(0, 15)
-              : playerData?.name.length <= 15
+              : playerData?.name?.length <= 15
               ? playerData?.name
               : ''}
           </span>

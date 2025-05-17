@@ -517,7 +517,7 @@ const UserChats = () => {
               setLoadingSpinner('end');
               setTimeout(() => {
                 setLoadingSpinner(null);
-                router.push('/battle');
+                router.push('/battle-area');
               }, 2000);
             } else if (data.answer === BattleReplyStatus.DECLINE) {
               setLoadingSpinner(null);
@@ -653,22 +653,22 @@ const UserChats = () => {
           const playerRef = collection(db, 'players');
           const playerDoc = query(playerRef, where('name', '==', debounced));
           const querySnapshot = await getDocs(playerDoc);
-          console.log('Is the query empty?', querySnapshot.empty); // Check if the query is empty
+          // console.log('Is the query empty?', querySnapshot.empty); // Check if the query is empty
           const results: PlayerDetails[] = [];
           querySnapshot.forEach((doc) => {
-            console.log(doc.data(), 'found user');
+            // console.log(doc.data(), 'found user');
             const playerData = doc.data();
             if (playerData.id && playerData.name && playerData.networkState) {
               results.push(playerData as PlayerDetails);
             }
           });
-          console.log(results, 'results');
+          // console.log(results, 'results');
 
           // setNewWay(results); // Store all found users
         } catch (err) {
           console.error(err);
         } finally {
-          console.log('finaly');
+          console.log('finally');
 
           // setLoading(false); // Reset loading state
         }
@@ -676,7 +676,7 @@ const UserChats = () => {
 
       handleSearch(debouncedValue);
     } else {
-      console.log('nothing');
+      console.log('An error has occurred');
 
       // setNewWay(null); // Clear results if the search input is too short
     }

@@ -233,7 +233,7 @@ const SignUp: React.FC = () => {
                 setLoading(null); // Stop the loading spinner
                 clearTimeout(timeoutId); // Clear the timeout
                 setTimeout(async () => {
-                  router.push('/battle'); // Redirect after 2 seconds
+                  router.push('/battle-area'); // Redirect after 2 seconds
                 }, 2000);
               } else {
                 console.log('Player is not ready.');

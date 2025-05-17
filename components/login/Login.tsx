@@ -217,9 +217,9 @@ const Login = () => {
             );
 
             // Proceed with your game logic using playerOneDetails and playerTwoDetails
-            console.log('Both players are ready:', playerOneDetails, playerTwoDetails);
+            // console.log('Both players are ready:', playerOneDetails, playerTwoDetails);
 
-            console.log(playerOneDetails, playerTwoDetails, 'details');
+            // console.log(playerOneDetails, playerTwoDetails, 'details');
 
             // Create a gameSession on Firestore DB, It would return the id of the gameSession on Firestore
             const getSessionId = await createGameSession(
@@ -228,15 +228,15 @@ const Login = () => {
               randomControl
             );
 
-            console.log(getSessionId, 'getSessionId');
-            console.log(handleGameSession(playerOneDetails, playerTwoDetails));
+            // console.log(getSessionId, 'getSessionId');
+            // console.log(handleGameSession(playerOneDetails, playerTwoDetails));
 
             await handleGameSession(playerOneDetails, playerTwoDetails);
             dispatch(setSessionId(getSessionId)); // Store the current game session ID
             setLoading(null); // Stop the loading spinner
             clearTimeout(timeoutId); // Clear the timeout
             setTimeout(() => {
-              router.push('/battle'); // Redirect after 2 seconds
+              router.push('/battle-area'); // Redirect after 2 seconds
             }, 2000);
           } else {
             console.log('Player is not ready.');
@@ -545,7 +545,7 @@ const Login = () => {
       playerOneDetails?.id > opponent?.id
         ? playerOneDetails?.id + opponent?.id
         : opponent?.id + playerOneDetails?.id;
-    console.log(combinedId, 'combinedId');
+    // console.log(combinedId, 'combinedId');
 
     try {
       const sessionDoc = await getDoc(doc(db, 'gameSessions', combinedId));

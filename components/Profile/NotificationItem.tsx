@@ -160,7 +160,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
       setShowConfirmation(false);
       setTimeout(async () => {
         setAcceptState(null);
-        router.push('/battle'); // Redirect after 2 seconds
+        router.push('/battle-area'); // Redirect after 2 seconds
       }, 2000);
     } catch (error) {
       console.log(error);

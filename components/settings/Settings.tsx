@@ -210,7 +210,7 @@ const Settings: React.FC = () => {
                     </SelectLabel>
                     {iconColors.map((color) => (
                       <SelectItem
-                        className="flex  px-2 py-2 w-full"
+                        className="flex cursor-pointer px-2 py-2 w-full"
                         key={color?.id}
                         value={color.color}
                       >

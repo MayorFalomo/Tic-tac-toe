@@ -90,7 +90,7 @@ export default function RootLayout({
         <StoreProvider>
           <Providers>
             <ThemeProvider>
-              <AudioProvider src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3">
+              <AudioProvider src="/got.mp3">
                 <UserProvider>{children}</UserProvider>
               </AudioProvider>
             </ThemeProvider>
