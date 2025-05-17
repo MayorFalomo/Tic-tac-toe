@@ -6,6 +6,8 @@ const initialState: userDetails = {
   name: '',
   avatar: '',
   networkState: false,
+  wins: 0,
+  losses: 0
 };
 
 export const userSlice = createSlice({

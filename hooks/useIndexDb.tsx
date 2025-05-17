@@ -62,7 +62,6 @@ const useIndexedDB = () => {
   const deleteData = async () => {
     if (db) {
       const existingData = await db.delete(STORE_NAME, 'currentUser');
-      console.log(existingData, 'message');
 
       dispatch(
         updateUser({
@@ -70,6 +69,8 @@ const useIndexedDB = () => {
           userId: '',
           avatar: defaultImg,
           networkState: '',
+          wins: 0,
+          losses: 0,
         })
       );
     }

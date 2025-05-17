@@ -17,7 +17,6 @@ export default function Page() {
   const router = useRouter();
 
   const handleStartGame = () => {
-    // console.log('Game starting...');
     router.push('/battle');
   };
 
@@ -27,6 +26,8 @@ export default function Page() {
   const [loadingTime, setLoadingTime] = useState(3000);
 
   useEffect(() => {
+    if (!playersObject?.playerOne?.id && !playersObject?.playerTwo?.id)
+      return router.push('/');
     // Simulate loading progress
     const interval = setInterval(() => {
       setProgress((prevProgress) => {
@@ -40,6 +41,8 @@ export default function Page() {
   }, [loadingTime]);
 
   useEffect(() => {
+    if (!playersObject?.playerOne?.id && !playersObject?.playerTwo?.id)
+      return router.push('/');
     // When progress reaches 100%, set loading to false after a small delay
     if (progress >= 100) {
       const timeout = setTimeout(() => {
@@ -56,12 +59,12 @@ export default function Page() {
       <div className="relative min-h-screen w-full bg-black flex flex-col items-center overflow-hidden px-4">
         {/* Player 1 (Blue) lighting effect */}
         <div className="absolute top-[60px] left-0 w-1/2 h-full">
-          <div className="absolute border inset-0 bg-blue-500/15 blur-3xl"></div>
+          <div className="absolute border inset-0 bg-blue-500/10 blur-3xl"></div>
         </div>
 
         {/* Player 2 (Red) lighting effect */}
         <div className="absolute top-0 right-0 w-1/2 h-full">
-          <div className="absolute inset-0 bg-red-500/15 blur-3xl"></div>
+          <div className="absolute inset-0 bg-red-500/10 blur-3xl"></div>
         </div>
 
         {/* Battle title */}

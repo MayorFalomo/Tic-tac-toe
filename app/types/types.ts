@@ -61,6 +61,8 @@ export type userDetails = {
   name: string;
   avatar?: string;
   networkState: boolean;
+  wins?: number;
+  losses?: number;
 }
 
 export type User = PlayerDetails;
@@ -183,6 +185,8 @@ export type ProfileType = {
   name: string;
   avatar: string;
   createdAt: string;
+  wins?: number;
+  losses?: number;
 }
 
 export type AvatarChoice = {
