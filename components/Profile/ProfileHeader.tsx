@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Bell, ChevronDown, Edit, LogOut } from 'lucide-react';
+import { ChevronDown, Edit, LogOut } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import useIndexedDB from '@/hooks/useIndexDb';
 import { defaultImg, Unread } from '@/app/types/types';
 import clsx from 'clsx';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
-import { setAPlayer } from '@/lib/features/userSlice';
+// import { setAPlayer } from '@/lib/features/userSlice';
 import { RootState } from '@/lib/store';
 import toast from 'react-hot-toast';
 import { db as database } from '@/firebase-config/firebase';
@@ -32,7 +32,7 @@ const EditProfilePicture = React.lazy(() => import('./EditProfilePicture'));
 const ProfileHeader = () => {
   const { deleteData } = useIndexedDB();
 
-  const dispatch = useAppDispatch();
+  // const dispatch = useAppDispatch();
   const playerData = useAppSelector((state: RootState) => state.user);
   const trackIconColor = useAppSelector((state: RootState) => state.track.iconColor);
   const track = useAppSelector((state: RootState) => state.track.notifBg);
@@ -64,7 +64,7 @@ const ProfileHeader = () => {
         snapshot.forEach((doc) => {
           if (doc.exists()) {
             const playerData = (doc.data().unreadMessages as Unread[]) || [];
-            console.log(playerData, 'playerData');
+            // console.log(playerData, 'playerData');
             setUserNotifs(playerData.reverse());
           }
         });
@@ -152,7 +152,7 @@ const ProfileHeader = () => {
     },
   });
 
-  console.log(currentUser, 'trackicon');
+  // console.log(currentUser, 'trackicon');
 
   return (
     <div ref={ref} className={`flex items-center gap-6 text-white`}>

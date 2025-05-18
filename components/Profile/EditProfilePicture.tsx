@@ -136,7 +136,7 @@ const EditProfilePicture: React.FC<Props> = ({
       animate="visible"
       exit="exit"
       variants={scaleVariants}
-      className="absolute bg-white w-[300px] left-[-20px] bottom-[-280px] rounded-md z-10 px-3 py-4"
+      className="absolute bg-white w-[300px] max-[320px]:w-[260px] min-[580px]:left-[-20px] max-[580px]:left-[-60px] max-[320px]:left-[-30px] bottom-[-280px] rounded-md z-10 px-3 py-4"
     >
       <form onSubmit={handleEdit}>
         <div className="flex flex-col items-center gap-2 text-gray-500">

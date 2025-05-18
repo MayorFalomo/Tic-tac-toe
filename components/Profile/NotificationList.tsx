@@ -3,6 +3,7 @@ import { Check } from 'lucide-react';
 import { Unread } from '@/app/types/types';
 import NotificationItem from './NotificationItem';
 import Link from 'next/link';
+import { FaRegBellSlash } from 'react-icons/fa6';
 // import NotificationItem from './NotificationItem';
 // import { Notification } from '../../types/notification';
 
@@ -45,7 +46,10 @@ const NotificationsList: React.FC<NotificationsListProps> = ({
           ))
         ) : (
           <div className="py-8 text-center">
-            <p className="text-gray-500 text-sm">No notifications</p>
+            <p className="flex items-center justify-center gap-2 text-gray-500 text-sm">
+              <span>No notifications</span>
+              <FaRegBellSlash />
+            </p>
           </div>
         )}
       </div>

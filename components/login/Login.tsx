@@ -14,12 +14,11 @@ import {
   where,
   query,
 } from 'firebase/firestore';
-import { database, db } from '@/firebase-config/firebase';
+import { db } from '@/firebase-config/firebase';
 import { givePlayerNames } from '@/lib/features/PlayerSlice';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { createGameSession, handleUserPresence } from '../funcs/HandleAuth';
-import { push, ref } from '@firebase/database';
-
+// import { push, ref } from '@firebase/database';
 import {
   GameSession,
   PlayerDetails,
@@ -27,7 +26,7 @@ import {
   ProfileStatus,
   userDetails,
 } from '@/app/types/types';
-import { setAPlayer } from '@/lib/features/userSlice';
+// import { setAPlayer } from '@/lib/features/userSlice';
 import { setCombinedGameSessionId, setSessionId } from '@/lib/features/TrackerSlice';
 import FadeIn from '@/app/animation/FadeIn';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -86,9 +85,9 @@ const Login = () => {
           // dispatch(givePlayerNames({ playerOne: playerData }));
           // setAvatar(playerData?.avatar);
           //create a separate db instance in the database named activePlayers
-          const playerRef = push(ref(database, 'activePlayers')); //Create a new child reference
-          const playerId = playerRef.key || ''; // Get the unique key
-          console.log(playerId, 'playerId');
+          // const playerRef = push(ref(database, 'activePlayers')); //Create a new child reference
+          // const playerId = playerRef.key || ''; // Get the unique key
+          // console.log(playerId, 'playerId');
 
           await updateDoc(doc(db, 'players', playerData?.id), {
             status: PlayerStatus?.LOOKING,
@@ -153,16 +152,16 @@ const Login = () => {
           // Ensure the opponent is not the same as the current player
           if (opponentId !== playerId) {
             const updatedAt = doc.data()?.updatedAt; // Get the updatedAt field
-            console.log(updatedAt, 'updatedAt');
+            // console.log(updatedAt, 'updatedAt');
 
             // Check if updatedAt is defined
             if (updatedAt) {
               const opponentUpdatedAt = new Date(updatedAt); // Convert updatedAt to Date object
-              console.log(opponentUpdatedAt, 'oppoenntUpdated');
+              // console.log(opponentUpdatedAt, 'oppoenntUpdated');
 
               const timeDifference =
                 (currentTime.getTime() - opponentUpdatedAt.getTime()) / 1000; // Calculate difference in seconds
-              console.log(timeDifference, 'timeDifference');
+              // console.log(timeDifference, 'timeDifference');
 
               // Check if the opponent was updated within the last 3 minutes (180 seconds)
               if (timeDifference <= 180) {
@@ -176,7 +175,7 @@ const Login = () => {
         if (filteredOpponents.length > 0) {
           const opponent = filteredOpponents[0]; // Get the first valid opponent
 
-          console.log(opponent, 'opponent');
+          // console.log(opponent, 'opponent');
 
           setLoading(ProfileStatus.FOUND);
           setSearchingActive(true); // State to show an opponent has been found

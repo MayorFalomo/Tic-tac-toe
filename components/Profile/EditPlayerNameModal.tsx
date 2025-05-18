@@ -41,7 +41,7 @@ const EditPlayerNameModal: React.FC<Props> = ({ handleClose, playerName }) => {
       animate="visible"
       exit="exit"
       variants={scaleVariants}
-      className={`absolute ${playGameStyle} w-[300px] left-[-20px] bottom-[-185px] rounded-md z-10 px-3 py-4`}
+      className={`absolute ${playGameStyle} w-[300px] min-[580px]:left-[-20px] max-[580px]:left-[-60px] bottom-[-185px] rounded-md z-10 px-3 py-4`}
     >
       <form onSubmit={handleNameUpdate}>
         <p className="flex items-center gap-2">
