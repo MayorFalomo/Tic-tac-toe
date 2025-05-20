@@ -14,7 +14,7 @@ import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
 import ReactConfetti from 'react-confetti';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Chat, GameSession, PlayerStatus } from '@/app/types/types';
+import { Chat, GameSession, LoadingState, PlayerStatus } from '@/app/types/types';
 import { useWindowSize } from 'react-use';
 // import { useRouter } from 'next/navigation';
 import { useAudio } from '@/contexts/AudioContext';
@@ -44,6 +44,7 @@ import { givePlayerNames } from '@/lib/features/PlayerSlice';
 import { setCombinedChattingId } from '@/lib/features/ChatAPlayerSlice';
 import { useRouter } from 'next/navigation';
 import { HiOutlineBellAlert } from 'react-icons/hi2';
+import { Spinner } from '@/components/ui/Spinner';
 
 type Props = {
   gameData: GameSession | null;
@@ -70,6 +71,7 @@ const HomeHeader: React.FC<Props> = ({
   const { play, stop } = useAudio();
   const { currentTheme, setCurrentTheme } = useTheme();
   const [triggerQuit, setTriggerQuit] = useState<string | null>(null);
+  const [loading, setLoading] = useState<string | null>(null);
   const playersObject = useAppSelector((state: RootState) => state.players.players);
   const track = useAppSelector((state: RootState) => state.track);
   const dispatch = useAppDispatch();
@@ -418,12 +420,17 @@ const HomeHeader: React.FC<Props> = ({
                   </li>
                   <li
                     onClick={() => handleGameQuit(playersObject?.playerOne?.name)}
-                    className="py-3 px-3 w-full cursor-pointer hover:bg-gray-100 flex items-center justify-between gap-4 mx-auto"
+                    className="py-3 px-3 w-full cursor-pointer hover:bg-gray-100 flex items-center justify-between gap-2 mx-auto"
                   >
-                    <span>Quit Game</span>
-                    <span>
-                      <StopCircle color="red" />{' '}
-                    </span>
+                    {loading === LoadingState.LOADING && (
+                      <Spinner size={'small'} className=" text-white" />
+                    )}
+                    <p className=" flex items-center gap-4">
+                      <span>Quit Game</span>
+                      <span>
+                        <StopCircle color="red" />{' '}
+                      </span>
+                    </p>
                   </li>
                 </ul>
               </PopoverContent>

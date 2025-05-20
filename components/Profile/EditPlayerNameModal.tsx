@@ -6,6 +6,7 @@ import { Input } from '../ui/input';
 import { FadeVariants, playGameStyle, scaleVariants } from '@/app/animation/constants';
 import useIndexedDB from '@/hooks/useIndexDb';
 import { LoadingState } from '@/app/types/types';
+import { Spinner } from '../ui/Spinner';
 
 type Props = {
   handleClose: () => void;
@@ -20,7 +21,6 @@ const EditPlayerNameModal: React.FC<Props> = ({ handleClose, playerName }) => {
 
   const handleNameUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log(name, 'names');
     setLoading(LoadingState.LOADING);
 
     try {
@@ -35,6 +35,7 @@ const EditPlayerNameModal: React.FC<Props> = ({ handleClose, playerName }) => {
       console.log(error);
     }
   };
+
   return (
     <motion.div
       initial="hidden"
@@ -64,7 +65,10 @@ const EditPlayerNameModal: React.FC<Props> = ({ handleClose, playerName }) => {
             type="submit"
             className="bg-transparent border border-white text-white rounded-md px-2 py-1 mb-2"
           >
-            Edit name
+            Edit name{' '}
+            {loading === LoadingState.LOADING && (
+              <Spinner size={'small'} className=" text-white ml-2" />
+            )}
           </Button>
         </div>
       </form>

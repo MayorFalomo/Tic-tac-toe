@@ -27,6 +27,7 @@ import {
 import { AnimeAvatars, SuperHeroes } from '../PictureStore';
 import toast from 'react-hot-toast';
 import { cn } from '@/lib/utils';
+import { Spinner } from '../ui/Spinner';
 
 type Props = {
   handleClose: () => void;
@@ -54,11 +55,11 @@ const EditProfilePicture: React.FC<Props> = ({
     e.preventDefault();
 
     try {
+      setLoadingState(LoadingState.LOADING);
       if (!Avatar && !imageUrl) {
         setTriggerErrMessage(true);
         return;
       }
-      setLoadingState(LoadingState.LOADING);
       //If the Custom Avatar is used
       if (Avatar) {
         updateData({ avatar: Avatar });
@@ -105,6 +106,8 @@ const EditProfilePicture: React.FC<Props> = ({
   ];
 
   const handleAvatarSelection = (value: string) => {
+    console.log(value, 'value');
+
     switch (value) {
       case AvatarValueType.Anime:
         setAnimePictures(AnimeAvatars);
@@ -129,6 +132,9 @@ const EditProfilePicture: React.FC<Props> = ({
         return null;
     }
   };
+
+  // console.log(avatarType, 'loadings');
+  // console.log(AnimePictures, 'animepictures');
 
   return (
     <motion.div
@@ -235,12 +241,15 @@ const EditProfilePicture: React.FC<Props> = ({
             className="flex items-center gap-1 bg-black text-white rounded-md px-2 py-1 mb-2"
             disabled={loadingState === LoadingState.LOADING}
           >
-            <span>
+            <span className="flex items-center gap-2">
               {successfulUpload
                 ? 'uploaded'
                 : successfulUpload
                 ? 'updated your avatar'
                 : 'update avatar'}
+              {loadingState === LoadingState.LOADING && (
+                <Spinner size={'small'} className=" text-white" />
+              )}
             </span>
             <span>
               {loadingState === LoadingState.SUCCESS ? (

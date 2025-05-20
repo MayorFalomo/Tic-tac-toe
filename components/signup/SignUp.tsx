@@ -32,7 +32,7 @@ import {
   ProfileStatus,
   userDetails,
 } from '@/app/types/types';
-import { createGameSession, handleUserPresence, sendEmail } from '../funcs/HandleAuth';
+import { createGameSession, handleUserPresence } from '../funcs/HandleAuth';
 import {
   Select,
   SelectContent,

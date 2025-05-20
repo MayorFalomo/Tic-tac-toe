@@ -650,6 +650,8 @@ const UserChats = () => {
       const handleSearch = async (debounced: string) => {
         // setLoading(true); // Set loading state
         try {
+          console.log(debounced, 'debouced');
+
           const playerRef = collection(db, 'players');
           const playerDoc = query(playerRef, where('name', '==', debounced));
           const querySnapshot = await getDocs(playerDoc);
@@ -662,15 +664,11 @@ const UserChats = () => {
               results.push(playerData as PlayerDetails);
             }
           });
-          // console.log(results, 'results');
+          console.log(results, 'results');
 
           // setNewWay(results); // Store all found users
         } catch (err) {
           console.error(err);
-        } finally {
-          console.log('finally');
-
-          // setLoading(false); // Reset loading state
         }
       };
 
@@ -716,7 +714,7 @@ const UserChats = () => {
                   setSearchValue(e.target.value);
                   // handleSearchForPlayer(e);
                 }}
-                placeholder="Search for a player"
+                placeholder="Enter players full name e.g Wrath"
                 className="w-full rounded-lg focus-visible:ring-0 outline-none border-none py-2 px-2"
               />
               <Search className="w-[50px] cursor-pointer " />
