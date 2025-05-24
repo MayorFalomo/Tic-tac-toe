@@ -18,15 +18,13 @@ export default function Home() {
 
       const timer = setTimeout(() => {
         setIsLoading(false);
-      }, 5000);
+      }, 6000);
 
       return () => clearTimeout(timer); // Cleanup the timer
     } else {
       setIsLoading(false);
     }
   }, [isLoading]);
-
-  console.log(isLoading, 'isLOading');
 
   return (
     <main className="flex max-h-screen h-screen overflow-y-hidden overflow-x-hidden transition-all duration-500">

@@ -10,7 +10,12 @@ import Head from 'next/head';
 import { UserProvider } from '@/contexts/UserContext';
 
 const inter = Prompt({ weight: '400', style: 'normal', subsets: ['latin'] });
-const pacifico = Pacifico({ weight: '400', style: 'normal', subsets: ['latin'] });
+const pacifico = Pacifico({
+  variable: '--font-pacifico',
+  weight: '400',
+  style: 'normal',
+  subsets: ['latin'],
+});
 
 export const metadata: Metadata = {
   title: 'Online Multiplayer and player chat TicTacToe Game',
@@ -88,7 +93,7 @@ export default function RootLayout({
         />
         <meta property="og:image:alt" content="Online Multiplayer TicTacToe" />
       </Head>
-      <body className={`${inter.className} ${pacifico.className}`}>
+      <body className={`${inter.className} ${pacifico.variable}`}>
         <StoreProvider>
           <Providers>
             <ThemeProvider>
