@@ -7,7 +7,8 @@ const initialState: userDetails = {
   avatar: '',
   networkState: false,
   wins: 0,
-  losses: 0
+  loss: 0,
+  level: 1
 };
 
 export const userSlice = createSlice({

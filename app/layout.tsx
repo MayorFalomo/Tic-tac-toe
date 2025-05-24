@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Prompt } from 'next/font/google';
+import { Pacifico } from 'next/font/google';
 import './globals.css';
 import StoreProvider from '@/storeProvider';
 import Providers from './QueryProvider';
@@ -9,6 +10,7 @@ import Head from 'next/head';
 import { UserProvider } from '@/contexts/UserContext';
 
 const inter = Prompt({ weight: '400', style: 'normal', subsets: ['latin'] });
+const pacifico = Pacifico({ weight: '400', style: 'normal', subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Online Multiplayer and player chat TicTacToe Game',
@@ -86,7 +88,7 @@ export default function RootLayout({
         />
         <meta property="og:image:alt" content="Online Multiplayer TicTacToe" />
       </Head>
-      <body className={inter.className}>
+      <body className={`${inter.className} ${pacifico.className}`}>
         <StoreProvider>
           <Providers>
             <ThemeProvider>

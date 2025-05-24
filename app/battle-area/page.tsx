@@ -2,7 +2,6 @@
 import FadeIn from '../animation/FadeIn';
 import { useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
-// import { userDetails } from '../types/types';
 import ProgressBar from '../animation/ProgressBar';
 import VSDivider from '@/components/VsDivider';
 import PlayerCard from '@/components/PlayerCard';
@@ -11,7 +10,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function Page() {
-  // const currentUser = useAppSelector((state: RootState) => state.user as userDetails);
   const playersObject = useAppSelector((state: RootState) => state.players.players);
 
   const router = useRouter();
@@ -56,7 +54,7 @@ export default function Page() {
 
   return (
     <FadeIn>
-      <div className="relative min-h-screen w-full bg-black flex flex-col items-center overflow-hidden px-4">
+      <div className="relative h-screen w-full bg-black flex flex-col items-center justify-center overflow-hidden px-4">
         {/* Player 1 (Blue) lighting effect */}
         <div className="absolute top-[60px] left-0 w-1/2 h-full">
           <div className="absolute border inset-0 bg-blue-500/10 blur-3xl"></div>
@@ -68,7 +66,7 @@ export default function Page() {
         </div>
 
         {/* Battle title */}
-        <div className="relative z-10 mb-10 text-center mt-12">
+        <div className="relative z-10 mb-10 text-center mt-4">
           <h1 className="text-3xl md:text-4xl font-bold text-gradient text-gradient-neo-plasma tracking-tight">
             BATTLE ARENA
           </h1>

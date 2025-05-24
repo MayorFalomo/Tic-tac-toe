@@ -1,7 +1,7 @@
 import { Chat, TimeStamp } from '@/app/types/types';
 import { doc, updateDoc } from 'firebase/firestore';
 import Image from 'next/image';
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import EmojiPicker, { EmojiClickData } from 'emoji-picker-react';
 import { useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
@@ -26,6 +26,8 @@ const UserChatField: React.FC<IProps> = ({
   const playersChatState = useAppSelector((state: RootState) => state.chatUp);
   const currentUser = useAppSelector((state: RootState) => state.user);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  const [messageID, setMessageID] = useState<string | null>(null);
 
   const formatTime = (timestamp: TimeStamp) => {
     //First run conversions to a formatable date
@@ -115,8 +117,8 @@ const UserChatField: React.FC<IProps> = ({
             ? 'flex w-full mt-2 space-x-3 max-w-xs ml-auto justify-end'
             : 'flex w-full mt-2 space-x-3 max-w-xs'
         }`}
-        // onMouseOver={() => setStoredId(res?._id)}
-        // onMouseOut={() => setStoredId(null)}
+        onMouseOver={() => setMessageID(res?._id)}
+        onMouseOut={() => setMessageID(null)}
       >
         {res.senderId !== currentUser?.userId && (
           <div className=" flex-shrink-0 h-10 w-10 rounded-full bg-gray-300">
@@ -136,11 +138,11 @@ const UserChatField: React.FC<IProps> = ({
           </div>
         )}
         <div>
-          {playersChatState?.selectedPlayer?.id === res?._id && (
+          {messageID === res?._id && (
             <div
               className={
                 res?.senderId === currentUser?.userId
-                  ? 'absolute left-0 bottom-[-35px] z-30 '
+                  ? 'absolute left-[-10px] bottom-[-35px] z-30 '
                   : 'absolute left-0 bottom-[-35px] z-30'
               }
             >

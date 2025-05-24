@@ -1,12 +1,37 @@
 'use client';
 import GameMenu from '@/components/gameMenu/GameMenu';
+import Preload from '@/components/Preload';
+import { AnimatePresence } from 'framer-motion';
+import { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 
 export default function Home() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const sessionActive = sessionStorage.getItem('sessionActive');
+
+    if (!sessionActive) {
+      setIsLoading(true);
+
+      sessionStorage.setItem('sessionActive', 'true');
+
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+      }, 5000);
+
+      return () => clearTimeout(timer); // Cleanup the timer
+    } else {
+      setIsLoading(false);
+    }
+  }, [isLoading]);
+
+  console.log(isLoading, 'isLOading');
+
   return (
-    <main className="flex max-h-screen h-screen overflow-y-hidden transition-all duration-500">
+    <main className="flex max-h-screen h-screen overflow-y-hidden overflow-x-hidden transition-all duration-500">
       <Toaster />
-      {<GameMenu />}
+      <AnimatePresence>{isLoading ? <Preload /> : <GameMenu />}</AnimatePresence>
     </main>
   );
 }

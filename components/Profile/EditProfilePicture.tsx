@@ -133,9 +133,6 @@ const EditProfilePicture: React.FC<Props> = ({
     }
   };
 
-  // console.log(avatarType, 'loadings');
-  // console.log(AnimePictures, 'animepictures');
-
   return (
     <motion.div
       initial="hidden"
@@ -287,7 +284,7 @@ const EditProfilePicture: React.FC<Props> = ({
           Choose or upload a picture.!{' '}
         </motion.p>
       )}
-      {avatarType || AnimePictures?.length > 1 ? (
+      {AnimePictures?.length > 0 || avatarType?.avatarName ? (
         <AvatarStore
           avatarType={avatarType}
           setAvatarType={setAvatarType}

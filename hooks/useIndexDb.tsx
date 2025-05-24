@@ -39,7 +39,7 @@ const useIndexedDB = () => {
   const getData = async () => {
     if (db) {
       const currentUser = 'currentUser';
-      const data = await db.get(STORE_NAME, currentUser);
+      const data: ProfileType = await db.get(STORE_NAME, currentUser);
 
       return data;
     }
@@ -71,6 +71,7 @@ const useIndexedDB = () => {
           networkState: '',
           wins: 0,
           losses: 0,
+          level: 0,
         })
       );
     }

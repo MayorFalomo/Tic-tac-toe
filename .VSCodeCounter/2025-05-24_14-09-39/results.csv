@@ -1,0 +1,106 @@
+"filename", "language", "TypeScript", "JSON with Comments", "JSON", "JavaScript", "XML", "TypeScript JSX", "Markdown", "PostCSS", "comment", "blank", "total"
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\.eslintrc.json", "JSON with Comments", 0, 3, 0, 0, 0, 0, 0, 0, 0, 1, 4
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\README.md", "Markdown", 0, 0, 0, 0, 0, 0, 72, 0, 0, 56, 128
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\QueryProvider.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 10, 0, 0, 0, 3, 13
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\animation\Bouncy.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 30, 0, 0, 0, 3, 33
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\animation\CrossLine.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 8, 0, 0, 0, 4, 12
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\animation\DrawLine.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 76, 0, 0, 0, 4, 80
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\animation\FadeIn.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 17, 0, 0, 0, 4, 21
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\animation\ProgressBar.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 46, 0, 0, 4, 7, 57
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\animation\ShowTip.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 22, 0, 0, 1, 4, 27
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\animation\SvgLine.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 28, 0, 0, 0, 4, 32
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\animation\constants.ts", "TypeScript", 50, 0, 0, 0, 0, 0, 0, 0, 0, 6, 56
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\battle-area\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 91, 0, 0, 14, 18, 123
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\battle\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 13, 0, 0, 0, 3, 16
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\chats\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 12, 0, 0, 0, 3, 15
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\global-chat\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 8, 0, 0, 0, 2, 10
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\globals.css", "PostCSS", 0, 0, 0, 0, 0, 0, 0, 180, 22, 29, 231
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\info\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 8, 0, 0, 0, 2, 10
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\layout.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 95, 0, 0, 2, 6, 103
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\login\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 8, 0, 0, 0, 2, 10
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 11, 0, 0, 0, 2, 13
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\players\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 8, 0, 0, 0, 2, 10
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\settings\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 8, 0, 0, 0, 2, 10
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\signup\page.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 8, 0, 0, 0, 2, 10
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\types\sound.d.ts", "TypeScript", 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\types\types.ts", "TypeScript", 229, 0, 0, 0, 0, 0, 0, 0, 1, 34, 264
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\utils\date.ts", "TypeScript", 35, 0, 0, 0, 0, 0, 0, 0, 4, 11, 50
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\utils\groupByTime.ts", "TypeScript", 45, 0, 0, 0, 0, 0, 0, 0, 13, 9, 67
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\utils\soundFunc.ts", "TypeScript", 4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components.json", "JSON", 0, 0, 17, 0, 0, 0, 0, 0, 0, 0, 17
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\AvatarComp.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 217, 0, 0, 2, 12, 231
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\Chat.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 176, 0, 0, 9, 12, 197
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ChatModal.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 201, 0, 0, 7, 16, 224
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\Home.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 6, 0, 0, 0, 4, 10
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\PictureStore.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 171, 0, 0, 0, 3, 174
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\PlayerCard.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 109, 0, 0, 2, 9, 120
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\Preload.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 75, 0, 0, 0, 4, 79
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\Profile\EditPlayerNameModal.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 82, 0, 0, 1, 9, 92
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\Profile\EditProfilePicture.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 288, 0, 0, 2, 13, 303
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\Profile\NotificationItem.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 377, 0, 0, 4, 27, 408
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\Profile\NotificationList.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 59, 0, 0, 5, 7, 71
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\Profile\ProfileHeader.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 361, 0, 0, 19, 27, 407
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\StartButton.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 36, 0, 0, 2, 6, 44
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\VsDivider.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 37, 0, 0, 0, 6, 43
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\allPlayers\AllPlayers.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 321, 0, 0, 17, 14, 352
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\funcs\HandleAuth.ts", "TypeScript", 87, 0, 0, 0, 0, 0, 0, 0, 8, 18, 113
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\gameMenu\GameMenu.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 150, 0, 0, 1, 9, 160
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\globalChat\GlobalChat.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 548, 0, 0, 7, 46, 601
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\globalChat\GlobalUserChatField.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 138, 0, 0, 8, 6, 152
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\homepage\home\HomeHeader.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 437, 0, 0, 26, 23, 486
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\homepage\home\Homepage.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 340, 0, 0, 62, 34, 436
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\info\Form.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 172, 0, 0, 0, 10, 182
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\info\InfoMenu.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 328, 0, 0, 0, 5, 333
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\login\Login.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 368, 0, 0, 38, 43, 449
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\nav\Nav.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 101, 0, 0, 0, 6, 107
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\possible\Possible.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 442, 0, 0, 51, 41, 534
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\settings\Settings.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 223, 0, 0, 0, 12, 235
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\signup\Loader.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 18, 0, 0, 0, 7, 25
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\signup\SignUp.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 499, 0, 0, 56, 57, 612
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\Spinner.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 41, 0, 0, 0, 5, 46
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\button.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 51, 0, 0, 0, 6, 57
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\checkbox.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 26, 0, 0, 0, 5, 31
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\dialog.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 109, 0, 0, 0, 14, 123
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\input.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 21, 0, 0, 0, 5, 26
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\popover.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 25, 0, 0, 0, 7, 32
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\select.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 146, 0, 0, 0, 15, 161
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\skeleton.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 13, 0, 0, 0, 3, 16
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\toast.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 116, 0, 0, 0, 14, 130
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\toaster.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 30, 0, 0, 0, 3, 33
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\userChats\UserChatField.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 182, 0, 0, 11, 15, 208
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\userChats\UserChats.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 927, 0, 0, 49, 89, 1065
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\contexts\AudioContext.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 23, 0, 0, 3, 7, 33
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\contexts\ThemeContext.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 33, 0, 0, 0, 7, 40
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\contexts\UserContext.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 61, 0, 0, 1, 12, 74
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\firebase-config\firebase.js", "JavaScript", 0, 0, 0, 23, 0, 0, 0, 0, 2, 10, 35
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\hooks\screenSize.ts", "TypeScript", 17, 0, 0, 0, 0, 0, 0, 0, 0, 5, 22
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\hooks\use-toast.ts", "TypeScript", 160, 0, 0, 0, 0, 0, 0, 0, 3, 32, 195
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\hooks\useCountDown.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 37, 0, 0, 0, 11, 48
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\hooks\useDebounce.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 13, 0, 0, 5, 5, 23
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\hooks\useImageUpload.ts", "TypeScript", 34, 0, 0, 0, 0, 0, 0, 0, 0, 8, 42
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\hooks\useIndexDb.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 68, 0, 0, 3, 13, 84
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\hooks\useOnclickOutside.ts", "TypeScript", 22, 0, 0, 0, 0, 0, 0, 0, 0, 5, 27
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\hooks\useOnlinePresence.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 22, 0, 0, 1, 7, 30
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\hooks\useTypingIndicator.ts", "TypeScript", 41, 0, 0, 0, 0, 0, 0, 0, 0, 11, 52
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\lib\features\ChatAPlayerSlice.ts", "TypeScript", 34, 0, 0, 0, 0, 0, 0, 0, 0, 6, 40
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\lib\features\PlayerSlice.ts", "TypeScript", 101, 0, 0, 0, 0, 0, 0, 0, 1, 6, 108
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\lib\features\PossibilitySlice.ts", "TypeScript", 29, 0, 0, 0, 0, 0, 0, 0, 1, 6, 36
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\lib\features\TrackerSlice.ts", "TypeScript", 98, 0, 0, 0, 0, 0, 0, 0, 0, 6, 104
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\lib\features\userSlice.ts", "TypeScript", 25, 0, 0, 0, 0, 0, 0, 0, 0, 6, 31
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\lib\hooks.ts", "TypeScript", 6, 0, 0, 0, 0, 0, 0, 0, 0, 2, 8
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\lib\store.ts", "TypeScript", 39, 0, 0, 0, 0, 0, 0, 0, 1, 6, 46
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\lib\utils.ts", "TypeScript", 5, 0, 0, 0, 0, 0, 0, 0, 0, 2, 7
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\next.config.mjs", "JavaScript", 0, 0, 0, 58, 0, 0, 0, 0, 1, 3, 62
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\package-lock.json", "JSON", 0, 0, 8943, 0, 0, 0, 0, 0, 0, 1, 8944
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\package.json", "JSON", 0, 0, 70, 0, 0, 0, 0, 0, 0, 1, 71
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\postcss.config.mjs", "JavaScript", 0, 0, 0, 6, 0, 0, 0, 0, 1, 2, 9
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\provider.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\public\confetti.json", "JSON", 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\public\manifest.json", "JSON", 0, 0, 68, 0, 0, 0, 0, 0, 0, 0, 68
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\public\next.svg", "XML", 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\public\vercel.svg", "XML", 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\store.ts", "TypeScript", 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\storeProvider.tsx", "TypeScript JSX", 0, 0, 0, 0, 0, 18, 0, 0, 1, 3, 22
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\tailwind.config.ts", "TypeScript", 83, 0, 0, 0, 0, 0, 0, 0, 0, 4, 87
+"c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\tsconfig.json", "JSON with Comments", 0, 42, 0, 0, 0, 0, 0, 0, 0, 1, 43
+"Total", "-", 1145, 45, 9099, 87, 2, 8749, 72, 180, 472, 1081, 20932

@@ -24,7 +24,7 @@ export type PlayerNames = {
   playerOne: PlayerDetails;
   playerTwo: PlayerDetails;
 };
-export type fullPlayerType = {
+export type FullPlayerType = {
   id: string;
   name: string;
   avatar: string;
@@ -54,6 +54,9 @@ export type PlayerDetails = {
   avatar?: string;
   networkState: string;
   lastMessage?: string;
+  wins?: number;
+  loss?: number;
+  level?: number;
 }
 
 export type userDetails = {
@@ -62,7 +65,8 @@ export type userDetails = {
   avatar?: string;
   networkState: boolean;
   wins?: number;
-  losses?: number;
+  loss?: number;
+  level?: number;
 }
 
 export type User = PlayerDetails;
@@ -186,7 +190,8 @@ export type ProfileType = {
   avatar: string;
   createdAt: string;
   wins?: number;
-  losses?: number;
+  loss?: number;
+  level?: number;
 }
 
 export type AvatarChoice = {

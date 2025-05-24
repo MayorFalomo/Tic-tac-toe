@@ -1,5 +1,6 @@
 import React from 'react';
 import { Play } from 'lucide-react';
+import { playGameStyle } from '@/app/animation/constants';
 
 interface StartButtonProps {
   isReady: boolean;
@@ -13,7 +14,7 @@ const StartButton: React.FC<StartButtonProps> = ({ isReady, onClick }) => {
       disabled={!isReady}
       className={`
         relative group overflow-hidden
-        bg-gradient-to-br from-green-500 to-emerald-700
+        ${playGameStyle}
         text-white font-bold text-lg py-3 px-8 rounded-lg
         transition-all duration-500 transform
         ${
@@ -32,7 +33,7 @@ const StartButton: React.FC<StartButtonProps> = ({ isReady, onClick }) => {
       <span className="absolute inset-0 w-full h-full bg-gradient-to-t from-black to-transparent opacity-20"></span>
 
       <span className="relative flex items-center justify-center gap-2">
-        <Play className="w-5 h-5" />
+        <Play className="icon-glow-frost w-5 h-5" />
         Start Game
       </span>
     </button>

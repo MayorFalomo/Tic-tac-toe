@@ -1,8 +1,7 @@
-import React from 'react';
-// import { Player } from '../types';
+import React, { useMemo } from 'react';
 import { Trophy } from 'lucide-react';
 import Image from 'next/image';
-import { PlayerDetails, userDetails } from '@/app/types/types';
+import { PlayerDetails } from '@/app/types/types';
 
 interface PlayerCardProps {
   player: PlayerDetails;
@@ -11,6 +10,24 @@ interface PlayerCardProps {
 }
 
 const PlayerCard: React.FC<PlayerCardProps> = ({ player, position, isLoading }) => {
+  const calcLevel = useMemo(() => {
+    if (player?.wins && player?.loss) {
+      return calcFunc(player?.wins, player?.loss);
+    }
+  }, [player?.wins, player?.loss]);
+
+  const calcFunc = (numOne: number, numTwo: number) => {
+    if (numOne + numTwo === 3) return 2;
+    else if (numOne + numTwo === 5 && numOne + numTwo < 8) return 3;
+    else if (numOne + numTwo === 8 && numOne + numTwo < 10) return 4;
+    else if (numOne + numTwo === 10 && numOne + numTwo < 12) return 5;
+    else if (numOne + numTwo >= 12 && numOne + numTwo < 15) return 6;
+    else if (numOne + numTwo >= 15) return 7;
+    else {
+      return 1;
+    }
+  };
+
   return (
     <div
       className={`relative ${
@@ -50,7 +67,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, position, isLoading }) 
               position === 'left' ? 'md:order-first' : 'md:order-last'
             }`}
           >
-            <h2 className="max-[640px]:flex hidden  max-[640px]:text-xl max-[480px]:text-[16px] font-bold text-white tracking-wide">
+            <h2 className="max-[640px]:flex justify-center hidden  max-[640px]:text-xl max-[480px]:text-[16px] font-bold text-center text-white tracking-wide">
               {player.name}
             </h2>
             <div
@@ -64,7 +81,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, position, isLoading }) 
                 width={150}
                 height={150}
                 alt={`${player.name}'s avatar`}
-                className="h-[150px] w-[150px] max-[850px]:h-[100px] max-[850px]:w-[100px] object-cover"
+                className="h-[150px] w-[150px] max-[850px]:h-[100px] max-[850px]:w-[100px] rounded-[8px] object-cover"
                 onError={(e) => {
                   e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
                     player.name
@@ -81,7 +98,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, position, isLoading }) 
               position === 'left' ? 'md:text-left' : 'md:text-right'
             } text-center`}
           >
-            <h2 className="max-[640px]:hidden text-xl md:text-2xl font-bold text-white tracking-wide">
+            <h2 className="max-[640px]:hidden text-xl md:text-2xl font-bold text-white text-center tracking-wide">
               {player.name}
             </h2>
 
@@ -95,7 +112,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, position, isLoading }) 
                   Level
                 </span>
                 <span className="text-white font-bold bg-gray-700 bg-opacity-70 px-2 py-0.5 rounded-md">
-                  {1}
+                  {calcLevel ?? 1}
                 </span>
               </div>
             )}
@@ -107,7 +124,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({ player, position, isLoading }) 
                 } justify-center mt-2`}
               >
                 <Trophy className="w-4 h-4 text-yellow-400" />
-                <span className="text-gray-200 text-sm">{0} Wins</span>
+                <span className="text-gray-200 text-sm">{player?.wins ?? 0} Wins</span>
               </div>
             )}
           </div>

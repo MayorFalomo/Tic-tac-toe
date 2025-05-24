@@ -1,0 +1,172 @@
+Date : 2025-05-21 09:56:19
+Directory : c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe
+Total : 102 files,  19105 codes, 790 comments, 1125 blanks, all 21020 lines
+
+Languages
++--------------------+------------+------------+------------+------------+------------+
+| language           | files      | code       | comment    | blank      | total      |
++--------------------+------------+------------+------------+------------+------------+
+| JSON               |          5 |      9,099 |          0 |          2 |      9,101 |
+| TypeScript JSX     |         66 |      8,492 |        732 |        834 |     10,058 |
+| TypeScript         |         22 |      1,128 |         32 |        187 |      1,347 |
+| CSS                |          1 |        180 |         22 |         29 |        231 |
+| JavaScript         |          3 |         87 |          4 |         15 |        106 |
+| Markdown           |          1 |         72 |          0 |         56 |        128 |
+| JSON with Comments |          2 |         45 |          0 |          2 |         47 |
+| XML                |          2 |          2 |          0 |          0 |          2 |
++--------------------+------------+------------+------------+------------+------------+
+
+Directories
++-------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                              | files      | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                 |        102 |     19,105 |        790 |      1,125 |     21,020 |
+| . (Files)                                                                                                         |         12 |      9,311 |          3 |         75 |      9,389 |
+| app                                                                                                               |         25 |      1,041 |         61 |        166 |      1,268 |
+| app (Files)                                                                                                       |          4 |        296 |         24 |         40 |        360 |
+| app\animation                                                                                                     |          8 |        277 |          5 |         36 |        318 |
+| app\battle                                                                                                        |          1 |         13 |          0 |          3 |         16 |
+| app\battle-area                                                                                                   |          1 |         90 |         14 |         17 |        121 |
+| app\chats                                                                                                         |          1 |         12 |          0 |          3 |         15 |
+| app\global-chat                                                                                                   |          1 |          8 |          0 |          2 |         10 |
+| app\info                                                                                                          |          1 |          8 |          0 |          2 |         10 |
+| app\login                                                                                                         |          1 |          8 |          0 |          2 |         10 |
+| app\players                                                                                                       |          1 |          8 |          0 |          2 |         10 |
+| app\settings                                                                                                      |          1 |          8 |          0 |          2 |         10 |
+| app\signup                                                                                                        |          1 |          8 |          0 |          2 |         10 |
+| app\types                                                                                                         |          2 |        225 |          1 |         35 |        261 |
+| app\utils                                                                                                         |          2 |         80 |         17 |         20 |        117 |
+| components                                                                                                        |         41 |      7,836 |        705 |        722 |      9,263 |
+| components (Files)                                                                                                |          9 |      1,025 |         23 |         73 |      1,121 |
+| components\Profile                                                                                                |          5 |      1,167 |         32 |         85 |      1,284 |
+| components\allPlayers                                                                                             |          1 |        310 |         17 |         16 |        343 |
+| components\funcs                                                                                                  |          1 |         87 |          8 |         18 |        113 |
+| components\gameMenu                                                                                               |          1 |        150 |          1 |          9 |        160 |
+| components\globalChat                                                                                             |          2 |        684 |         15 |         51 |        750 |
+| components\homepage                                                                                               |          2 |        721 |         77 |         53 |        851 |
+| components\homepage\home                                                                                          |          2 |        721 |         77 |         53 |        851 |
+| components\info                                                                                                   |          2 |        500 |          0 |         15 |        515 |
+| components\login                                                                                                  |          1 |        363 |        270 |         89 |        722 |
+| components\nav                                                                                                    |          1 |        101 |          0 |          6 |        107 |
+| components\possible                                                                                               |          1 |        426 |         64 |         41 |        531 |
+| components\settings                                                                                               |          1 |        223 |          0 |         12 |        235 |
+| components\signup                                                                                                 |          2 |        499 |        145 |         81 |        725 |
+| components\ui                                                                                                     |         10 |        578 |          0 |         77 |        655 |
+| components\userChats                                                                                              |          2 |      1,002 |         53 |         96 |      1,151 |
+| contexts                                                                                                          |          3 |        117 |          4 |         26 |        147 |
+| firebase-config                                                                                                   |          1 |         23 |          2 |         10 |         35 |
+| hooks                                                                                                             |          8 |        376 |         12 |         86 |        474 |
+| lib                                                                                                               |          8 |        330 |          3 |         40 |        373 |
+| lib (Files)                                                                                                       |          3 |         50 |          1 |         10 |         61 |
+| lib\features                                                                                                      |          5 |        280 |          2 |         30 |        312 |
+| public                                                                                                            |          4 |         71 |          0 |          0 |         71 |
++-------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-------------------------------------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| filename                                                                                                          | language           | code       | comment    | blank      | total      |
++-------------------------------------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\.eslintrc.json                                | JSON with Comments |          3 |          0 |          1 |          4 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\README.md                                     | Markdown           |         72 |          0 |         56 |        128 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\QueryProvider.tsx                         | TypeScript JSX     |         10 |          0 |          3 |         13 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\animation\Bouncy.tsx                      | TypeScript JSX     |         30 |          0 |          3 |         33 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\animation\CrossLine.tsx                   | TypeScript JSX     |          8 |          0 |          4 |         12 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\animation\DrawLine.tsx                    | TypeScript JSX     |         76 |          0 |          4 |         80 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\animation\FadeIn.tsx                      | TypeScript JSX     |         17 |          0 |          4 |         21 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\animation\ProgressBar.tsx                 | TypeScript JSX     |         46 |          4 |          7 |         57 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\animation\ShowTip.tsx                     | TypeScript JSX     |         22 |          1 |          4 |         27 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\animation\SvgLine.tsx                     | TypeScript JSX     |         28 |          0 |          4 |         32 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\animation\constants.ts                    | TypeScript         |         50 |          0 |          6 |         56 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\battle-area\page.tsx                      | TypeScript JSX     |         90 |         14 |         17 |        121 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\battle\page.tsx                           | TypeScript JSX     |         13 |          0 |          3 |         16 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\chats\page.tsx                            | TypeScript JSX     |         12 |          0 |          3 |         15 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\global-chat\page.tsx                      | TypeScript JSX     |          8 |          0 |          2 |         10 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\globals.css                               | CSS                |        180 |         22 |         29 |        231 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\info\page.tsx                             | TypeScript JSX     |          8 |          0 |          2 |         10 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\layout.tsx                                | TypeScript JSX     |         95 |          2 |          6 |        103 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\login\page.tsx                            | TypeScript JSX     |          8 |          0 |          2 |         10 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\page.tsx                                  | TypeScript JSX     |         11 |          0 |          2 |         13 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\players\page.tsx                          | TypeScript JSX     |          8 |          0 |          2 |         10 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\settings\page.tsx                         | TypeScript JSX     |          8 |          0 |          2 |         10 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\signup\page.tsx                           | TypeScript JSX     |          8 |          0 |          2 |         10 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\types\sound.d.ts                          | TypeScript         |          1 |          0 |          1 |          2 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\types\types.ts                            | TypeScript         |        224 |          1 |         34 |        259 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\utils\date.ts                             | TypeScript         |         35 |          4 |         11 |         50 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\app\utils\groupByTime.ts                      | TypeScript         |         45 |         13 |          9 |         67 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components.json                               | JSON               |         17 |          0 |          0 |         17 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\AvatarComp.tsx                     | TypeScript JSX     |        217 |          2 |         12 |        231 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\Chat.tsx                           | TypeScript JSX     |        176 |          9 |         12 |        197 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ChatModal.tsx                      | TypeScript JSX     |        199 |          7 |         17 |        223 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\Home.tsx                           | TypeScript JSX     |          6 |          0 |          4 |         10 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\PictureStore.tsx                   | TypeScript JSX     |        171 |          0 |          3 |        174 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\PlayerCard.tsx                     | TypeScript JSX     |        109 |          3 |          9 |        121 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\Preload.tsx                        | TypeScript JSX     |         75 |          0 |          4 |         79 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\Profile\EditPlayerNameModal.tsx    | TypeScript JSX     |         82 |          1 |          9 |         92 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\Profile\EditProfilePicture.tsx     | TypeScript JSX     |        288 |          2 |         13 |        303 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\Profile\NotificationItem.tsx       | TypeScript JSX     |        377 |          4 |         27 |        408 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\Profile\NotificationList.tsx       | TypeScript JSX     |         59 |          5 |          7 |         71 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\Profile\ProfileHeader.tsx          | TypeScript JSX     |        361 |         20 |         29 |        410 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\StartButton.tsx                    | TypeScript JSX     |         35 |          2 |          6 |         43 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\VsDivider.tsx                      | TypeScript JSX     |         37 |          0 |          6 |         43 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\allPlayers\AllPlayers.tsx          | TypeScript JSX     |        310 |         17 |         16 |        343 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\funcs\HandleAuth.ts                | TypeScript         |         87 |          8 |         18 |        113 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\gameMenu\GameMenu.tsx              | TypeScript JSX     |        150 |          1 |          9 |        160 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\globalChat\GlobalChat.tsx          | TypeScript JSX     |        546 |          7 |         45 |        598 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\globalChat\GlobalUserChatField.tsx | TypeScript JSX     |        138 |          8 |          6 |        152 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\homepage\home\HomeHeader.tsx       | TypeScript JSX     |        408 |         18 |         20 |        446 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\homepage\home\Homepage.tsx         | TypeScript JSX     |        313 |         59 |         33 |        405 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\info\Form.tsx                      | TypeScript JSX     |        172 |          0 |         10 |        182 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\info\InfoMenu.tsx                  | TypeScript JSX     |        328 |          0 |          5 |        333 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\login\Login.tsx                    | TypeScript JSX     |        363 |        270 |         89 |        722 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\nav\Nav.tsx                        | TypeScript JSX     |        101 |          0 |          6 |        107 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\possible\Possible.tsx              | TypeScript JSX     |        426 |         64 |         41 |        531 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\settings\Settings.tsx              | TypeScript JSX     |        223 |          0 |         12 |        235 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\signup\Loader.tsx                  | TypeScript JSX     |         18 |          0 |          7 |         25 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\signup\SignUp.tsx                  | TypeScript JSX     |        481 |        145 |         74 |        700 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\Spinner.tsx                     | TypeScript JSX     |         41 |          0 |          5 |         46 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\button.tsx                      | TypeScript JSX     |         51 |          0 |          6 |         57 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\checkbox.tsx                    | TypeScript JSX     |         26 |          0 |          5 |         31 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\dialog.tsx                      | TypeScript JSX     |        109 |          0 |         14 |        123 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\input.tsx                       | TypeScript JSX     |         21 |          0 |          5 |         26 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\popover.tsx                     | TypeScript JSX     |         25 |          0 |          7 |         32 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\select.tsx                      | TypeScript JSX     |        146 |          0 |         15 |        161 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\skeleton.tsx                    | TypeScript JSX     |         13 |          0 |          3 |         16 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\toast.tsx                       | TypeScript JSX     |        116 |          0 |         14 |        130 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\ui\toaster.tsx                     | TypeScript JSX     |         30 |          0 |          3 |         33 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\userChats\UserChatField.tsx        | TypeScript JSX     |        179 |         12 |         13 |        204 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\components\userChats\UserChats.tsx            | TypeScript JSX     |        823 |         41 |         83 |        947 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\contexts\AudioContext.tsx                     | TypeScript JSX     |         23 |          3 |          7 |         33 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\contexts\ThemeContext.tsx                     | TypeScript JSX     |         33 |          0 |          7 |         40 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\contexts\UserContext.tsx                      | TypeScript JSX     |         61 |          1 |         12 |         74 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\firebase-config\firebase.js                   | JavaScript         |         23 |          2 |         10 |         35 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\hooks\screenSize.ts                           | TypeScript         |         17 |          0 |          5 |         22 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\hooks\use-toast.ts                            | TypeScript         |        160 |          3 |         32 |        195 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\hooks\useDebounce.tsx                         | TypeScript JSX     |         13 |          5 |          5 |         23 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\hooks\useImageUpload.ts                       | TypeScript         |         34 |          0 |          8 |         42 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\hooks\useIndexDb.tsx                          | TypeScript JSX     |         67 |          3 |         13 |         83 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\hooks\useOnclickOutside.ts                    | TypeScript         |         22 |          0 |          5 |         27 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\hooks\useOnlinePresence.tsx                   | TypeScript JSX     |         22 |          1 |          7 |         30 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\hooks\useTypingIndicator.ts                   | TypeScript         |         41 |          0 |         11 |         52 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\lib\features\ChatAPlayerSlice.ts              | TypeScript         |         34 |          0 |          6 |         40 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\lib\features\PlayerSlice.ts                   | TypeScript         |         95 |          1 |          6 |        102 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\lib\features\PossibilitySlice.ts              | TypeScript         |         29 |          1 |          6 |         36 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\lib\features\TrackerSlice.ts                  | TypeScript         |         98 |          0 |          6 |        104 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\lib\features\userSlice.ts                     | TypeScript         |         24 |          0 |          6 |         30 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\lib\hooks.ts                                  | TypeScript         |          6 |          0 |          2 |          8 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\lib\store.ts                                  | TypeScript         |         39 |          1 |          6 |         46 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\lib\utils.ts                                  | TypeScript         |          5 |          0 |          2 |          7 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\next.config.mjs                               | JavaScript         |         58 |          1 |          3 |         62 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\package-lock.json                             | JSON               |      8,943 |          0 |          1 |      8,944 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\package.json                                  | JSON               |         70 |          0 |          1 |         71 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\postcss.config.mjs                            | JavaScript         |          6 |          1 |          2 |          9 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\provider.ts                                   | TypeScript         |          0 |          0 |          1 |          1 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\public\confetti.json                          | JSON               |          1 |          0 |          0 |          1 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\public\manifest.json                          | JSON               |         68 |          0 |          0 |         68 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\public\next.svg                               | XML                |          1 |          0 |          0 |          1 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\public\vercel.svg                             | XML                |          1 |          0 |          0 |          1 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\store.ts                                      | TypeScript         |          0 |          0 |          1 |          1 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\storeProvider.tsx                             | TypeScript JSX     |         18 |          1 |          3 |         22 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\tailwind.config.ts                            | TypeScript         |         82 |          0 |          5 |         87 |
+| c:\Users\DELL\OneDrive\Documents\Next Js Projects\x_and_o\tictactoe\tsconfig.json                                 | JSON with Comments |         42 |          0 |          1 |         43 |
+| Total                                                                                                             |                    |     19,105 |        790 |      1,125 |     21,020 |
++-------------------------------------------------------------------------------------------------------------------+--------------------+------------+------------+------------+------------+

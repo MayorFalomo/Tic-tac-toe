@@ -20,6 +20,8 @@ import { setTrackDisableRound, setTrackRounds } from '@/lib/features/TrackerSlic
 import { toast } from 'react-hot-toast';
 import { useTheme } from '@/contexts/ThemeContext';
 import HomeHeader from './HomeHeader';
+import useCountdown from '@/hooks/useCountDown';
+import { playSound } from '@/app/utils/soundFunc';
 
 const ChatModal = React.lazy(() => import('@/components/ChatModal'));
 
@@ -40,6 +42,7 @@ const Homepage: React.FC = () => {
   const [ultimateWinner, setUltimateWinner] = useState<string | null>(null);
   const router = useRouter();
   const { currentTheme } = useTheme();
+  const { formattedTime, stopTimer, startTimer, resetTimer } = useCountdown(30);
 
   //To get the combinedId
   const combinedId = useMemo(() => {
@@ -83,8 +86,8 @@ const Homepage: React.FC = () => {
         snapshot.forEach((doc) => {
           if (doc.exists()) {
             const messages = doc.data().messages || [];
-
             setPlayerChat(messages); // Update state with the latest messages
+            playSound('/happy-bell.wav');
           }
         });
       });
@@ -168,6 +171,8 @@ const Homepage: React.FC = () => {
     dispatch(setTrackRounds(gameData?.rounds));
     dispatch(setTrackDisableRound(true));
     setMovesData([]);
+    resetTimer();
+    startTimer();
   };
 
   const restartGame = async () => {
@@ -185,14 +190,17 @@ const Homepage: React.FC = () => {
       ultimateWinner: null,
       draw: false,
     });
+
     await updateDoc(doc(db, 'playersMoves', combinedId), {
       moves: [],
     });
     await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
       status: PlayerStatus.INGAME,
     });
+    resetTimer();
     setRoundWinner(null);
     toast.success('Game is restarted');
+    startTimer();
   };
 
   //useEffect to make sure it shows on both players interface
@@ -201,12 +209,11 @@ const Homepage: React.FC = () => {
       setRoundWinner(null);
     } else {
       setRoundWinner(gameData?.roundWinner!);
+      stopTimer();
     }
     //So the ultimate Winner reflects on both players interface
-    if (gameData?.ultimateWinner !== null || '') {
+    if (gameData?.ultimateWinner !== null || gameData?.ultimateWinner !== '') {
       setUltimateWinner(gameData?.ultimateWinner!);
-    } else {
-      setUltimateWinner(null);
     }
   }, [gameData?.roundWinner, roundWinner, gameData, gameData?.ultimateWinner]);
 
@@ -221,6 +228,27 @@ const Homepage: React.FC = () => {
       toast.success('Game is a draw');
     }
   }, [gameData?.draw]);
+
+  //useEffect to manage time and currentTurns
+  useEffect(() => {
+    if (formattedTime === '00:00' && !gameData?.endOfRound) {
+      //change currentTurn on firebase then reset the time
+      const getNextPlayerId =
+        gameData?.currentTurn === playersObject?.playerOne?.id
+          ? playersObject?.playerTwo?.id
+          : playersObject?.playerOne?.id;
+      const runChangeTurn = async () => {
+        await updateDoc(doc(db, 'gameSessions', combinedId), {
+          currentTurn: getNextPlayerId,
+        });
+      };
+      runChangeTurn();
+      resetTimer();
+    } else {
+      resetTimer();
+    }
+  }, [gameData?.currentTurn, formattedTime === '00:00']);
+  // console.log(formattedTime === '00:30', 'formattedTime');
 
   return (
     <div
@@ -237,6 +265,7 @@ const Homepage: React.FC = () => {
         setTheChatId={setTheChatId}
         setOpenModal={setOpenModal}
         setPlayerChat={setPlayerChat}
+        countdown={formattedTime}
       />
       <div className="flex justify-center items-center mx-auto w-full h-[85%] max-[500px]:h-[100%]">
         <div className="flex flex-col w-full gap-[10px] items-center  justify-center">
@@ -291,6 +320,8 @@ const Homepage: React.FC = () => {
                     combinedId={combinedId}
                     setRoundWinner={setRoundWinner}
                     setUltimateWinner={setUltimateWinner}
+                    resetTimer={resetTimer}
+                    stopTimer={stopTimer}
                   />
                 </div>
               ))}

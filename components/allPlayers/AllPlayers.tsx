@@ -27,6 +27,7 @@ import { Skeleton } from '../ui/skeleton';
 import { collection, onSnapshot, query } from 'firebase/firestore';
 import { FaArrowLeftLong } from 'react-icons/fa6';
 import { usePlayer } from '@/contexts/UserContext';
+import { Spinner } from '../ui/Spinner';
 
 interface IPlayers extends SessionPlayerDetails {
   status: string;
@@ -36,8 +37,8 @@ interface IPlayers extends SessionPlayerDetails {
 const AllPlayers = () => {
   const [getPlayers, seGetPlayers] = useState<IPlayers[]>([]);
   const [singlePlayer, setSinglePlayer] = useState<IPlayers | null>(null);
-  const [loading, setLoading] = useState<string>(LoadingState.LOADING);
-
+  const [loading, setLoading] = useState<string | null>(null);
+  const [inviteLoader, setInviteLoader] = useState<boolean>(false);
   const dispatch = useAppDispatch();
   const navigate = useRouter();
   const { currentTheme } = useTheme();
@@ -66,23 +67,6 @@ const AllPlayers = () => {
     };
   }, []);
 
-  // Function to fetch player data from IndexedDB
-  // const fetchPlayerData = async () => {
-  //   const data = await getData();
-  //   if (data) {
-  //     dispatch(setAPlayer(data));
-  //     setLoading(LoadingState.SUCCESS);
-  //   }
-  // };
-
-  //UseEffect to get data from db
-  // useEffect(() => {
-  //   setLoading(LoadingState.LOADING);
-  //   if (db) {
-  //     fetchPlayerData();
-  //   }
-  // }, [db]);
-
   useEffect(() => {
     const retrievedKey = currentUser?.userId;
     if (retrievedKey) {
@@ -103,6 +87,7 @@ const AllPlayers = () => {
   }, []);
 
   const handleChats = async () => {
+    setInviteLoader(true);
     dispatch(setCombinedChattingId(''));
     dispatch(
       setSelectedPlayer({
@@ -112,7 +97,7 @@ const AllPlayers = () => {
         networkState: singlePlayer?.status,
       })
     );
-
+    setInviteLoader(false);
     navigate.push('/chats');
   };
 
@@ -163,7 +148,11 @@ const AllPlayers = () => {
                           />
                         )}
                         <p className="flex flex-col items-start ">
-                          <span className="">{res?.name}</span>
+                          <span className="">
+                            {res?.name === currentUser?.name
+                              ? `${currentUser?.name} (you)`
+                              : res?.name}{' '}
+                          </span>
                           <span className="text-[12px]">
                             {res?.createdAt && formatDateToDMY(res?.createdAt)}{' '}
                           </span>
@@ -194,7 +183,7 @@ const AllPlayers = () => {
                 ))}
               </motion.div>
             ) : (
-              <div className="flex flex-col items-center gap-6 space-x-4">
+              <div className="flex flex-col items-center justify-between gap-6 space-x-4">
                 <div className="flex flex-col gap-4 mt-3 space-y-2">
                   {Array.from({ length: 6 }).map((_, index) => (
                     <div key={index} className="flex items-center gap-4">
@@ -230,6 +219,9 @@ const AllPlayers = () => {
                 )}
               >
                 Message {singlePlayer?.name}{' '}
+                {inviteLoader === true && (
+                  <Spinner size={'small'} className=" ml-2 text-white" />
+                )}
               </Button>
             </div>
           </div>

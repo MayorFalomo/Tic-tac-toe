@@ -9,6 +9,7 @@ import {
   MoonIcon,
   Settings,
   StopCircle,
+  Clock,
 } from 'lucide-react';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
@@ -45,6 +46,9 @@ import { setCombinedChattingId } from '@/lib/features/ChatAPlayerSlice';
 import { useRouter } from 'next/navigation';
 import { HiOutlineBellAlert } from 'react-icons/hi2';
 import { Spinner } from '@/components/ui/Spinner';
+import { usePlayer } from '@/contexts/UserContext';
+import useIndexedDB from '@/hooks/useIndexDb';
+import useCountdown from '@/hooks/useCountDown';
 
 type Props = {
   gameData: GameSession | null;
@@ -55,6 +59,7 @@ type Props = {
   setTheChatId: (arg: any) => void;
   setOpenModal: (arg: boolean) => void;
   setPlayerChat: (arg: Chat[]) => void;
+  countdown: string;
 };
 
 const HomeHeader: React.FC<Props> = ({
@@ -66,7 +71,11 @@ const HomeHeader: React.FC<Props> = ({
   setTheChatId,
   setOpenModal,
   setPlayerChat,
+  countdown,
 }) => {
+  const { currentUser } = usePlayer();
+  const { getData, updateData } = useIndexedDB();
+
   const { width, height } = useWindowSize(); //For the Cofetti Animation
   const { play, stop } = useAudio();
   const { currentTheme, setCurrentTheme } = useTheme();
@@ -191,8 +200,26 @@ const HomeHeader: React.FC<Props> = ({
     }
   };
 
+  const fetchUser = async () => {
+    const data = await getData();
+    if (data) {
+      const currentLosses = Number(data.loss);
+      return currentLosses + 1;
+    } else return 0;
+  };
+
+  useEffect(() => {
+    if (gameData?.ultimateWinner !== currentUser?.name) {
+      fetchUser().then((res) => {
+        updateData({
+          loss: res,
+        });
+      });
+    }
+  }, [gameData?.ultimateWinner]);
+
   return (
-    <div className="flex max-[650px]:flex-col items-center justify-between min-[650px]:gap-4 px-2 max-[650px]:pt-2 w-full">
+    <div className="relative flex max-[680px]:flex-col items-center justify-between min-[680px]:gap-4 px-2 max-[680px]:pt-2 w-full">
       <div className="flex items-center justify-between gap-2 min-[750px]:max-w-[50%] max-[750px]:max-w-[100%] max-[480px]:max-w-[100%] ">
         <div className="flex items-center gap-4">
           <div className="flex items-center w-full max-w-[250px] justify-center gap-[10px]">
@@ -208,15 +235,15 @@ const HomeHeader: React.FC<Props> = ({
                         : gameData?.players?.playerTwo?.avatar ?? null
                     }
                     alt="img"
-                    className="border border-white/40 w-[50px] h-[50px] min-w-[30px] min-h-[30px] object-cover object-top"
+                    className="rounded-[8px] border border-white/40 w-[50px] h-[50px] min-w-[30px] min-h-[30px] object-cover object-top"
                   />
                 )}
             </div>
             <div className="flex flex-col gap-2  border-r border-white/40">
               <h1 className="text-white text-[16px] max-[850px]:text-[14px] max-[350px]:text-[12px] px-2 min-w-[100px] max-[340px]:min-w-[80px] border-b border-white/40 ">
                 {currentPlayer === gameData?.players?.playerOne?.id
-                  ? gameData?.players?.playerOne?.name.slice(0, 16)
-                  : gameData?.players?.playerTwo?.name.slice(0, 12) ?? 'HeavenLy'}
+                  ? gameData?.players?.playerOne?.name.slice(0, 12)
+                  : gameData?.players?.playerTwo?.name.slice(0, 12) ?? ''}
               </h1>
 
               {
@@ -248,7 +275,7 @@ const HomeHeader: React.FC<Props> = ({
             <h1 className="text-white text-[16px] max-[850px]:text-[14px] max-[350px]:text-[12px] px-2 min-w-[100px] border-b border-white/40 text-end">
               {currentPlayer === gameData?.players?.playerOne?.id
                 ? gameData?.players?.playerTwo?.name.slice(0, 16)
-                : gameData?.players?.playerOne?.name.slice(0, 16) ?? 'Destroyer'}
+                : gameData?.players?.playerOne?.name.slice(0, 16) ?? ''}
             </h1>
             <div className="flex items-start gap-2">
               <Image
@@ -272,7 +299,7 @@ const HomeHeader: React.FC<Props> = ({
                       : gameData?.players?.playerOne?.avatar!
                   }
                   alt="img"
-                  className="border border-white/40 w-[50px] h-[50px] min-w-[30px] min-h-[30px] object-cover object-top"
+                  className="rounded-[8px] border border-white/40 w-[50px] h-[50px] min-w-[30px] min-h-[30px] object-cover object-top"
                 />
               )}
           </div>
@@ -329,6 +356,12 @@ const HomeHeader: React.FC<Props> = ({
         </AnimatePresence>
       </div>
       {ultimateWinner!?.length > 1 && <ReactConfetti width={width} height={height} />}
+      {
+        <p className="flex items-center gap-2 max-[950px]:absolute max-[950px]:left-[20px] max-[950px]:bottom-[-40px] ">
+          <Clock size={14} className=" icon-glow-plasma" />
+          <span className="text-[20px] tracking-wider">{countdown} </span>
+        </p>
+      }
       <div className="flex items-center gap-3 max-[650px]:w-[95%] max-[650px]:mt-3 ">
         <div className="flex items-center justify-between w-full gap-4 p-2 min-[650px]:p-4">
           <h1 className="border w-fit text-center text-[16px] min-w-[120px] rounded-lg px-3 py-2">
@@ -343,15 +376,17 @@ const HomeHeader: React.FC<Props> = ({
               {playersObject?.playerOne?.id === gameData?.players?.playerTwo?.id &&
               gameData?.unreadMessages?.playerTwo! > 0 ? (
                 <HiOutlineBellAlert
-                  className="p-6 h-full w-full bg-gray-200 rounded-md bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-10 border border-gray-100"
-                  size={40}
-                  color="white"
+                  className="p-3 icon-glow-plasma h-full w-full bg-gray-200 rounded-md bg-clip-padding backdrop-filter backdrop-blur-md bg-opacity-10 border border-gray-100"
+                  size={20}
                   style={{
+                    backdropFilter: 'blur(8px) saturate(50%)',
+                    WebkitBackdropFilter: 'blur(8px) saturate(50%)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.21)',
                     background: 'rgba(255, 255, 255, 0.42)',
                     borderRadius: '50px',
-                    boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
-                    backdropFilter: 'blur(4.2px)',
-                    WebkitBackdropFilter: 'blur(4.2px)',
+                    // boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                    // backdropFilter: 'blur(4.2px)',
+                    // WebkitBackdropFilter: 'blur(4.2px)',
                   }}
                 />
               ) : (
@@ -359,13 +394,13 @@ const HomeHeader: React.FC<Props> = ({
                   style={{
                     background: 'rgba(255, 255, 255, 0.2)',
                     borderRadius: '50px',
-                    boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+                    boxShadow: '0 4px 30px rgba(0, 0, 0, 0.24)',
                     backdropFilter: 'blur(5px)',
                     WebkitBackdropFilter: 'blur(5px)',
-                    padding: '10px',
+                    padding: '7px',
                   }}
-                  color="white"
-                  size={40}
+                  className="w-8 h-8 icon-glow-solar"
+                  size={20}
                 />
               )}
               {playersObject?.playerOne?.id === gameData?.players?.playerTwo?.id && (
@@ -387,7 +422,7 @@ const HomeHeader: React.FC<Props> = ({
             </button>
             <Popover>
               <PopoverTrigger>
-                <Settings size={20} color="white" />
+                <Settings size={20} className="" color="white" />
               </PopoverTrigger>
               <PopoverContent className="">
                 <ul className="flex flex-col gap-4 items-start">
@@ -422,15 +457,20 @@ const HomeHeader: React.FC<Props> = ({
                     onClick={() => handleGameQuit(playersObject?.playerOne?.name)}
                     className="py-3 px-3 w-full cursor-pointer hover:bg-gray-100 flex items-center justify-between gap-2 mx-auto"
                   >
-                    {loading === LoadingState.LOADING && (
+                    {/* {loading === LoadingState.LOADING && (
                       <Spinner size={'small'} className=" text-white" />
-                    )}
+                    )} */}
+                    {/* <div className=" flex items-center justify-between gap-4"> */}
                     <p className=" flex items-center gap-4">
                       <span>Quit Game</span>
                       <span>
                         <StopCircle color="red" />{' '}
                       </span>
                     </p>
+                    {loading === LoadingState.LOADING && (
+                      <Spinner size={'small'} className="text-black" />
+                    )}
+                    {/* </div> */}
                   </li>
                 </ul>
               </PopoverContent>

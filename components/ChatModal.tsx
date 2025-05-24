@@ -18,6 +18,7 @@ import { RootState } from '@/lib/store';
 import { Chat, GameSession } from '@/app/types/types';
 import ChatField from './Chat';
 import { useTheme } from '@/contexts/ThemeContext';
+import { playSound } from '@/app/utils/soundFunc';
 
 type Props = {
   openModal: boolean;
@@ -67,7 +68,7 @@ const ChatModal: React.FC<Props> = ({
             reactions: [],
           }),
         });
-
+        await playSound('/bubbleSound.mp3');
         // Update unread messages in gameSessions
         const isPlayerOne =
           playersObject?.playerOne?.id === gameData?.players?.playerOne?.id;

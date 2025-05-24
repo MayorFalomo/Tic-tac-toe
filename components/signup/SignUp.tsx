@@ -5,7 +5,7 @@ import { Button } from '../ui/button';
 import { LoadingSpinner } from './Loader';
 import { push, ref, set } from 'firebase/database';
 import { database, db } from '@/firebase-config/firebase';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { useAppDispatch } from '@/lib/hooks';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { givePlayerNames } from '@/lib/features/PlayerSlice';
@@ -30,9 +30,8 @@ import {
   PlayerDetails,
   PlayerStatus,
   ProfileStatus,
-  userDetails,
 } from '@/app/types/types';
-import { createGameSession, handleUserPresence } from '../funcs/HandleAuth';
+import { createGameSession, handleUserPresence, sendEmail } from '../funcs/HandleAuth';
 import {
   Select,
   SelectContent,
@@ -51,9 +50,9 @@ import emailjs from '@emailjs/browser';
 import useOnlineStatus from '@/hooks/useOnlinePresence';
 import useIndexedDB from '@/hooks/useIndexDb';
 import ProfileHeader from '../Profile/ProfileHeader';
-import { RootState } from '@/lib/store';
 import { playGameStyle } from '@/app/animation/constants';
 import { Home } from 'lucide-react';
+import { usePlayer } from '@/contexts/UserContext';
 export interface AvatarType {
   avatarType: string;
   avatarUrl: string;
@@ -74,13 +73,14 @@ const SignUp: React.FC = () => {
   const [showPlayerName, setShowPlayerName] = useState<boolean>(false);
 
   const dispatch = useAppDispatch();
-  const currentUser = useAppSelector((state: RootState) => state.user as userDetails);
+  // const currentUser = useAppSelector((state: RootState) => state.user as userDetails);
 
   const router = useRouter();
   const { currentTheme } = useTheme();
 
   const checkNetwork = useOnlineStatus();
   const { storeData } = useIndexedDB();
+  const { currentUser } = usePlayer();
 
   useEffect(() => {
     const randomNumber = Math.random();
@@ -97,7 +97,7 @@ const SignUp: React.FC = () => {
       setLoading(ProfileStatus.CREATE); //Set The loading spinner to be true
       const playerNameSelect = playerName ? playerName : 'PlayerOne';
       setShowPlayerName(true);
-      if (currentUser.userId) {
+      if (currentUser?.userId) {
         toast.error('You already have an account, please login instead.');
         setTimeout(() => {
           router.push('/signup');
@@ -127,6 +127,9 @@ const SignUp: React.FC = () => {
         networkState: checkNetwork ? PlayerStatus.ONLINE : PlayerStatus?.OFFLINE,
         updatedAt: new Date().toISOString(),
         unreadMessages: [],
+        wins: 0,
+        loss: 0,
+        level: 1,
       });
 
       await storeData('currentUser', {
@@ -134,9 +137,12 @@ const SignUp: React.FC = () => {
         name: playerNameSelect,
         avatar: Avatar,
         createdAt: new Date().toISOString(),
+        wins: 0,
+        loss: 0,
+        level: 1,
       });
 
-      // await sendEmail(playerNameSelect);
+      await sendEmail(playerNameSelect);
 
       //Then it changes the players status to looking instead of online
       await handleUserPresence(playerId, playerName);
@@ -241,13 +247,6 @@ const SignUp: React.FC = () => {
             }
           }
         });
-
-        // If no valid opponents were found after checking all
-        // if (!foundOpponent) {
-        //   console.log('i am the cause');
-        //   // Optionally handle the case where no valid opponents are found
-        //   toast.error('Sorry, no active opponent was found');
-        // }
       });
 
       return () => {
@@ -258,105 +257,6 @@ const SignUp: React.FC = () => {
       console.error('Error has occurred:', error);
     }
   };
-
-  // const searchForOpponent = async (playerId: string) => {
-  //   try {
-  //     setLoading('search');
-  //     const playersRef = collection(db, 'players'); //Create a reference to players collection on firestore
-
-  //     const q = query(
-  //       playersRef,
-  //       where('status', '==', PlayerStatus.LOOKING),
-  //       where('networkState', '==', PlayerStatus.ONLINE)
-  //     ); //Query our reference for status 'looking' an also a network state of online
-
-  //     // Set a timeout to stop searching after 30 seconds
-  //     const timeoutId = setTimeout(() => {
-  //       setLoading(ProfileStatus.NONE);
-  //       toast.error('No opponent found');
-  //       return;
-  //     }, 60 * 1000); // 30 seconds
-
-  //     //Our Listener for available opponents
-  //     const unsubscribe = onSnapshot(q, async (snapshot) => {
-  //       const currentDate = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
-
-  //       let foundOpponent = false; // Flag to track if an opponent is found
-
-  //       snapshot.forEach(async (doc: any) => {
-  //         const opponentId = doc.id; //The id of the opponent
-
-  //         // Ensure the opponent is not the same as the current player
-  //         if (opponentId !== playerId) {
-  //           const playerCreatedAtDate = new Date(doc.data().createdAt)
-  //             .toISOString()
-  //             .split('T')[0];
-
-  //           // Compare dates to check if the opponent was created today
-  //           if (playerCreatedAtDate === currentDate) {
-  //             foundOpponent = true; // Set flag to true
-
-  //             setLoading(ProfileStatus.FOUND);
-
-  //             //Only Set your opponents status to 'pending'
-  //             await Promise.all([updateDoc(doc.ref, { status: PlayerStatus.PENDING })]);
-
-  //             // Confirm both players are ready
-  //             const bothReady = await confirmBothPlayersReady(); //A setTimeOut for 3s, th returns true
-
-  //             if (bothReady) {
-  //               //Only Update the opponents players status to 'inGame'
-  //               await Promise.all([
-  //                 // updateDoc(playerRef, { status: 'inGame' }),
-  //                 updateDoc(doc.ref, { status: PlayerStatus?.INGAME }),
-  //               ]);
-
-  //               //Define the object for playerOne
-  //               const playerOneDetails = {
-  //                 id: playerId,
-  //                 name: playerName,
-  //                 avatar: Avatar,
-  //                 networkState: checkNetwork,
-  //               };
-  //               //Define the object for playerOne
-  //               const playerTwoDetails = {
-  //                 id: opponentId,
-  //                 name: doc.data().name,
-  //                 avatar: doc.data().avatar,
-  //                 networkState: doc.data().networkState,
-  //               };
-
-  //               // Create a gameSession on firestore db, It would return  the id of the gameSession on firestore
-  //               const getSessionId = await createGameSession(
-  //                 playerId,
-  //                 opponentId,
-  //                 randomControl
-  //               );
-
-  //               //Pass our players object details to the handleGameSession to create a gameSession on firestore,The function would return the gameSession Data
-  //               await handleGameSession(playerOneDetails, playerTwoDetails);
-
-  //               dispatch(setAPlayer({ id: playerId })); //Store the currentPlayersId
-  //               dispatch(setSessionId(getSessionId)); //Store the currentGameSessionId
-  //               setLoading(null); //Stop the Loading spinner
-  //               clearTimeout(timeoutId);
-  //               setTimeout(() => {
-  //                 router.push('/');
-  //               }, 2000);
-  //             } else {
-  //               console.log('Player is not ready.');
-  //             }
-  //           }
-  //         }
-  //       });
-  //     });
-  //     return () => {
-  //       clearTimeout(timeoutId);
-  //     };
-  //   } catch (error) {
-  //     console.error('Error has occurred:', error);
-  //   }
-  // };
 
   const confirmBothPlayersReady = async () => {
     // Simulate a confirmation process for both players to be ready
@@ -388,6 +288,9 @@ const SignUp: React.FC = () => {
           name: playerOneDetails?.name,
           avatar: playerOneDetails?.avatar,
           networkState: playerOneDetails?.networkState,
+          wins: playerOneDetails?.wins,
+          loss: playerOneDetails?.loss,
+          level: playerOneDetails?.level,
         };
 
         const playerTwoDets = {
@@ -395,6 +298,9 @@ const SignUp: React.FC = () => {
           name: opponent?.name,
           avatar: opponent?.avatar,
           networkState: opponent?.networkState,
+          wins: opponent?.wins,
+          loss: opponent?.loss,
+          level: opponent?.level,
         };
 
         //Set state to store the playersDetails
@@ -458,12 +364,18 @@ const SignUp: React.FC = () => {
           id: playerOneDetails?.id,
           name: playerOneDetails?.name,
           avatar: playerOneDetails?.avatar,
+          wins: playerOneDetails?.wins,
+          loss: playerOneDetails?.loss,
+          level: playerOneDetails?.level,
         };
 
         const playerTwoDets = {
           id: opponent?.id,
           name: opponent?.name,
           avatar: opponent?.avatar,
+          wins: opponent?.wins,
+          loss: opponent?.loss,
+          level: opponent?.level,
         };
 
         dispatch(
@@ -553,7 +465,7 @@ const SignUp: React.FC = () => {
                   type="text"
                   placeholder="Enter your Player name"
                   onChange={(e) => setPlayerName(e.target.value)}
-                  maxLength={15}
+                  maxLength={12}
                 />
                 <Select
                   onValueChange={(value) => {

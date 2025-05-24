@@ -4,7 +4,9 @@ import {
   Chat,
   defaultImg,
   firebaseCollections,
+  FullPlayerType,
   GameSession,
+  LoadingState,
   NotifType,
   PlayerChatType,
   PlayerDetails,
@@ -48,12 +50,15 @@ import { setCombinedGameSessionId, setSessionId } from '@/lib/features/TrackerSl
 import { createGameSession } from '../funcs/HandleAuth';
 import { useRouter } from 'next/navigation';
 import useOnlineStatus from '@/hooks/useOnlinePresence';
-import { Search } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { useDebounceValue } from '@/hooks/useDebounce';
+import { useScreenSize } from '@/hooks/screenSize';
+import { usePlayer } from '@/contexts/UserContext';
+import { playSound } from '@/app/utils/soundFunc';
 
 const UserChats = () => {
   const playersChatState = useAppSelector((state: RootState) => state.chatUp);
-  const currentUser = useAppSelector((state: RootState) => state.user);
+  const { currentUser } = usePlayer();
 
   const [chatsId, setChatsId] = useState<string | null>(null);
   // const [allPlayerChat, setAllPlayerChat] = useState<Chat[]>([]);
@@ -69,10 +74,12 @@ const UserChats = () => {
   const [getSelectedChat, setGetSelectedChat] = useState<PlayerDetails[]>([]);
   const [navOpen, setNavOpen] = useState<boolean>(false);
   const [searchValue, setSearchValue] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<FullPlayerType[]>([]);
 
   // const windowSize = useScreenSize(750);
   const [openChat, setOpenChat] = useState<boolean>(false);
   const [loadingSpinner, setLoadingSpinner] = useState<string | null>(null);
+  const [loadingSearch, setLoadingSearch] = useState<string | null>(null);
 
   const { currentTheme } = useTheme();
   const router = useRouter();
@@ -82,10 +89,21 @@ const UserChats = () => {
 
   const debouncedValue = useDebounceValue(searchValue!, 1000);
 
+  //If the player is from AllPlayers page selectedPlayer context state would be true while combinedId empty
+  // Is there anything wrong with my implementation ?
   const combinedChattersId = useMemo(() => {
-    if (!playersChatState?.combinedChattingId) {
-      const playerOneId = currentUser?.userId;
-      const playerTwoId = playersChatState?.selectedPlayer?.id;
+    const getSelectedId = getSelectedChat[0]?.id;
+    const playerChatStateCombined = playersChatState?.combinedChattingId;
+    const playerOneId = currentUser?.userId;
+    const playerTwoId = playersChatState?.selectedPlayer?.id;
+
+    if (getSelectedId && !playerChatStateCombined) {
+      if (playerOneId && getSelectedId) {
+        return playerOneId > getSelectedId
+          ? playerOneId + getSelectedId
+          : getSelectedId + playerOneId;
+      }
+    } else if (playerTwoId && !getSelectedId) {
       if (playerOneId && playerTwoId) {
         return playerOneId > playerTwoId
           ? playerOneId + playerTwoId
@@ -95,7 +113,11 @@ const UserChats = () => {
       console.log('Already computed combinedId');
       return playersChatState?.combinedChattingId;
     }
-  }, [playersChatState?.selectedPlayer?.id, playersChatState.combinedChattingId]);
+  }, [
+    playersChatState?.selectedPlayer?.id,
+    playersChatState.combinedChattingId,
+    getSelectedChat[0]?.id,
+  ]);
 
   const { handleTyping } = useTypingIndicator(
     getSelectedChatCombinedId ?? combinedChattersId!
@@ -122,6 +144,7 @@ const UserChats = () => {
 
         // Update state with all chat documents
         setNewWay(updatedChats);
+        playSound('/bubbleSound.mp3');
       });
 
       return () => {
@@ -130,9 +153,11 @@ const UserChats = () => {
     }
   }, [combinedChattersId, currentUser?.userId]);
 
+  // console.log(getSelectedChat[0]?.id);
+
   //Listens for chats
   useEffect(() => {
-    if (trackChatters?.messages.length! > 0) return;
+    if (trackChatters?.messages.length! < 1) return;
     if (combinedChattersId) {
       const chatRef = collection(db, 'userChats');
       const q = query(
@@ -344,14 +369,28 @@ const UserChats = () => {
     );
   };
 
+  const functionToCombineId = (playerOne: string, playerTwo: string) => {
+    if (playerOne && playerTwo) {
+      return playerOne > playerTwo ? playerOne + playerTwo : playerTwo + playerOne;
+    }
+  };
+
   // console.log(getSelectedChat[0]?.id);
 
   //Function to load the chat messages for the selected chat
   const handleChatSelect = async (chat: PlayerChatType) => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && currentUser?.userId) {
       const checkWidth = window.innerWidth <= 750;
 
       setOpenChat(checkWidth ? true : false); //This is for smaller screens to show the chat or close it
+      //  dispatch(
+      //       setSelectedPlayer({
+      //         name: singlePlayer?.name,
+      //         avatar: singlePlayer?.avatar,
+      //         id: singlePlayer?.id,
+      //         networkState: singlePlayer?.status,
+      //       })
+      //     );
       // dispatch(setCombinedChattingId(chat?.combinedId));
       // setGetSelectedChatCombinedId(chat?.combinedId); //a state to store the selectedChat combinedId
 
@@ -359,9 +398,16 @@ const UserChats = () => {
         (res) => res.id !== currentUser?.userId
       );
 
-      setGetSelectedChat(getSelectedChat);
+      setGetSelectedChat(getSelectedChat); //From here I now get the id which i use for sendingBattleInvite
+
+      const playerOne = currentUser?.userId;
+      const playerTwo = getSelectedChat[0]?.id;
+      const combineSelectedId = functionToCombineId(playerOne, playerTwo);
+
+      setGetSelectedChatCombinedId(combineSelectedId ?? null);
       const filter = newWay?.filter((item) => item?.combinedId === chat?.combinedId);
       setTrackChatters(filter[0]);
+      // console.log(filter, 'filter');
 
       //Find the id of the selected player
       const oppID = filter[0]?.participants?.filter((res) => res !== currentUser?.userId);
@@ -645,40 +691,45 @@ const UserChats = () => {
     }
   };
 
+  //To control for mobile screens
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (window.innerWidth <= 750 && playersChatState?.selectedPlayer?.id) {
+        setOpenChat(true);
+      }
+    }
+  }, [playersChatState?.selectedPlayer?.id]);
+
+  const handleSearch = async (debounced: string) => {
+    setLoadingSearch(LoadingState.LOADING);
     if (debouncedValue?.length > 1) {
-      const handleSearch = async (debounced: string) => {
-        // setLoading(true); // Set loading state
-        try {
-          console.log(debounced, 'debouced');
+      // setLoading(true); // Set loading state
+      try {
+        const playerRef = collection(db, 'players');
+        const playerDoc = query(playerRef, where('name', '==', debounced));
+        const querySnapshot = await getDocs(playerDoc);
+        const results: FullPlayerType[] = [];
+        querySnapshot.forEach((doc) => {
+          const playerData = doc.data();
+          if (playerData.id && playerData.name && playerData.networkState) {
+            results.push(playerData as FullPlayerType);
+          }
+        });
+        // console.log(results, 'results');
 
-          const playerRef = collection(db, 'players');
-          const playerDoc = query(playerRef, where('name', '==', debounced));
-          const querySnapshot = await getDocs(playerDoc);
-          // console.log('Is the query empty?', querySnapshot.empty); // Check if the query is empty
-          const results: PlayerDetails[] = [];
-          querySnapshot.forEach((doc) => {
-            // console.log(doc.data(), 'found user');
-            const playerData = doc.data();
-            if (playerData.id && playerData.name && playerData.networkState) {
-              results.push(playerData as PlayerDetails);
-            }
-          });
-          console.log(results, 'results');
-
-          // setNewWay(results); // Store all found users
-        } catch (err) {
-          console.error(err);
-        }
-      };
-
-      handleSearch(debouncedValue);
+        setSearchResults(results); // Store all found users
+        setLoadingSearch(null);
+      } catch (err) {
+        console.error(err);
+      }
     } else {
       console.log('An error has occurred');
 
-      // setNewWay(null); // Clear results if the search input is too short
+      setSearchResults([]); // Clear results if the search input is too short
     }
-  }, [debouncedValue]);
+  };
+
+  const handleChatSelectForSearch = (id: string) => {};
 
   return (
     <div>
@@ -712,15 +763,76 @@ const UserChats = () => {
                 // onKeyDown={handleSearch}
                 onChange={(e) => {
                   setSearchValue(e.target.value);
-                  // handleSearchForPlayer(e);
                 }}
-                placeholder="Enter players full name e.g Wrath"
+                value={searchValue!}
+                placeholder="Enter and search players full name e.g Wrath"
                 className="w-full rounded-lg focus-visible:ring-0 outline-none border-none py-2 px-2"
               />
-              <Search className="w-[50px] cursor-pointer " />
+              {loadingSearch === LoadingState.LOADING && debouncedValue?.length > 1 ? (
+                <Spinner />
+              ) : loadingSearch === null && debouncedValue?.length > 1 ? (
+                <X
+                  onClick={() => {
+                    setSearchResults([]);
+                    setSearchValue('');
+                  }}
+                  className="w-[50px] cursor-pointer "
+                />
+              ) : (
+                <Search
+                  onClick={() => handleSearch(debouncedValue)}
+                  className="w-[50px] cursor-pointer "
+                />
+              )}
             </div>
             <div className="flex flex-col items-start gap-2 ">
-              {newWay?.length > 0 ? (
+              {searchResults?.length > 1 ? (
+                searchResults?.map((chat) => {
+                  return (
+                    <div
+                      className="w-full py-1 border border-b-white/40 border-x-0 border-t-0 "
+                      key={chat?.id}
+                      onClick={() => handleChatSelectForSearch(chat.id)}
+                    >
+                      <div className="flex items-center gap-3 cursor-pointer mb-4">
+                        <div className="w-[40px] h-[40px] min-h-[40px] min-w-[40px] border border-white/50 rounded-full overflow-hidden">
+                          <Image
+                            src={chat?.avatar ?? defaultImg} // Or src={contact?.avatar ?? ''}
+                            width={40}
+                            height={40}
+                            className="w-full h-full object-cover object-top"
+                            alt={chat?.name ?? 'User Avatar'} // Better alt text
+                          />
+                        </div>
+                        <div className="flex flex-col leading-5 w-full">
+                          <div className="flex items-center justify-between gap-2 w-full">
+                            <h3>{chat?.name ?? 'Unknown User'}</h3>
+                            <p className="text-[12px] text-white/40">
+                              {chat?.unreadMessages![chat.unreadMessages!?.length - 1]
+                                .timeStamp
+                                ? formatTimestamp(
+                                    chat?.unreadMessages![
+                                      chat.unreadMessages!?.length - 1
+                                    ].timeStamp as Timestamp
+                                  )
+                                : ''}{' '}
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-between w-full">
+                            {
+                              <motion.span className="text-[10px] text-white">
+                                {chat?.unreadMessages![
+                                  chat.unreadMessages!?.length - 1
+                                ].message.slice(0, 25) || '...'}
+                              </motion.span>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : newWay?.length > 0 ? (
                 newWay.map((chat) => {
                   const filtered = getFilteredParticipants(chat.participantsObject);
                   return (
@@ -800,7 +912,7 @@ const UserChats = () => {
                   );
                 })
               ) : (
-                <div>
+                <div className="w-full h-[40vh] flex justify-center items-center mx-auto">
                   <p>You don&apos;t have any chats yet.</p>
                 </div>
               )}
@@ -820,20 +932,25 @@ const UserChats = () => {
               >
                 <IoIosArrowRoundBack size={24} />{' '}
               </span>
-              {playersChatState?.selectedPlayer?.avatar && (
-                <Image
-                  src={playersChatState?.selectedPlayer?.avatar}
-                  className="w-[50px] h-[50px] rounded-full object-cover object-top border border-white/50 "
-                  width={50}
-                  height={50}
-                  alt="img"
-                />
-              )}
+              <Image
+                src={
+                  getSelectedChat[0]?.avatar
+                    ? getSelectedChat[0]?.avatar
+                    : playersChatState?.selectedPlayer?.avatar
+                }
+                className="w-[50px] h-[50px] rounded-full object-cover object-top border border-white/50 "
+                width={50}
+                height={50}
+                alt="img"
+              />
+
               <div className="flex flex-col gap-[1px]">
                 <p>
-                  {trackChatters?.participantsObject[0]?.id === currentUser?.userId
-                    ? trackChatters?.participantsObject[1]?.name
-                    : trackChatters?.participantsObject[0]?.name}{' '}
+                  {getSelectedChat[0]?.name
+                    ? getSelectedChat[0]?.name
+                    : playersChatState?.selectedPlayer?.name
+                    ? playersChatState?.selectedPlayer?.name
+                    : ''}
                 </p>
                 <p className="text-[12px] text-white">
                   {textMessage?.length < 2 && trackChatters?.typing ? (
@@ -865,8 +982,8 @@ const UserChats = () => {
               )}
             </button>
           </div>
-          <div className="py-6 h-[80%] w-full overflow-auto px-3">
-            <div className="flex flex-col h-full overflow-auto">
+          <div className="py-6 h-[80%] w-full overflow-y-auto overflow-x-hidden px-3">
+            <div className="flex flex-col h-full overflow-y-auto overflow-x-hidden">
               <div className="flex flex-col h-full gap-3">
                 {trackChatters?.messages!?.length > 0 ? (
                   trackChatters?.messages?.map((res: Chat, index) => {
@@ -904,7 +1021,6 @@ const UserChats = () => {
                 placeholder="Type your message and send reactions…"
                 onKeyDown={(e: React.KeyboardEvent<HTMLTextAreaElement>) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
-                    // Allow Shift+Enter for new line
                     e.preventDefault();
                     sendMessage(
                       e.currentTarget.value,
@@ -925,7 +1041,9 @@ const UserChats = () => {
                 onClick={() =>
                   sendMessage(
                     textMessage,
-                    playersChatState?.selectedPlayer?.id.length < 1
+                    getSelectedChat[0]?.id.length > 1
+                      ? getSelectedChat[0]?.id
+                      : playersChatState?.selectedPlayer?.id.length < 1
                       ? getOpponentId!
                       : playersChatState?.selectedPlayer?.id
                   )

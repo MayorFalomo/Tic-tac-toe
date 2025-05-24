@@ -30,13 +30,19 @@ const initialState: Players = {
       id: "",
       name: "",
       avatar: "",
-     networkState: '',
+      networkState: '',
+      wins: 0,
+      loss: 0,
+      level: 1
     },
     playerTwo: {
       id: "",
       name: "",
       avatar: "",
-     networkState: '',
+      networkState: '',
+      wins: 0,
+      loss: 0,
+     level: 1
     },
   },
   gameSession: null,

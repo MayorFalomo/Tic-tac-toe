@@ -49,6 +49,7 @@ import { Skeleton } from '../ui/skeleton';
 import { IoIosArrowRoundBack } from 'react-icons/io';
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
+import { playSound } from '@/app/utils/soundFunc';
 
 interface IPlayers extends SessionPlayerDetails {
   invited: boolean;
@@ -174,6 +175,8 @@ const GlobalChat = () => {
 
       //Then I Update the document with the new messages array
       await setDoc(docRef, { messages });
+      await playSound('/fast-air-woosh.wav');
+
       setTextMessage('');
     } catch (error) {
       console.error('Error sending message:', error);

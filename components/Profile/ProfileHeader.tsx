@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import useIndexedDB from '@/hooks/useIndexDb';
 import { defaultImg, Unread } from '@/app/types/types';
 import clsx from 'clsx';
-import { useAppDispatch, useAppSelector } from '@/lib/hooks';
+import { useAppSelector } from '@/lib/hooks';
 // import { setAPlayer } from '@/lib/features/userSlice';
 import { RootState } from '@/lib/store';
 import toast from 'react-hot-toast';
@@ -25,7 +25,6 @@ import useOnClickOutside from '@/hooks/useOnclickOutside';
 import { RxAvatar } from 'react-icons/rx';
 import { HiOutlineBellAlert } from 'react-icons/hi2';
 import { usePlayer } from '@/contexts/UserContext';
-
 const EditName = React.lazy(() => import('./EditPlayerNameModal'));
 const EditProfilePicture = React.lazy(() => import('./EditProfilePicture'));
 
@@ -146,13 +145,11 @@ const ProfileHeader = () => {
     ref: ref,
     handler: () => {
       setOpenNotifModal(false);
-      setLogout(false);
-      setEditPlayer(false);
-      setChangeAvatar(false);
+      // setLogout(false);
+      // setEditPlayer(false);
+      // setChangeAvatar(false);
     },
   });
-
-  // console.log(currentUser, 'trackicon');
 
   return (
     <div ref={ref} className={`flex items-center gap-6 text-white`}>
