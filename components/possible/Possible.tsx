@@ -4,7 +4,7 @@ import { db } from '@/firebase-config/firebase';
 import { useAppDispatch, useAppSelector } from '@/lib/hooks';
 import { RootState } from '@/lib/store';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import DrawLine from '@/app/animation/DrawLine';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -46,6 +46,12 @@ const Possible: React.FC<MappedOver> = ({
 
   const dispatch = useAppDispatch();
   const { updateData, getData } = useIndexedDB();
+  const [toastStyle, setToastStyle] = useState({
+    background: '#333',
+    color: '#fff',
+    width: 'auto',
+    minWidth: '250px',
+  });
 
   const updateGameState = async (selected: number) => {
     try {
@@ -73,10 +79,7 @@ const Possible: React.FC<MappedOver> = ({
           // Check if it's the player's turn
           if (currentTurn !== playersObject?.playerOne?.id) {
             toast.error('It is not your turn!', {
-              style: {
-                background: '#333',
-                color: '#fff',
-              },
+              style: toastStyle,
               position: 'top-right',
             });
             return;
@@ -87,10 +90,7 @@ const Possible: React.FC<MappedOver> = ({
 
           if (isChoiceTaken) {
             toast.error('This move has already been played!', {
-              style: {
-                background: '#333',
-                color: '#fff',
-              },
+              style: toastStyle,
               position: 'top-right',
             });
             return;
@@ -152,6 +152,13 @@ const Possible: React.FC<MappedOver> = ({
               stopTimer();
               if (
                 gameData?.rounds === 5 &&
+                gameData?.scores?.playerOne !== gameData?.scores?.playerTwo
+              ) {
+                console.log('I RAN');
+                ultimateWinnerSequence(gameData, determineWinnerName);
+              }
+              if (
+                gameData?.rounds === 5 &&
                 gameData?.scores?.playerOne === gameData?.scores?.playerTwo
               ) {
                 await updateDoc(doc(db, 'gameSessions', combinedId), {
@@ -167,55 +174,7 @@ const Possible: React.FC<MappedOver> = ({
                   status: 'offline',
                 });
               } else if (gameData?.rounds === 5 && !draw) {
-                const determineFinalWinner =
-                  gameData?.scores?.playerOne > gameData?.scores?.playerTwo;
-                const getPlayerWinnerName = determineFinalWinner
-                  ? gameData?.players?.playerOne?.name
-                  : gameData?.players?.playerTwo?.name;
-
-                await updateDoc(doc(db, 'gameSessions', combinedId), {
-                  roundWinner: determineWinnerName,
-                  endOfRound: true,
-                });
-
-                toast.success(`Player ${determineWinnerName} wins this round!`, {
-                  position: 'top-center',
-                  style: {
-                    background: '#333', // Dark background
-                    color: '#fff', // White text
-                    width: 'auto',
-                    minWidth: '250px',
-                  },
-                });
-
-                setTimeout(async () => {
-                  await updateDoc(doc(db, 'gameSessions', combinedId), {
-                    roundWinner: '',
-                    ultimateWinner: getPlayerWinnerName,
-                  });
-                  toast.success(`Player ${getPlayerWinnerName} is the ultimate winner!`, {
-                    style: {
-                      background: '#333',
-                      color: '#fff',
-                      minWidth: '250px',
-                      width: 'auto',
-                    },
-                    position: 'top-right',
-                  });
-                  // const determineFinalWinnerName = checkForWinningName(
-                  //   determineFinalWinner
-                  // );
-
-                  setUltimateWinner(getPlayerWinnerName);
-                }, 4000);
-
-                await countAndUpdateTotalPlayerWins(getPlayerWinnerName);
-
-                //So it reflects offline after since most players go off here
-                await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
-                  status: 'offline',
-                });
-                return;
+                ultimateWinnerSequence(gameData, determineWinnerName);
               }
               dispatch(setTrackWinner(determineWinnerName));
               dispatch(setTrackDisableRound(false));
@@ -250,17 +209,10 @@ const Possible: React.FC<MappedOver> = ({
                     endOfRound: true,
                   });
                   toast.success(`Player ${getFinalWinnerName} is the ultimate winner!`, {
-                    style: {
-                      background: '#333',
-                      color: '#fff',
-                      minWidth: '250px',
-                      width: 'auto',
-                    },
+                    style: toastStyle,
                     position: 'top-right',
                   });
-                  // const determineFinalWinnerName = checkForWinningName(
-                  //   determineFinalWinner
-                  // );
+
                   //!Stop the Timer
                   stopTimer();
                   setUltimateWinner(getFinalWinnerName);
@@ -288,10 +240,7 @@ const Possible: React.FC<MappedOver> = ({
         } else {
           toast.success('This round has ended!', {
             position: 'top-right',
-            style: {
-              background: '#333', // Dark background
-              color: '#fff', // White text
-            },
+            style: toastStyle,
           });
         }
       } else {
@@ -300,6 +249,47 @@ const Possible: React.FC<MappedOver> = ({
     } catch (error) {
       console.error('Error updating game state:', error);
     }
+  };
+
+  const ultimateWinnerSequence = async (
+    gameData: GameSession,
+    determineWinnerName: string
+  ) => {
+    const determineFinalWinner =
+      gameData?.scores?.playerOne > gameData?.scores?.playerTwo;
+    const getPlayerWinnerName = determineFinalWinner
+      ? gameData?.players?.playerOne?.name
+      : gameData?.players?.playerTwo?.name;
+
+    await updateDoc(doc(db, 'gameSessions', combinedId), {
+      roundWinner: determineWinnerName,
+      endOfRound: true,
+    });
+
+    toast.success(`Player ${determineWinnerName} wins this round!`, {
+      position: 'top-center',
+      style: toastStyle,
+    });
+
+    setTimeout(async () => {
+      await updateDoc(doc(db, 'gameSessions', combinedId), {
+        roundWinner: '',
+        ultimateWinner: getPlayerWinnerName,
+      });
+      toast.success(`Player ${getPlayerWinnerName} is the ultimate winner!`, {
+        style: toastStyle,
+        position: 'top-right',
+      });
+      stopTimer();
+      setUltimateWinner(getPlayerWinnerName);
+      await countAndUpdateTotalPlayerWins(getPlayerWinnerName);
+    }, 4000);
+
+    //So it reflects offline after since most players go off here
+    await updateDoc(doc(db, 'players', playersObject?.playerOne?.id), {
+      status: 'offline',
+    });
+    return;
   };
 
   //Function to check if the player that just played got the correct combination

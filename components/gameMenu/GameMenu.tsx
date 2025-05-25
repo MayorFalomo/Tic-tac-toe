@@ -136,7 +136,7 @@ const GameMenu = (props: Props) => {
             <Bouncy delay={1} className="w-[40%]  max-[600px]:w-[70%]">
               <Link href="/info">
                 <Button
-                  className={`w-[100%] flex items-center gap-4 py-3 cursor-pointer text-[16px] ${
+                  className={`w-[100%] flex items-center gap-4 py-4 cursor-pointer text-[16px] ${
                     currentTheme === 'light'
                       ? 'bg-transparent text-[#9F8151] border hover:bg-white'
                       : viewPlayersStyle

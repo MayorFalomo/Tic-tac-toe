@@ -20,7 +20,8 @@ const config = {
     extend: {
       fontFamily: {
         sans: ["Inter", "sans-serif"],
-        pacifico: ['Pacifico', 'sans-serif']
+        pacifico: ['var(--font-pacifico)', 'sans-serif'],
+        fasterOne: ['var(--font-faster_one)', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

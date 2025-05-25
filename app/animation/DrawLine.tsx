@@ -12,6 +12,7 @@ type Props = {
   style?: string;
   transformOrigin?: string;
   delay?: number;
+  duration?: number;
 };
 
 const DrawLine = ({
@@ -25,6 +26,7 @@ const DrawLine = ({
   transformOrigin = 'top left',
   style,
   delay,
+  duration = 0.7,
 }: Props) => {
   return (
     <motion.span
@@ -52,7 +54,7 @@ const DrawLine = ({
         right: right ?? '',
         transform: `rotate(${rotate}deg)`,
         transition: {
-          duration: 0.7,
+          duration: duration,
           ease: 'easeInOut',
           delay: delay,
           type: 'spring',
@@ -65,7 +67,7 @@ const DrawLine = ({
       exit={{
         width: '0',
         transform: `rotate(${rotate}deg)`,
-        transition: { duration: 0.7 },
+        transition: { duration: duration },
       }}
       style={{
         height: height,

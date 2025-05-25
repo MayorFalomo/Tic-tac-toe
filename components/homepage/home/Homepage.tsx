@@ -232,6 +232,7 @@ const Homepage: React.FC = () => {
   //useEffect to manage time and currentTurns
   useEffect(() => {
     if (formattedTime === '00:00' && !gameData?.endOfRound) {
+      toast('Time-up!, It is no longer your turn.');
       //change currentTurn on firebase then reset the time
       const getNextPlayerId =
         gameData?.currentTurn === playersObject?.playerOne?.id
@@ -248,7 +249,6 @@ const Homepage: React.FC = () => {
       resetTimer();
     }
   }, [gameData?.currentTurn, formattedTime === '00:00']);
-  // console.log(formattedTime === '00:30', 'formattedTime');
 
   return (
     <div

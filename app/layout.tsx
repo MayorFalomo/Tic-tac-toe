@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Prompt } from 'next/font/google';
+import { Faster_One, Prompt } from 'next/font/google';
 import { Pacifico } from 'next/font/google';
 import './globals.css';
 import StoreProvider from '@/storeProvider';
@@ -12,6 +12,12 @@ import { UserProvider } from '@/contexts/UserContext';
 const inter = Prompt({ weight: '400', style: 'normal', subsets: ['latin'] });
 const pacifico = Pacifico({
   variable: '--font-pacifico',
+  weight: '400',
+  style: 'normal',
+  subsets: ['latin'],
+});
+const fasterOne = Faster_One({
+  variable: '--font-faster_one',
   weight: '400',
   style: 'normal',
   subsets: ['latin'],
@@ -93,7 +99,7 @@ export default function RootLayout({
         />
         <meta property="og:image:alt" content="Online Multiplayer TicTacToe" />
       </Head>
-      <body className={`${inter.className} ${pacifico.variable}`}>
+      <body className={`${inter.className} ${pacifico.variable} ${fasterOne.variable}`}>
         <StoreProvider>
           <Providers>
             <ThemeProvider>

@@ -313,7 +313,7 @@ const HomeHeader: React.FC<Props> = ({
                 WebkitBackdropFilter: 'filter(5px',
                 boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
               }}
-              className="absolute z-20 left-0 right-0 top-[50%] w-full p-3"
+              className="fixed z-20 left-0 right-0 top-[50%] w-full p-3"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -323,7 +323,9 @@ const HomeHeader: React.FC<Props> = ({
                   ultimateWinner !== null || '' ? 'text-golden' : 'text-white'
                 } text-[24px] text-center m-auto`}
               >
-                {ultimateWinner !== null ? 'Congrats!' + ' ' + ultimateWinner : ''}
+                {ultimateWinner !== null
+                  ? '🏆 Congrats!' + ' ' + `${ultimateWinner} 🏆`
+                  : ''}
               </h1>
             </motion.div>
           )}
@@ -337,7 +339,7 @@ const HomeHeader: React.FC<Props> = ({
                 WebkitBackdropFilter: 'filter(5px',
                 boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
               }}
-              className="absolute z-20 left-0 right-0 top-[50%] w-full p-3"
+              className=" fixed z-20 left-0 right-0 top-[50%] w-full p-3"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -348,7 +350,7 @@ const HomeHeader: React.FC<Props> = ({
                 } text-[24px] text-center m-auto`}
               >
                 {roundWinner !== null || roundWinner !== ''
-                  ? roundWinner + ' ' + 'wins'
+                  ? roundWinner + ' ' + 'wins 🥇'
                   : ''}
               </h1>
             </motion.div>

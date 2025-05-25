@@ -131,7 +131,7 @@ const InfoMenu: React.FC = () => {
                     currentTheme === 'light'
                       ? 'bg-royalGreen text-golden'
                       : 'bg-[#000] text-white'
-                  }  h-[90%] overflow-auto w-[100%] max-sm:max-w-[425px]`}
+                  }  h-[90%] overflow-auto w-[95%] max-sm:max-w-[425px]`}
                 >
                   <DialogHeader>
                     <DialogTitle>#Multiplayer Tic-Tac-Toe Game </DialogTitle>
@@ -186,12 +186,12 @@ const InfoMenu: React.FC = () => {
                       >
                         Current Features{' '}
                       </h3>
-                      <li>Fast Real-time player pairing. </li>
+                      <li>Fast Real-time player search and pairing. </li>
                       <li>Live player to player chat. </li>
-                      <li>Get Instant notifications on your profile</li>
+                      <li>Get Instant notifications on your profile.</li>
                       <li>Send Reactions in chats. </li>
-                      <li>See update, for when a user starts typing </li>
-                      <li>See wh</li>
+                      <li>players can see when a player starts typing in chats. </li>
+                      <li>resume gameplay anytime.</li>
                       <li>see changes happen in real-time </li>
                       <li>Light/Dark mode. </li>
                       <li>Sound Control. </li>
@@ -199,8 +199,8 @@ const InfoMenu: React.FC = () => {
                       <li>Track Players Status. </li>
                       <li>View each players profile. </li>
                       <li>Select an Avatar or choose custom a image </li>
-                      <li>Sign up</li>
-                      <li>Login with saved profile </li>
+                      <li>Sign up.</li>
+                      <li>Login with saved profile. </li>
                     </ul>
                   </section>
                 </DialogContent>
@@ -220,7 +220,7 @@ const InfoMenu: React.FC = () => {
                     currentTheme === 'light'
                       ? 'bg-royalGreen text-golden'
                       : 'bg-[#000] text-white'
-                  } h-[90%] overflow-auto w-[100%] max-sm:max-w-[425px]`}
+                  } h-[90%] overflow-auto w-[95%] max-sm:max-w-[425px]`}
                 >
                   <DialogHeader>
                     <DialogTitle
@@ -242,7 +242,7 @@ const InfoMenu: React.FC = () => {
                       </li>
                       <li>Play With Computer. </li>
                       <li>Add More customizable settings.</li>
-                      <li>Chat players before the game.</li>
+                      <li>Chat players before the game (done ✅). </li>
                       <li>LeaderBoard to show total wins and losses by a player.</li>
                       <li>A Timer to record battle time.</li>
                       <li>Add more Avatars and avatar themes. </li>
@@ -266,7 +266,7 @@ const InfoMenu: React.FC = () => {
                     currentTheme === 'light'
                       ? 'bg-royalGreen text-golden'
                       : 'bg-[#000] text-white'
-                  } h-[90%] overflow-auto w-[100%] max-sm:max-w-[425px]`}
+                  } h-[90%] overflow-auto w-[95%] max-sm:max-w-[425px]`}
                 >
                   <DialogHeader>
                     <DialogTitle
@@ -311,8 +311,9 @@ const InfoMenu: React.FC = () => {
                         it can literally be anybody.{' '}
                       </li>
                       <li>
-                        Quitting/refreshing the Game automatically means loss of current
-                        game data{' '}
+                        Refreshing the Game does not automatically mean loss of current
+                        game data, as long as you don&apos;t quit a game, you can resume
+                        anytime.{' '}
                       </li>
                     </ul>
                   </div>
