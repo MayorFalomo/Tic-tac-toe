@@ -14,7 +14,7 @@ const Preload = () => {
         <div className="h-full flex items-center justify-center ">
           <div className="flex flex-col items-center">
             <motion.h1
-              className=" text-center text-[70px] font-fasterOne text-white"
+              className=" text-center text-[70px] max-[900px]:text-[60px] max-[500px]:text-[45px] font-fasterOne text-white"
               style={{
                 textShadow:
                   '0 0 10px rgba(255,165,0,0.7), 0 0 20px rgba(255,140,0,0.5), 0 0 30px rgba(255,69,0,0.3), 0 0 40px #ff8c00, 0 0 30px #ffa500, 0 0 40px #ff4500',
