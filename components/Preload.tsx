@@ -41,7 +41,7 @@ const Preload = () => {
             >
               TICTACTOE
             </motion.h1>
-            <div className="relative flex items-center gap-[40px] font-pacifico text-white">
+            <div className="relative flex items-center gap-[40px]  text-white">
               <motion.span
                 className="m-auto text-[70px] text-gradient text-gradient-ocean"
                 initial={{ opacity: 0 }}
