@@ -83,9 +83,12 @@ export const getAllPlayers = async (): Promise<any[]> => {
     const playersRef = collection(db, 'players'); // Reference to the players collection
     const playersQuery = query(playersRef); // Create a query for the players collection
     const querySnapshot = await getDocs(playersQuery); // Get all documents in the players collection
-
+    console.log(querySnapshot, 'querySnapshot');
     if (!querySnapshot.empty) {
-      return querySnapshot.docs.map((doc) => doc.data()); // Map over documents to extract data
+      return querySnapshot.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id // Include the document ID
+      })); // Map over documents to extract data with ID
     } else {
       return []; // Return an empty array if no players are found
     }

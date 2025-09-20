@@ -106,8 +106,6 @@ const EditProfilePicture: React.FC<Props> = ({
   ];
 
   const handleAvatarSelection = (value: string) => {
-    console.log(value, 'value');
-
     switch (value) {
       case AvatarValueType.Anime:
         setAnimePictures(AnimeAvatars);

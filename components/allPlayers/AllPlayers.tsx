@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
-import { getAllPlayers, handlePlayersStatus } from '../funcs/HandleAuth';
+import { handlePlayersStatus } from '../funcs/HandleAuth';
 import { LoadingState, PlayerStatus, SessionPlayerDetails } from '@/app/types/types';
 import Image from 'next/image';
 import clsx from 'clsx';
@@ -37,7 +37,7 @@ interface IPlayers extends SessionPlayerDetails {
 const AllPlayers = () => {
   const [getPlayers, seGetPlayers] = useState<IPlayers[]>([]);
   const [singlePlayer, setSinglePlayer] = useState<IPlayers | null>(null);
-  const [loading, setLoading] = useState<string | null>(null);
+  const [loading, setLoading] = useState<string | null>(LoadingState.LOADING);
   const [inviteLoader, setInviteLoader] = useState<boolean>(false);
   const dispatch = useAppDispatch();
   const navigate = useRouter();
@@ -49,23 +49,44 @@ const AllPlayers = () => {
     const getAllPlayersRef = collection(database, 'players');
     const allPlayersQuery = query(getAllPlayersRef);
 
-    const unsubscribePlayers = onSnapshot(allPlayersQuery, (snapshot) => {
-      const updatedPlayers: IPlayers[] = [];
+    const unsubscribePlayers = onSnapshot(
+      allPlayersQuery,
+      (snapshot) => {
+        const updatedPlayers: IPlayers[] = [];
 
-      snapshot.forEach((doc) => {
-        if (doc.exists()) {
-          const playersArr = doc.data() as IPlayers;
-          updatedPlayers.push(playersArr);
+        snapshot.forEach((doc) => {
+          if (doc.exists()) {
+            const playersArr = {
+              ...doc.data(),
+              id: doc.id, // Include the document ID
+            } as IPlayers;
+            updatedPlayers.push(playersArr);
+          }
+        });
+
+        seGetPlayers(updatedPlayers);
+        setLoading(LoadingState.SUCCESS);
+
+        // Set single player if current user is found
+        if (currentUser?.userId) {
+          const currentUserPlayer = updatedPlayers.find(
+            (player) => player.id === currentUser.userId
+          );
+          if (currentUserPlayer) {
+            setSinglePlayer(currentUserPlayer);
+          }
         }
-      });
-
-      seGetPlayers(updatedPlayers);
-    });
+      },
+      (error) => {
+        console.error('Error fetching players:', error);
+        setLoading(LoadingState.FAILED);
+      }
+    );
 
     return () => {
       unsubscribePlayers();
     };
-  }, []);
+  }, [currentUser?.userId]);
 
   useEffect(() => {
     const retrievedKey = currentUser?.userId;
@@ -73,18 +94,7 @@ const AllPlayers = () => {
       //Set a players status to active first on realtime db
       handlePlayersStatus(retrievedKey, PlayerStatus.ONLINE);
     }
-    const gotten = getAllPlayers();
-    if (gotten) {
-      gotten.then((res: any) => {
-        if (retrievedKey) {
-          const filtered = res.filter((player: any) => player.id === retrievedKey);
-          setSinglePlayer(filtered);
-          setLoading(LoadingState.SUCCESS);
-        }
-        seGetPlayers(res);
-      });
-    }
-  }, []);
+  }, [currentUser?.userId]);
 
   const handleChats = async () => {
     setInviteLoader(true);
